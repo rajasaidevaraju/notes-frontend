@@ -1,95 +1,182 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import styles from '@/Home.module.css';
+import {Note} from '@/types/Notes'
+import ErrorMessage from './components/ErrorMessage';
+import NotesList from './components/NotesList';
+import AddNoteForm from './components/AddNoteForm'
+import Modal from './components/Modal';
+
+export default function App() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [newNoteTitle, setNewNoteTitle] = useState('');
+  const [newNoteContent, setNewNoteContent] = useState('');
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editingNoteTitle, setEditingNoteTitle] = useState('');
+  const [editingNoteContent, setEditingNoteContent] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false); // New state for modal
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  const fetchNotes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/notes`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Note[] = await response.json();
+      setNotes(data);
+    } catch (err: any) {
+      setError(`Failed to fetch notes: ${err.message}`);
+      console.error('Error fetching notes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteTitle.trim()) {
+      setError('Title cannot be empty.');
+      return;
+    }
+    setError(null);
+    try {
+      const response = await fetch(`/api/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: newNoteTitle, content: newNoteContent }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const addedNote: Note = await response.json();
+      setNotes((prevNotes) => [...prevNotes, addedNote]);
+      setNewNoteTitle('');
+      setNewNoteContent('');
+      setIsAddNoteModalOpen(false); // Close modal on successful add
+    } catch (err: any) {
+      setError(`Failed to add note: ${err.message}`);
+      console.error('Error adding note:', err);
+    }
+  };
+
+  const handleEditClick = (note: Note) => {
+    setEditingNoteId(note.id);
+    setEditingNoteTitle(note.title);
+    setEditingNoteContent(note.content);
+  };
+
+  const handleUpdateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNoteId) return;
+    if (!editingNoteTitle.trim()) {
+      setError('Title cannot be empty.');
+      return;
+    }
+    setError(null);
+    try {
+      const response = await fetch(`/api/notes/${editingNoteId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: editingNoteTitle, content: editingNoteContent }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const updatedNote: Note = await response.json();
+      setNotes((prevNotes) =>
+        prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
+      );
+      setEditingNoteId(null);
+      setEditingNoteTitle('');
+      setEditingNoteContent('');
+    } catch (err: any) {
+      setError(`Failed to update note: ${err.message}`);
+      console.error('Error updating note:', err);
+    }
+  };
+
+  const handleDeleteNote = async (id: number) => {
+    setError(null);
+    try {
+      const response = await fetch(`/api/notes/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+    } catch (err: any) {
+      setError(`Failed to delete note: ${err.message}`);
+      console.error('Error deleting note:', err);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>My Notes App</h1>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <ErrorMessage message={error} />
+
+        <button
+          onClick={() => setIsAddNoteModalOpen(true)}
+          className={`${styles.button} ${styles.primaryButton} ${styles.createNoteButton}`}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Create New Note
+        </button>
+
+        <Modal
+          isOpen={isAddNoteModalOpen}
+          onClose={() => setIsAddNoteModalOpen(false)}
+          title="Add New Note"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <AddNoteForm
+            newNoteTitle={newNoteTitle}
+            setNewNoteTitle={setNewNoteTitle}
+            newNoteContent={newNoteContent}
+            setNewNoteContent={setNewNoteContent}
+            handleAddNote={handleAddNote}
+            onSuccess={() => setIsAddNoteModalOpen(false)} // Close modal on success
           />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </Modal>
+
+        <h2 className={styles.notesSectionTitle}>Your Notes</h2>
+        <NotesList
+          notes={notes}
+          loading={loading}
+          editingNoteId={editingNoteId}
+          editingNoteTitle={editingNoteTitle}
+          setEditingNoteTitle={setEditingNoteTitle}
+          editingNoteContent={editingNoteContent}
+          setEditingNoteContent={setEditingNoteContent}
+          handleEditClick={handleEditClick}
+          handleUpdateNote={handleUpdateNote}
+          handleDeleteNote={handleDeleteNote}
+          setEditingNoteId={setEditingNoteId}
+        />
+      </div>
     </div>
   );
 }
