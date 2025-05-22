@@ -11,12 +11,13 @@ import Modal from './Modal';
 
 interface NotesContainerProps {
     initialNotes:Note[];
+    initialError: string | null; 
 }
 
-const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes}) => {
+const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialError}) => {
     const [notes, setNotes] = useState<Note[]>(initialNotes);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(initialError); 
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   
 
