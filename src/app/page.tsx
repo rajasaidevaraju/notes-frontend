@@ -5,7 +5,7 @@ import {Note} from '@/types/Notes'
 
 export default async function App() {
   let notes: Note[] = [];
-  let initialError: string | null = null; // Initialize initialError
+  let initialError: string | null = null;
 
   try {
     const response = await fetch(`http://localhost:3002/notes`, {
@@ -22,7 +22,7 @@ export default async function App() {
         initialError = `Error fetching notes: HTTP status ${response.status}.`;
       }
       console.error(initialError);
-      notes = []; // Ensure notes is an empty array on error
+      notes = [];
     } else {
       const data = await response.json();
       if (Array.isArray(data)) {

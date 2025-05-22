@@ -72,6 +72,10 @@
     font-weight: 500;
     margin-bottom: 0.25rem;
   }
+
+  .checkboxInput{
+    margin-right: 3px;
+  }
   
   .formInput,
   .formTextarea {
@@ -102,9 +106,13 @@
     color: var(--color-white);
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.15s ease-in-out; /* Removed box-shadow from here */
+    transition: background-color 0.15s ease-in-out;
     border: none;
     outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
   }
   
   .button:focus {
@@ -160,6 +168,16 @@
     background-color: var(--color-brand-danger-dark);
   }
 
+  .dangerButton {
+    background-color: var(--color-brand-danger);
+    color: var(--color-white);
+    border: none;
+  }
+
+  .dangerButton:hover {
+    background-color: var(--color-brand-danger-dark);
+  }
+
   .pinButton {
     background-color: var(--color-neutral-200);
     color: var(--color-neutral-700);
@@ -168,7 +186,7 @@
     font-size: 1.2rem;
     min-width: 40px;
     border-radius: 0.375rem;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; /* More specific transition */
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
   }
 
   .pinButton:hover {
@@ -185,6 +203,28 @@
     background-color: color-mix(in srgb, var(--color-accent-pinned-border) 90%, black);
   }
   
+  .icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+  }
+
+  .pinButton .icon {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .pinButton.pinned .icon {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .editButton .icon,
+  .deleteButton .icon {
+    stroke: currentColor;
+    fill: none;
+  }
+
   .infoMessage {
     text-align: center;
     color: var(--color-neutral-500);
@@ -205,7 +245,7 @@
     margin-bottom: 15px;
     background-color: var(--color-white);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Removed transform */
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
   }
 
   .pinnedNote {
@@ -244,7 +284,8 @@
   
   .buttonGroup {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: row; /* Enforce row direction */
+    gap: 0.5rem; /* Keep existing gap or adjust to 0.75rem if preferred */
     flex-shrink: 0;
   }
   
@@ -309,8 +350,11 @@
     color: var(--color-neutral-900);
   }
   
-  .modalBody {
-    /* Add any specific styling for the body content if needed */
+  .modalBodyText {
+    font-size: 1rem;
+    color: var(--color-neutral-700);
+    margin-bottom: 1.5rem;
+    text-align: center;
   }
   
   .createNoteButton {
@@ -351,11 +395,19 @@
     }
   
     .buttonGroup {
-      flex-direction: column; 
-      gap: 0.75rem;
+      flex-direction: row; 
+      gap: 0.75rem; 
     }
   
     .buttonGroup .button {
-      width: 100%;
+      width: auto;
+      flex-grow: 1;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .buttonGroup {
+      flex-wrap: wrap;
+      justify-content: center; 
     }
   }

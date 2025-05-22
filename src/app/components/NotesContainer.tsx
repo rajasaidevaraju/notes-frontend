@@ -19,7 +19,8 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(initialError); 
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-  
+    
+    
 
     const handleAddNote = async (title: string, content: string) => {
       setError(null);
@@ -38,7 +39,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
         }
   
         const addedNote: Note = await response.json();
-        setNotes((prevNotes) => [...prevNotes, addedNote]);
+        setNotes((prevNotes) => [addedNote, ...prevNotes]);
       } catch (err: any) {
         setError(`Failed to add note: ${err.message}`);
         console.error('Error adding note:', err);

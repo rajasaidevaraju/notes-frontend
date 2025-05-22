@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import { Note } from '@/types/Notes';
+import Modal from './Modal'; // Import the Modal component
 
 interface NoteItemProps {
   note: Note;
@@ -15,6 +16,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
   const [editingNoteContent, setEditingNoteContent] = useState(note.content);
   const [isPinned, setIsPinned] = useState(note.pinned); 
   const [itemError, setItemError] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete confirmation modal
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -27,7 +29,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
     setIsEditing(true);
     setEditingNoteTitle(note.title);
     setEditingNoteContent(note.content);
-    setIsPinned(note.pinned); // Initialize pinned state when editing
+    setIsPinned(note.pinned);
     setItemError(null);
   };
 
@@ -47,11 +49,18 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true); // Open the delete confirmation modal
+  };
+
+  const confirmDelete = async () => {
     setItemError(null);
     try {
       await onDeleteNote(note.id);
+      setIsDeleteModalOpen(false); // Close modal on successful deletion
     } catch (err: any) {
+      // Error handled by parent, but ensure modal closes or shows error
+      setIsDeleteModalOpen(false); // Close modal even on error to allow user to retry
     }
   };
 
@@ -129,25 +138,69 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
                 className={`${styles.button} ${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
                 title={isPinned ? 'Unpin Note' : 'Pin Note'}
               >
-                {isPinned ? 'pinned' : 'pin'}
+                {isPinned ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                    <path d="M17 17L12 22L7 17V10H17V17Z" />
+                    <path d="M12 2V10" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                    <path d="M12 17V22" />
+                    <path d="M7 10V17L12 22L17 17V10" />
+                    <path d="M17 10H7V5H17V10Z" />
+                  </svg>
+                )}
               </button>
               <button
                 onClick={handleEditClick}
                 className={`${styles.button} ${styles.editButton}`}
+                title="Edit Note"
               >
-                Edit
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
+                </svg>
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick} // Call the function to open the modal
                 className={`${styles.button} ${styles.deleteButton}`}
+                title="Delete Note"
               >
-                Delete
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
               </button>
             </div>
           </div>
           <p className={styles.noteContent}>{note.content || 'No content'}</p>
         </>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Confirm Deletion"
+      >
+        <p className={styles.modalBodyText}>Are you sure you want to delete this note?</p>
+        <div className={styles.buttonGroup}>
+          <button
+            onClick={confirmDelete}
+            className={`${styles.button} ${styles.dangerButton}`}
+          >
+            Yes, Delete
+          </button>
+          <button
+            onClick={() => setIsDeleteModalOpen(false)}
+            className={`${styles.button} ${styles.cancelButton}`}
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
