@@ -99,10 +99,9 @@
   }
   
   .button {
-    width: 100%;
+    width: fit-content;
     padding: 0.5rem 1rem;
     border-radius: 0.375rem;
-    color: var(--color-white);
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.15s ease-in-out;
@@ -120,6 +119,7 @@
   
   .primaryButton {
     background-color: var(--color-brand-primary);
+    color: var(--color-white);
   }
   .primaryButton:hover {
     background-color: var(--color-brand-primary-dark);
@@ -241,10 +241,26 @@
     border: 1px solid var(--color-neutral-300);
     border-radius: 8px;
     padding: 15px;
-    margin-bottom: 15px;
     background-color: var(--color-white);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  }
+
+  .clipboardNote{
+    border-color: var(--color-brand-primary);
+    background-color: var(--color-background-add-section);
+    order: -2; 
+  }
+
+  .clipboardNote .noteTitle {
+    color: var(--color-brand-primary); 
+  }
+  
+  .permission{
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin: 10px 0px;
   }
 
   .pinnedNote {
@@ -277,14 +293,15 @@
   
   .noteContent {
     color: var(--color-neutral-700);
-    margin-bottom: 1rem;
     white-space: pre-wrap;
+    word-wrap: break-word;
+     overflow-wrap: break-word;
   }
   
   .buttonGroup {
     display: flex;
-    flex-direction: row; /* Enforce row direction */
-    gap: 0.5rem; /* Keep existing gap or adjust to 0.75rem if preferred */
+    flex-direction: row;
+    gap: 0.5rem;
     flex-shrink: 0;
   }
   
@@ -353,7 +370,7 @@
     font-size: 1rem;
     color: var(--color-neutral-700);
     margin-bottom: 1.5rem;
-    text-align: center;
+    text-align: left;
   }
   
   .createNoteButton {
@@ -398,7 +415,7 @@
     }
   
     .buttonGroup .button {
-      width: auto;
+      width: fit-content;
       flex-grow: 1;
     }
   }

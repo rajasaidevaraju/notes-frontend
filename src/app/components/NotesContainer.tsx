@@ -11,16 +11,21 @@ import Modal from './Modal';
 
 interface NotesContainerProps {
     initialNotes:Note[];
-    initialError: string | null; 
+    initialError: string | null;
 }
 
+const CLIPBOARD_NOTE_TITLE = 'Clipboard';
+
 const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialError}) => {
-    const [notes, setNotes] = useState<Note[]>(initialNotes);
+    const initialRegularNotes = initialNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
+    const initialClipboardNote = initialNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
+
+    const [notes, setNotes] = useState<Note[]>(initialRegularNotes);
+    const [clipboardNote, setClipboardNote] = useState<Note | null>(initialClipboardNote);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(initialError); 
+    const [error, setError] = useState<string | null>(initialError);
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-    
-    
+  
 
     const handleAddNote = async (title: string, content: string) => {
       setError(null);
@@ -39,7 +44,8 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
         }
   
         const addedNote: Note = await response.json();
-        setNotes((prevNotes) => [addedNote, ...prevNotes]);
+        setNotes((prevNotes) => [...prevNotes, addedNote]);
+        setIsAddNoteModalOpen(false);
       } catch (err: any) {
         setError(`Failed to add note: ${err.message}`);
         console.error('Error adding note:', err);
@@ -64,9 +70,16 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
         }
   
         const updatedNote: Note = await response.json();
-        setNotes((prevNotes) =>
-          prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
-        );
+        
+        // If the updated note is the clipboard note, update its specific state
+        if (updatedNote.title === CLIPBOARD_NOTE_TITLE) {
+          setClipboardNote(updatedNote);
+        } else {
+          // Otherwise, update the regular notes list
+          setNotes((prevNotes) =>
+            prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
+          );
+        }
       } catch (err: any) {
         setError(`Failed to update note: ${err.message}`);
         console.error('Error updating note:', err);
@@ -91,6 +104,27 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
         setError(`Failed to delete note: ${err.message}`);
         console.error('Error deleting note:', err);
         throw err;
+      }
+    };
+
+    // Function to handle pasting content directly to the clipboard note
+    const handlePasteToClipboardNote = async () => {
+      setError(null); 
+      if (!clipboardNote) {
+        setError('Clipboard note not found. Please refresh the page.');
+        return;
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          await handleUpdateNote(clipboardNote.id, clipboardNote.title, text, clipboardNote.pinned);
+        } else {
+          setError('Clipboard API not supported or permission denied. Please ensure your browser supports it and you have granted permission.');
+          console.warn('Clipboard API (readText) not supported or permission denied.');
+        }
+      } catch (err: any) {
+        setError(`Failed to read clipboard: ${err.message}. Ensure you have granted permission.`);
+        console.error('Error reading clipboard for paste:', err);
       }
     };
   
@@ -125,6 +159,8 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
           loading={loading}
           onUpdateNote={handleUpdateNote}
           onDeleteNote={handleDeleteNote}
+          clipboardNote={clipboardNote} 
+          onPasteToClipboardNote={handlePasteToClipboardNote}
         />
       </>
     );

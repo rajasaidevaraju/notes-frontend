@@ -2,21 +2,25 @@ import { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import { Note } from '@/types/Notes';
-import Modal from './Modal'; // Import the Modal component
+import Modal from './Modal';
+import ClipboardNoteItem from './ClipboardNoteItem';
 
 interface NoteItemProps {
   note: Note;
   onUpdateNote: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
   onDeleteNote: (id: number) => Promise<void>;
+  onPasteToClipboardNote: () => Promise<void>;
 }
 
-const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote }) => {
+const CLIPBOARD_NOTE_TITLE = 'Clipboard';
+
+const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, onPasteToClipboardNote }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingNoteTitle, setEditingNoteTitle] = useState(note.title);
   const [editingNoteContent, setEditingNoteContent] = useState(note.content);
   const [isPinned, setIsPinned] = useState(note.pinned); 
   const [itemError, setItemError] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -50,17 +54,16 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
   };
 
   const handleDeleteClick = () => {
-    setIsDeleteModalOpen(true); // Open the delete confirmation modal
+    setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     setItemError(null);
     try {
       await onDeleteNote(note.id);
-      setIsDeleteModalOpen(false); // Close modal on successful deletion
+      setIsDeleteModalOpen(false);
     } catch (err: any) {
-      // Error handled by parent, but ensure modal closes or shows error
-      setIsDeleteModalOpen(false); // Close modal even on error to allow user to retry
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -72,6 +75,12 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
     } catch (err: any) {
     }
   };
+
+  if (note.title === CLIPBOARD_NOTE_TITLE) {
+    return (
+     <ClipboardNoteItem note={note} onPaste={onPasteToClipboardNote}></ClipboardNoteItem>
+    );
+  }
 
   return (
     <div className={`${styles.noteItem} ${isPinned ? styles.pinnedNote : ''}`}>
@@ -162,7 +171,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
                 </svg>
               </button>
               <button
-                onClick={handleDeleteClick} // Call the function to open the modal
+                onClick={handleDeleteClick}
                 className={`${styles.button} ${styles.deleteButton}`}
                 title="Delete Note"
               >
@@ -179,7 +188,6 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
