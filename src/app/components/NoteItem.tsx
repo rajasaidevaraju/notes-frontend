@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import ErrorMessage from './ErrorMessage'; // Assuming this path is correct
-import styles from '@/Home.module.css'; // Assuming this path is correct
-import { Note } from '@/types/Notes'; // Assuming this path is correct
+import ErrorMessage from './ErrorMessage';
+import styles from '@/Home.module.css';
+import { Note } from '@/types/Notes';
 
 interface NoteItemProps {
   note: Note;
-  onUpdateNote: (id: number, title: string, content: string) => Promise<void>;
+  onUpdateNote: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
   onDeleteNote: (id: number) => Promise<void>;
 }
 
@@ -13,9 +13,9 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
   const [isEditing, setIsEditing] = useState(false);
   const [editingNoteTitle, setEditingNoteTitle] = useState(note.title);
   const [editingNoteContent, setEditingNoteContent] = useState(note.content);
-  const [itemError, setItemError] = useState<string | null>(null); // Local error for this item
+  const [isPinned, setIsPinned] = useState(note.pinned); 
+  const [itemError, setItemError] = useState<string | null>(null);
 
-  // Function to truncate text with ellipsis
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
       return text.substring(0, maxLength) + '...';
@@ -25,14 +25,15 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
 
   const handleEditClick = () => {
     setIsEditing(true);
-    setEditingNoteTitle(note.title); // Reset to current note's title
-    setEditingNoteContent(note.content); // Reset to current note's content
-    setItemError(null); // Clear any previous local error
+    setEditingNoteTitle(note.title);
+    setEditingNoteContent(note.content);
+    setIsPinned(note.pinned); // Initialize pinned state when editing
+    setItemError(null);
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setItemError(null); // Clear local error
+    setItemError(null);
 
     if (!editingNoteTitle.trim()) {
       setItemError('Title cannot be empty.');
@@ -40,11 +41,9 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
     }
 
     try {
-      await onUpdateNote(note.id, editingNoteTitle, editingNoteContent);
-      setIsEditing(false); // Exit editing mode on success
+      await onUpdateNote(note.id, editingNoteTitle, editingNoteContent, isPinned);
+      setIsEditing(false);
     } catch (err: any) {
-      // The error is handled by the parent (NotesContainer) which sets its global error state.
-      // No need to set itemError here for API failures.
     }
   };
 
@@ -53,13 +52,20 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
     try {
       await onDeleteNote(note.id);
     } catch (err: any) {
-      // The error is handled by the parent (NotesContainer) which sets its global error state.
-      // No need to set itemError here for API failures.
+    }
+  };
+
+  const handleTogglePin = async () => {
+    setItemError(null);
+    try {
+      await onUpdateNote(note.id, note.title, note.content, !isPinned); 
+      setIsPinned(!isPinned);
+    } catch (err: any) {
     }
   };
 
   return (
-    <div className={styles.noteItem}>
+    <div className={`${styles.noteItem} ${isPinned ? styles.pinnedNote : ''}`}>
       {itemError && <ErrorMessage message={itemError} />}
       {isEditing ? (
         <form onSubmit={handleUpdate} className={styles.form}>
@@ -88,6 +94,18 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
               className={styles.formTextarea}
             ></textarea>
           </div>
+          <div className={styles.checkboxGroup}>
+            <input
+              type="checkbox"
+              id={`pinNote-${note.id}`}
+              checked={isPinned}
+              onChange={() => setIsPinned(!isPinned)}
+              className={styles.checkboxInput}
+            />
+            <label htmlFor={`pinNote-${note.id}`} className={styles.checkboxLabel}>
+              Pin Note
+            </label>
+          </div>
           <div className={styles.buttonGroup}>
             <button type="submit" className={`${styles.button} ${styles.successButton}`}>
               Save
@@ -103,9 +121,16 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote })
         </form>
       ) : (
         <>
-          <div className={styles.noteHeader}> {/* New div for header layout */}
-            <h3 className={styles.noteTitle}>{truncateText(note.title, 50)}</h3> {/* Truncate title */}
+          <div className={styles.noteHeader}>
+            <h3 className={styles.noteTitle}>{truncateText(note.title, 50)}</h3>
             <div className={styles.buttonGroup}>
+              <button
+                onClick={handleTogglePin}
+                className={`${styles.button} ${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
+                title={isPinned ? 'Unpin Note' : 'Pin Note'}
+              >
+                {isPinned ? 'pinned' : 'pin'}
+              </button>
               <button
                 onClick={handleEditClick}
                 className={`${styles.button} ${styles.editButton}`}

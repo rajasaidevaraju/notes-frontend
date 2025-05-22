@@ -21,7 +21,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes}) => {
   
 
     const handleAddNote = async (title: string, content: string) => {
-      setError(null); // Clear previous errors
+      setError(null);
       try {
         const response = await fetch(`/api/notes`, {
           method: 'POST',
@@ -45,7 +45,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes}) => {
       }
     };
   
-    const handleUpdateNote = async (id: number, title: string, content: string) => {
+    const handleUpdateNote = async (id: number, title: string, content: string, pinned: boolean) => {
       setError(null); 
       try {
         const response = await fetch(`/api/notes/${id}`, {
@@ -53,7 +53,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes}) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ title, content }),
+          body: JSON.stringify({ title, content, pinned }),
         });
   
         if (!response.ok) {
