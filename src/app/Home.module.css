@@ -139,26 +139,26 @@
   .cancelButton:focus {
     --focus-ring-color: #d1d5db;
   }
-  
   .editButton {
-    background-color: #f59e0b;
-  }
-  .editButton:hover {
-    background-color: #d97706;
-  }
-  .editButton:focus {
-    --focus-ring-color: #fbbf24;
+    background-color: #007bff;
+    color: white;
+    border: none;
   }
   
+  .editButton:hover {
+    background-color: #0056b3;
+  }
+
   .deleteButton {
-    background-color: #ef4444;
+    background-color: #dc3545;
+    color: white;
+    border: none;
   }
+  
   .deleteButton:hover {
-    background-color: #dc2626;
+    background-color: #c82333;
   }
-  .deleteButton:focus {
-    --focus-ring-color: #f87171;
-  }
+
   
   .infoMessage {
     text-align: center;
@@ -172,18 +172,32 @@
   }
   
   .noteItem {
-    background-color: #f9fafb;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  .noteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; 
   }
   
   .noteTitle {
+    margin: 0; 
     font-size: 1.25rem;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 0.5rem;
+    color: #333;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    padding-right: 10px;
   }
   
   .noteContent {
@@ -194,14 +208,18 @@
   
   .buttonGroup {
     display: flex;
-    justify-content: flex-end;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
   
   .buttonGroup .button {
-    width: auto;
-    padding: 0.5rem 1rem;
+    padding: 8px 12px; 
+    font-size: 0.85rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
   }
+
   .modalOverlay {
     position: fixed;
     top: 0;
@@ -260,6 +278,7 @@
   }
   
   .createNoteButton {
+      width:fit-content ;
       margin-bottom: 20px;
       padding: 12px 24px;
       font-size: 1.1rem;

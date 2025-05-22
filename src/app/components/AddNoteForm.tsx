@@ -1,30 +1,40 @@
 import styles from '@/Home.module.css';
+import { useState } from 'react';
+import ErrorMessage from './ErrorMessage';
 
 interface AddNoteFormProps {
-    newNoteTitle: string;
-    setNewNoteTitle: (title: string) => void;
-    newNoteContent: string;
-    setNewNoteContent: (content: string) => void;
-    handleAddNote: (e: React.FormEvent) => void;
-    onSuccess: () => void; // Callback to close modal on success
+    onAddNote: (title: string, content: string) => Promise<void>; // Callback to add note
+    onClose: () => void; // Callback to close modal
   }
   
-  const AddNoteForm: React.FC<AddNoteFormProps> = ({
-    newNoteTitle,
-    setNewNoteTitle,
-    newNoteContent,
-    setNewNoteContent,
-    handleAddNote,
-    onSuccess,
-  }) => {
+  const AddNoteForm: React.FC<AddNoteFormProps> = ({ onAddNote, onClose }) => {
+    const [newNoteTitle, setNewNoteTitle] = useState('');
+    const [newNoteContent, setNewNoteContent] = useState('');
+    const [formError, setFormError] = useState<string | null>(null);
+  
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      await handleAddNote(e);
-      onSuccess();
+      setFormError(null); // Clear local form error
+  
+      if (!newNoteTitle.trim()) {
+        setFormError('Title cannot be empty.');
+        return;
+      }
+  
+      try {
+        await onAddNote(newNoteTitle, newNoteContent);
+        setNewNoteTitle('');
+        setNewNoteContent('');
+        onClose(); // Close modal on successful add
+      } catch (err: any) {
+        // The error is handled by the parent (NotesContainer) which sets its global error state.
+        // No need to set a local error here for API failures.
+      }
     };
   
     return (
       <form onSubmit={handleSubmit} className={styles.form}>
+        {formError && <ErrorMessage message={formError} />}
         <div>
           <label htmlFor="newNoteTitle" className={styles.formLabel}>
             Title
@@ -37,6 +47,7 @@ interface AddNoteFormProps {
             placeholder="Enter note title"
             className={styles.formInput}
             required
+            autoComplete="off"
           />
         </div>
         <div>
