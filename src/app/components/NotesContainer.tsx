@@ -44,7 +44,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialErr
         }
   
         const addedNote: Note = await response.json();
-        setNotes((prevNotes) => [...prevNotes, addedNote]);
+        setNotes((prevNotes) => [addedNote, ...prevNotes]);
         setIsAddNoteModalOpen(false);
       } catch (err: any) {
         setError(`Failed to add note: ${err.message}`);

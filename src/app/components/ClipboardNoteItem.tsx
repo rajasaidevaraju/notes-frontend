@@ -97,7 +97,6 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
       {internalError && <ErrorMessage message={internalError} />} 
       <div className={styles.noteHeader}>
         <h3 className={styles.noteTitle}>{note.title}</h3>
-        <div className={styles.buttonGroup}>
           {!isClipboardAPISupported ? (
             <p className={styles.permissionMessage}>
               Clipboard paste not supported.
@@ -132,7 +131,6 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
             </button>
           )}
         </div>
-      </div>
       <p className={styles.noteContent}>
         {note.content ? note.content : 'Click "Paste" to get content from your clipboard.'}
       </p>

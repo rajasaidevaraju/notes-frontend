@@ -145,7 +145,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
               <button
                 onClick={handleTogglePin}
                 className={`${styles.button} ${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
-                title={isPinned ? 'Unpin Note' : 'Pin Note'}
+                title={isPinned ? 'Unpin' : 'Pin'}
               >
                 {isPinned ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
@@ -163,7 +163,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
               <button
                 onClick={handleEditClick}
                 className={`${styles.button} ${styles.editButton}`}
-                title="Edit Note"
+                title="Edit"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -173,7 +173,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
               <button
                 onClick={handleDeleteClick}
                 className={`${styles.button} ${styles.deleteButton}`}
-                title="Delete Note"
+                title="Delete"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
                   <path d="M3 6h18" />

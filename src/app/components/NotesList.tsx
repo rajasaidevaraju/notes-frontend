@@ -22,17 +22,11 @@ interface NotesListProps {
     if (loading) {
       return <p className={styles.infoMessage}>Loading notes...</p>;
     }
+
+    console.log(notes);
   
-
-    const  sortedNotes = [...notes].sort((a, b) => {
-
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
-
+    const pinned=notes.filter((note)=>note.pinned).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    const notPinned=notes.filter((note)=>!note.pinned).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     return (
         <div className={styles.notesList}>
          
@@ -46,10 +40,11 @@ interface NotesListProps {
             />
           )}
   
-          {sortedNotes.length === 0 && !clipboardNote ? (
+          {pinned.length === 0 && notPinned.length===0 ? (
             <p className={styles.infoMessage}>No notes yet. Add one above!</p>
           ) : (
-            sortedNotes.map((note) => (
+            <>
+            {pinned.map((note) => (
               <NoteItem
                 key={note.id}
                 note={note}
@@ -57,7 +52,19 @@ interface NotesListProps {
                 onDeleteNote={onDeleteNote}
                 onPasteToClipboardNote={onPasteToClipboardNote}
               />
-            ))
+            ))}
+            {
+              notPinned.map((note) => (
+                <NoteItem
+                  key={note.id}
+                  note={note}
+                  onUpdateNote={onUpdateNote}
+                  onDeleteNote={onDeleteNote}
+                  onPasteToClipboardNote={onPasteToClipboardNote}
+                />
+              ))
+            }
+            </>
           )}
         </div>
       );
