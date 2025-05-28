@@ -1,7 +1,7 @@
 import NotesContainer from '@/components/NotesContainer'
 import styles from '@/Home.module.css'
 import {Note} from '@/types/Notes'
-
+import ServerIpDisplay from '@/components/ServerIpDisplay'
 
 export default async function App() {
   let notes: Note[] = [];
@@ -49,7 +49,7 @@ export default async function App() {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Notes</h1>
-        
+        <ServerIpDisplay></ServerIpDisplay>
         <NotesContainer initialNotes={notes} initialError={initialError} />
       </div>
     </div>

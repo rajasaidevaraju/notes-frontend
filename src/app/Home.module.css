@@ -377,6 +377,42 @@
   flex-shrink: 0;
 }
 
+.serverInfoContainer {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-200);
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.serverIpText {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-neutral-700);
+}
+
+.serverIpText strong {
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  word-break: break-all;
+}
+
+.errorText {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-brand-danger);
+  font-weight: 500;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-neutral-500);
+  font-style: italic;
+}
+
 @media (max-width: 480px) {
   .notesList{
     margin-bottom: .5rem;
@@ -399,5 +435,14 @@
   }
   .notesSectionTitle {
       text-align: center;
+  }
+  .serverInfoContainer {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .serverIpText,
+  .errorText,
+  .loadingText {
+    font-size: 0.85rem;
   }
 }
