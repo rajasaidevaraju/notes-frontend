@@ -1,169 +1,160 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
-import {Note} from '@/types/Notes'
 import ErrorMessage from './ErrorMessage';
 import NotesList from './NotesList';
-import AddNoteForm from './AddNoteForm'
+import AddNoteForm from './AddNoteForm';
 import Modal from './Modal';
-
+import { useNotesStore } from '../store/notesStore'; // Adjust path as needed
+import { Note } from '@/types/Notes'; // Import Note type
 
 interface NotesContainerProps {
-    initialNotes:Note[];
+    initialNotes: Note[]; 
     initialError: string | null;
 }
 
-const CLIPBOARD_NOTE_TITLE = 'Clipboard';
+const CLIPBOARD_NOTE_TITLE = 'Clipboard'; // Define this constant here as well for clarity
 
-const NotesContainer: React.FC<NotesContainerProps> = ({initialNotes, initialError}) => {
-    const initialRegularNotes = initialNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
-    const initialClipboardNote = initialNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
+const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialError }) => {
+    const {
+        error,
+        setNotes, 
+        setClipboardNote,
+        setLoading,
+        setError, 
+        addNoteApi,
+        selectedNoteIds,
+        clearSelectedNotes,
+        deleteSelectedNotes,
+    } = useNotesStore();
 
-    const [notes, setNotes] = useState<Note[]>(initialRegularNotes);
-    const [clipboardNote, setClipboardNote] = useState<Note | null>(initialClipboardNote);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(initialError);
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-  
+    const [isMultiDeleteModalOpen, setIsMultiDeleteModalOpen] = useState(false);
+    const [isSelectingMode, setIsSelectingMode] = useState(false);
 
-    const handleAddNote = async (title: string, content: string) => {
-      setError(null);
-      try {
-        const response = await fetch(`/api/notes`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ title, content }),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    // Use useEffect to initialize the Zustand store with initial data
+    useEffect(() => {
+        const initialRegularNotes = initialNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
+        const initialClipboardNote = initialNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
+
+        setNotes(initialRegularNotes);
+        setClipboardNote(initialClipboardNote);
+        setError(initialError);
+        setLoading(false); 
+    }, [initialNotes, initialError, setNotes, setClipboardNote, setError, setLoading]);
+
+    const handleAddNoteSubmit = async (title: string, content: string) => {
+        try {
+            await addNoteApi(title, content);
+            setIsAddNoteModalOpen(false);
+        } catch (err) {
+            // Error is already set by the store's addNoteApi action
+            console.error("Error adding note in container:", err);
         }
-  
-        const addedNote: Note = await response.json();
-        setNotes((prevNotes) => [addedNote, ...prevNotes]);
-        setIsAddNoteModalOpen(false);
-      } catch (err: any) {
-        setError(`Failed to add note: ${err.message}`);
-        console.error('Error adding note:', err);
-        throw err;
-      }
-    };
-  
-    const handleUpdateNote = async (id: number, title: string, content: string, pinned: boolean) => {
-      setError(null); 
-      try {
-        const response = await fetch(`/api/notes/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ title, content, pinned }),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
-  
-        const updatedNote: Note = await response.json();
-        
-        // If the updated note is the clipboard note, update its specific state
-        if (updatedNote.title === CLIPBOARD_NOTE_TITLE) {
-          setClipboardNote(updatedNote);
-        } else {
-          // Otherwise, update the regular notes list
-          setNotes((prevNotes) =>
-            prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
-          );
-        }
-      } catch (err: any) {
-        setError(`Failed to update note: ${err.message}`);
-        console.error('Error updating note:', err);
-        throw err;
-      }
-    };
-  
-    const handleDeleteNote = async (id: number) => {
-      setError(null); 
-      try {
-        const response = await fetch(`/api/notes/${id}`, {
-          method: 'DELETE',
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
-  
-        setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
-      } catch (err: any) {
-        setError(`Failed to delete note: ${err.message}`);
-        console.error('Error deleting note:', err);
-        throw err;
-      }
     };
 
-    // Function to handle pasting content directly to the clipboard note
-    const handlePasteToClipboardNote = async () => {
-      setError(null); 
-      if (!clipboardNote) {
-        setError('Clipboard note not found. Please refresh the page.');
-        return;
-      }
-      try {
-        if (navigator.clipboard && navigator.clipboard.readText) {
-          const text = await navigator.clipboard.readText();
-          await handleUpdateNote(clipboardNote.id, clipboardNote.title, text, clipboardNote.pinned);
-        } else {
-          setError('Clipboard API not supported or permission denied. Please ensure your browser supports it and you have granted permission.');
-          console.warn('Clipboard API (readText) not supported or permission denied.');
-        }
-      } catch (err: any) {
-        setError(`Failed to read clipboard: ${err.message}. Ensure you have granted permission.`);
-        console.error('Error reading clipboard for paste:', err);
-      }
+    const handleConfirmMultiDelete = async () => {
+        await deleteSelectedNotes();
+        setIsMultiDeleteModalOpen(false);
+        setIsSelectingMode(false); // Exit selection mode after deleting
     };
-  
+
+    const toggleSelectingMode = () => {
+        setIsSelectingMode(prev => !prev);
+        clearSelectedNotes(); // Clear any existing selection when toggling mode
+    };
+
     return (
-      <>
-        <ErrorMessage message={error} />
-        <div className={styles.noteHeader}>
-        <h2 className={styles.notesSectionTitle}>Your Notes</h2>
-            <button
-            onClick={() => setIsAddNoteModalOpen(true)}
-            className={`${styles.button} ${styles.primaryButton} ${styles.createNoteButton}`}
-            >
-            Create New Note
-            </button>
-        </div>
-       
-  
-        <Modal
-          isOpen={isAddNoteModalOpen}
-          onClose={() => setIsAddNoteModalOpen(false)}
-          title="Add New Note"
-        >
-          <AddNoteForm
-            onAddNote={handleAddNote}
-            onClose={() => setIsAddNoteModalOpen(false)}
-          />
-        </Modal>
-  
-       
-        <NotesList
-          notes={notes}
-          loading={loading}
-          onUpdateNote={handleUpdateNote}
-          onDeleteNote={handleDeleteNote}
-          clipboardNote={clipboardNote} 
-          onPasteToClipboardNote={handlePasteToClipboardNote}
-        />
-      </>
-    );
-  };
+        <>
+            <ErrorMessage message={error} />
+            <div className={styles.noteHeader}>
+                <h2 className={styles.notesSectionTitle}></h2>
+                <div className={styles.mainActionButtons}>
+                    {/* Multi-select controls */}
+                    {isSelectingMode ? (
+                        <>
+                            {selectedNoteIds.size > 0 && (
+                                <button
+                                    onClick={() => setIsMultiDeleteModalOpen(true)}
+                                    className={`${styles.button} ${styles.dangerButton}`}
+                                    title={`Delete ${selectedNoteIds.size} selected notes`}
+                                >
+                                    Delete Selected ({selectedNoteIds.size})
+                                </button>
+                            )}
+                            <button
+                                onClick={toggleSelectingMode}
+                                className={`${styles.button} ${styles.secondaryButton}`}
+                                title="Cancel Selection"
+                            >
+                                Cancel Selection
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={toggleSelectingMode}
+                            className={`${styles.button} ${styles.secondaryButton}`}
+                            title="Select Notes for Deletion"
+                        >
+                            Select Notes
+                        </button>
+                    )}
 
-  export default NotesContainer;
+                   
+                    <button
+                        onClick={() => setIsAddNoteModalOpen(true)}
+                        className={`${styles.button} ${styles.primaryButton}`}
+                    >
+                        Create New Note
+                    </button>
+                </div>
+            </div>
+
+            <Modal
+                isOpen={isAddNoteModalOpen}
+                onClose={() => setIsAddNoteModalOpen(false)}
+                title="Add New Note"
+            >
+                <AddNoteForm
+                    onAddNote={handleAddNoteSubmit}
+                    onClose={() => setIsAddNoteModalOpen(false)}
+                />
+            </Modal>
+
+            <Modal
+                isOpen={isMultiDeleteModalOpen}
+                onClose={() => setIsMultiDeleteModalOpen(false)}
+                title="Confirm Bulk Deletion"
+            >
+                <p className={styles.modalBodyText}>
+                    Are you sure you want to delete {selectedNoteIds.size} selected notes?
+                </p>
+                <div className={styles.buttonGroup}>
+                    <button
+                        onClick={handleConfirmMultiDelete}
+                        className={`${styles.button} ${styles.dangerButton}`}
+                    >
+                        Yes, Delete All
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsMultiDeleteModalOpen(false);
+                            clearSelectedNotes(); 
+                            setIsSelectingMode(false);
+                        }}
+                        className={`${styles.button} ${styles.cancelButton}`}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </Modal>
+
+            <NotesList
+                isSelectingMode={isSelectingMode}
+            />
+        </>
+    );
+};
+
+export default NotesContainer;

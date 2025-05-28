@@ -1,26 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import styles from '@/Home.module.css';
+import styles from '@/Home.module.css'; // For general buttons and form elements
+import noteItemStyles from './NoteItem.module.css'; // Now contains clipboardNoteItem styles
 import ErrorMessage from './ErrorMessage';
-import { Note } from '@/types/Notes';
+import { useNotesStore } from '@/store/notesStore';
 
 interface ClipboardNoteItemProps {
-  note: Note;
-  onPaste: (content: string) => Promise<void>; 
+  // No props are needed anymore as the component will pull its data from the Zustand store
 }
 
-const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) => {
+const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = () => {
+  const { clipboardNote, pasteToClipboardNoteApi, setError } = useNotesStore();
+
   const [clipboardPermissionStatus, setClipboardPermissionStatus] = useState<PermissionState>('prompt');
   const [internalError, setInternalError] = useState<string | null>(null);
-  const [isClipboardAPISupported, setIsClipboardAPISupported] = useState(false); // State to track if Clipboard API is supported
+  const [isClipboardAPISupported, setIsClipboardAPISupported] = useState(false);
 
   useEffect(() => {
     let permissionStatus: PermissionStatus | undefined;
 
-    // Check if navigator.clipboard is available before querying permissions
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      setIsClipboardAPISupported(true); // Clipboard API is supported on the client
+      setIsClipboardAPISupported(true);
       const queryPermission = async () => {
         if (navigator.permissions && navigator.permissions.query) {
           try {
@@ -33,20 +34,19 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
             };
           } catch (err) {
             console.warn('Clipboard permission query not supported or failed:', err);
-            setClipboardPermissionStatus('prompt'); 
+            setClipboardPermissionStatus('prompt');
           }
         } else {
           console.warn('navigator.permissions.query not supported.');
-          setClipboardPermissionStatus('prompt'); 
+          setClipboardPermissionStatus('prompt');
         }
       };
       queryPermission();
     } else {
-      setIsClipboardAPISupported(false); // Clipboard API not supported
+      setIsClipboardAPISupported(false);
       setInternalError('Clipboard paste is not supported in this browser or environment (e.g., non-HTTPS or restricted iframe).');
     }
 
-    // Cleanup function to remove the event listener
     return () => {
       if (permissionStatus) {
         permissionStatus.onchange = null;
@@ -55,7 +55,7 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
   }, []);
 
   const handlePasteClick = async () => {
-    setInternalError(null); 
+    setInternalError(null);
 
     if (!isClipboardAPISupported) {
       setInternalError('Clipboard paste is not supported in this browser or environment.');
@@ -68,12 +68,8 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
     }
 
     try {
-      const text = await navigator.clipboard.readText();
-      if (text.trim()) {
-        await onPaste(text);
-      } else {
-        setInternalError('Clipboard is empty. Nothing to paste.');
-      }
+      await pasteToClipboardNoteApi();
+      setInternalError(null);
     } catch (err: any) {
       setInternalError(`Failed to read clipboard: ${err.message}. Ensure you have granted permission.`);
     }
@@ -86,53 +82,57 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ note, onPaste }) 
       return;
     }
     try {
-      await navigator.clipboard.readText(); 
+      await navigator.clipboard.readText();
     } catch (err: any) {
       setInternalError(`Failed to grant clipboard permission: ${err.message}.`);
     }
   };
 
+  if (!clipboardNote) {
+    return null;
+  }
+
   return (
-    <div className={`${styles.noteItem} ${styles.clipboardNote}`}>
-      {internalError && <ErrorMessage message={internalError} />} 
-      <div className={styles.noteHeader}>
-        <h3 className={styles.noteTitle}>{note.title}</h3>
-          {!isClipboardAPISupported ? (
-            <p className={styles.permissionMessage}>
-              Clipboard paste not supported.
-            </p>
-          ) : clipboardPermissionStatus === 'denied' ? (
-            <div className={styles.permission}>
-              <button
-                onClick={requestClipboardPermission}
-                className={`${styles.button} ${styles.secondaryButton}`}
-                title="Grant Clipboard Permission"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                  <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1l1-4L16.5 3.5z"></path>
-                </svg>
-                Grant Permission
-              </button>
-              <p className={styles.permissionMessage}>
-                Permission denied. Click to enable clipboard access.
-              </p>
-            </div>
-          ) : (
+    <div className={`${noteItemStyles.noteItem} ${noteItemStyles.clipboardNoteItem}`}>
+      {internalError && <ErrorMessage message={internalError} />}
+      <div className={noteItemStyles.noteHeader}>
+        <h3 className={noteItemStyles.noteTitle}>{clipboardNote.title}</h3>
+        {!isClipboardAPISupported ? (
+          <p className={noteItemStyles.permissionMessage}>
+            Clipboard paste not supported.
+          </p>
+        ) : clipboardPermissionStatus === 'denied' ? (
+          <div className={noteItemStyles.permission}>
             <button
-              onClick={handlePasteClick}
-              className={`${styles.button} ${styles.primaryButton}`}
-              title="Paste from Clipboard"
+              onClick={requestClipboardPermission}
+              className={`${styles.button} ${styles.secondaryButton}`}
+              title="Grant Clipboard Permission"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1l1-4L16.5 3.5z"></path>
               </svg>
-              Paste
+              Grant Permission
             </button>
-          )}
-        </div>
-      <p className={styles.noteContent}>
-        {note.content ? note.content : 'Click "Paste" to get content from your clipboard.'}
+            <p className={noteItemStyles.permissionMessage}>
+              Permission denied. Click to enable clipboard access.
+            </p>
+          </div>
+        ) : (
+          <button
+            onClick={handlePasteClick}
+            className={`${styles.button} ${styles.primaryButton}`}
+            title="Paste from Clipboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+            Paste
+          </button>
+        )}
+      </div>
+      <p className={noteItemStyles.noteContent}>
+        {clipboardNote.content ? clipboardNote.content : 'Click "Paste" to get content from your clipboard.'}
       </p>
     </div>
   );

@@ -1,429 +1,403 @@
-
 .container {
-    min-height: 100vh;
-    background-color: var(--color-neutral-100);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 2.5rem;
-    padding-bottom: 2.5rem;
-    font-family: 'Inter', sans-serif;
-  }
-  
-  .card {
-    width: 100%;
-    max-width: 42rem;
-    background-color: var(--color-white);
-    padding: 2rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-  
-  .title {
-    font-size: 2.25rem;
-    font-weight: 700;
-    text-align: center;
-    color: var(--color-neutral-900);
-    margin-bottom: 2rem;
-  }
-  
-  .errorMessage {
-    background-color: var(--color-error-background);
-    border: 1px solid var(--color-error-border);
-    color: var(--color-error-text);
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-  }
-  
-  .addNoteSection {
-    margin-bottom: 2.5rem;
-    padding: 1.5rem;
-    background-color: var(--color-neutral-100);
-    border-radius: 0.5rem;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  }
-  
-  .sectionTitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--color-brand-primary);
-    margin-bottom: 1rem;
-  }
-  
-  .notesSectionTitle {
-    font-size: 1.875rem;
-    font-weight: 600;
-    color: var(--color-neutral-900);
-    text-align: center;
-  }
-  
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .formLabel {
-    display: block;
-    color: var(--color-neutral-700);
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
+  min-height: 100vh;
+  background-color: var(--color-neutral-100);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+  font-family: 'Inter', sans-serif;
+}
 
-  .checkboxInput{
-    margin-right: 3px;
-  }
-  
-  .formInput,
-  .formTextarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--color-neutral-300);
-    border-radius: 0.375rem;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  }
-  
-  .formInput:focus,
-  .formTextarea:focus {
-    outline: none;
-    border-color: var(--color-brand-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
-  }
-  
-  .noteItem .formInput:focus,
-  .noteItem .formTextarea:focus {
-    border-color: var(--color-brand-success);
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
-  }
-  
-  .button {
-    width: fit-content;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
-    border: none;
-    outline: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-  }
-  
-  .button:focus {
-    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--focus-ring-color);
-  }
-  
-  .primaryButton {
+.card {
+  width: 100%;
+  max-width: 42rem;
+  background-color: var(--color-white);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-neutral-900);
+  margin-bottom: 2rem;
+}
+
+.errorMessage {
+  background-color: var(--color-error-background);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error-text);
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.addNoteSection {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background-color: var(--color-neutral-100);
+  border-radius: 0.5rem;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  margin-bottom: 1rem;
+}
+
+.notesSectionTitle {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formLabel {
+  display: block;
+  color: var(--color-neutral-700);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.checkboxInput{
+  margin-right: 3px;
+}
+
+.formInput,
+.formTextarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.button {
+  width: fit-content;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.button:focus {
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--focus-ring-color);
+}
+
+.primaryButton {
+  background-color: var(--color-brand-primary);
+  color: var(--color-white);
+}
+.primaryButton:hover {
+  background-color: var(--color-brand-primary-dark);
+}
+.primaryButton:focus {
+  --focus-ring-color: var(--color-brand-primary);
+}
+
+.successButton {
+  background-color: var(--color-brand-success);
+}
+.successButton:hover {
+  background-color: var(--color-brand-success-dark);
+}
+.successButton:focus {
+  --focus-ring-color: var(--color-brand-success);
+}
+
+.cancelButton {
+  background-color: var(--color-neutral-400);
+}
+.cancelButton:hover {
+  background-color: var(--color-neutral-500);
+}
+.cancelButton:focus {
+  --focus-ring-color: var(--color-neutral-300);
+}
+.editButton {
+  background-color: var(--color-brand-edit);
+  color: var(--color-white);
+  border: none;
+}
+
+.editButton:hover {
+  background-color: var(--color-brand-edit-dark);
+}
+
+.deleteButton {
+  background-color: var(--color-brand-danger);
+  color: var(--color-white);
+  border: none;
+}
+
+.deleteButton:hover {
+  background-color: var(--color-brand-danger-dark);
+}
+
+.dangerButton {
+  background-color: var(--color-brand-danger);
+  color: var(--color-white);
+  border: none;
+}
+
+.dangerButton:hover {
+  background-color: var(--color-brand-danger-dark);
+}
+
+.pinButton {
+  background-color: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+  border: 1px solid var(--color-neutral-300);
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.pinButton:hover {
+  background-color: var(--color-neutral-300);
+}
+
+.pinButton.pinned {
+  background-color: var(--color-accent-pinned-border);
+  color: var(--color-white);
+  border-color: var(--color-accent-pinned-border);
+}
+
+.pinButton.pinned:hover {
+  background-color: color-mix(in srgb, var(--color-accent-pinned-border) 90%, black);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+.pinButton .icon {
+  fill: currentColor;
+  stroke: none;
+}
+
+.pinButton.pinned .icon {
+  fill: currentColor;
+  stroke: none;
+}
+
+.editButton .icon,
+.deleteButton .icon {
+  stroke: currentColor;
+  fill: none;
+}
+
+.infoMessage {
+  text-align: center;
+  color: var(--color-neutral-500);
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.clipboardNote{
+  border-color: var(--color-brand-primary);
+  background-color: var(--color-background-add-section);
+}
+
+.clipboardNote .noteTitle {
+  color: var(--color-brand-primary); 
+}
+
+.permission{
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 10px 0px;
+}
+
+.mainActionButtons{
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  padding: 1rem 0rem;
+  gap:.5rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border-radius: 10px;
+}
+
+.modalContent {
+  background: var(--color-white);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  font-family: 'Inter', sans-serif;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-neutral-900);
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--color-neutral-500);
+  transition: color 0.2s ease-in-out;
+}
+
+.modalCloseButton:hover {
+  color: var(--color-neutral-900);
+}
+
+.modalBodyText {
+  font-size: 1rem;
+  color: var(--color-neutral-700);
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.createNoteButton {
+    width:fit-content ;
+    padding: 12px 12px;
+    font-size: 1.1rem;
+    border-radius: 8px;
     background-color: var(--color-brand-primary);
     color: var(--color-white);
-  }
-  .primaryButton:hover {
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.createNoteButton:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     background-color: var(--color-brand-primary-dark);
-  }
-  .primaryButton:focus {
-    --focus-ring-color: var(--color-brand-primary);
-  }
-  
-  .successButton {
-    background-color: var(--color-brand-success);
-  }
-  .successButton:hover {
-    background-color: var(--color-brand-success-dark);
-  }
-  .successButton:focus {
-    --focus-ring-color: var(--color-brand-success);
-  }
-  
-  .cancelButton {
-    background-color: var(--color-neutral-400);
-  }
-  .cancelButton:hover {
-    background-color: var(--color-neutral-500);
-  }
-  .cancelButton:focus {
-    --focus-ring-color: var(--color-neutral-300);
-  }
-  .editButton {
-    background-color: var(--color-brand-edit);
-    color: var(--color-white);
-    border: none;
-  }
-  
-  .editButton:hover {
-    background-color: var(--color-brand-edit-dark);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+    margin: 0 1rem; 
   }
 
-  .deleteButton {
-    background-color: var(--color-brand-danger);
-    color: var(--color-white);
-    border: none;
-  }
-  
-  .deleteButton:hover {
-    background-color: var(--color-brand-danger-dark);
-  }
-
-  .dangerButton {
-    background-color: var(--color-brand-danger);
-    color: var(--color-white);
-    border: none;
-  }
-
-  .dangerButton:hover {
-    background-color: var(--color-brand-danger-dark);
-  }
-
-  .pinButton {
-    background-color: var(--color-neutral-200);
-    color: var(--color-neutral-700);
-    border: 1px solid var(--color-neutral-300);
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-  }
-
-  .pinButton:hover {
-    background-color: var(--color-neutral-300);
-  }
-
-  .pinButton.pinned {
-    background-color: var(--color-accent-pinned-border);
-    color: var(--color-white);
-    border-color: var(--color-accent-pinned-border);
-  }
-
-  .pinButton.pinned:hover {
-    background-color: color-mix(in srgb, var(--color-accent-pinned-border) 90%, black);
-  }
-  
-  .icon {
-    width: 18px;
-    height: 18px;
-    vertical-align: middle;
-  }
-
-  .pinButton .icon {
-    fill: currentColor;
-    stroke: none;
-  }
-
-  .pinButton.pinned .icon {
-    fill: currentColor;
-    stroke: none;
-  }
-
-  .editButton .icon,
-  .deleteButton .icon {
-    stroke: currentColor;
-    fill: none;
-  }
-
-  .infoMessage {
-    text-align: center;
-    color: var(--color-neutral-500);
-  }
-  
-  .notesList {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .noteItem {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--color-neutral-300);
-    border-radius: 8px;
-    padding: 15px;
-    background-color: var(--color-white);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out,background-color 0.2s ease-in-out;;
-  }
-
-  .clipboardNote{
-    border-color: var(--color-brand-primary);
-    background-color: var(--color-background-add-section);
-  }
-
-  .clipboardNote .noteTitle {
-    color: var(--color-brand-primary); 
-  }
-  
-  .permission{
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    margin: 10px 0px;
-  }
-
-  .pinnedNote {
-    border-color: var(--color-accent-pinned-border);
-    background-color: var(--color-accent-pinned-light);
-  }
-
-  .noteItem:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .noteHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px; 
-  }
-  
-  .noteTitle {
-    margin: 0; 
-    font-size: 1.25rem;
-    color: var(--color-neutral-900);
-    flex-grow: 1;
-    white-space: nowrap;
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    padding-right: 10px;
-  }
-  
-  .noteContent {
-    color: var(--color-neutral-700);
-    white-space: pre-wrap;
-    word-wrap: break-word;
-     overflow-wrap: break-word;
-  }
-  
-  .buttonGroup {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
-    flex-shrink: 0;
-  }
-  
-  .buttonGroup .button {
-    padding: 8px 12px; 
-    font-size: 0.85rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    border-radius: 10px;
-  }
-  
-  .modalContent {
-    background: var(--color-white);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 500px;
-    position: relative;
-    font-family: 'Inter', sans-serif;
-  }
-  
-  .modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--color-neutral-200);
-  }
-  
-  .modalTitle {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--color-neutral-900);
-  }
-  
-  .modalCloseButton {
-    background: none;
-    border: none;
+  .title {
     font-size: 2rem;
-    cursor: pointer;
-    color: var(--color-neutral-500);
-    transition: color 0.2s ease-in-out;
   }
-  
-  .modalCloseButton:hover {
-    color: var(--color-neutral-900);
-  }
-  
-  .modalBodyText {
-    font-size: 1rem;
-    color: var(--color-neutral-700);
-    margin-bottom: 1.5rem;
-    text-align: left;
-  }
-  
-  .createNoteButton {
-      width:fit-content ;
-      padding: 12px 12px;
-      font-size: 1.1rem;
-      border-radius: 8px;
-      background-color: var(--color-brand-primary);
-      color: var(--color-white);
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .createNoteButton:hover {
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      background-color: var(--color-brand-primary-dark);
-  }
-  
-  @media (max-width: 768px) {
-    .card {
-      padding: 1rem;
-      margin: 0 1rem; 
-    }
-  
-    .title {
-      font-size: 2rem;
-    }
-  
-    .sectionTitle {
-      font-size: 1.25rem;
-    }
-  
-    .notesSectionTitle {
-      font-size: 1.5rem;
-    }
-  
-    .buttonGroup {
-      flex-direction: row; 
-      gap: 0.75rem; 
-    }
-  
-    .buttonGroup .button {
-      width: fit-content;
-      flex-grow: 1;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .buttonGroup {
-      flex-wrap: wrap;
-      justify-content: center;
-      gap:.4rem; 
-    }
 
-    .buttonGroup .button{
-      width: 2rem;
-      height: 2rem;
-      padding: 0px;
-    }
+  .sectionTitle {
+    font-size: 1.25rem;
   }
+
+  .notesSectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: row; 
+    gap: 0.75rem; 
+  }
+
+  .buttonGroup .button {
+    width: fit-content;
+  }
+}
+
+.notesSectionTitle {
+  font-size: 2em;
+  color: var(--text-color-dark);
+  margin-bottom: 20px;
+  text-align: left;
+  flex-grow: 1;
+}
+
+
+.sectionHeading {
+  font-size: 1.5em;
+  color: var(--text-color-dark);
+  grid-column: 1 / -1; 
+  text-align: left;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .notesList{
+    margin-bottom: .5rem;
+  }
+
+  .title{
+    margin-bottom: 1rem;
+  }
+
+  .button{
+    min-width: 1.8rem;
+    padding: .5rem;
+  }
+
+  .notesList {
+    grid-template-columns: 1fr;
+  }
+  .createNoteButton {
+      text-align: center;
+  }
+  .notesSectionTitle {
+      text-align: center;
+  }
+}

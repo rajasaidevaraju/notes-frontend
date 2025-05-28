@@ -1,72 +1,62 @@
 import styles from '@/Home.module.css';
-import {Note} from '@/types/Notes'
-import NoteItem from './NoteItem'
+import { Note } from '@/types/Notes';
+import NoteItem from './NoteItem';
+import { useNotesStore } from '../store/notesStore'; // Adjust path as needed
+import ClipboardNoteItem from './ClipboardNoteItem';
 
 interface NotesListProps {
-    notes: Note[];
-    loading: boolean;
-    onUpdateNote: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
-    onDeleteNote: (id: number) => Promise<void>;
-    clipboardNote: Note | null;
-    onPasteToClipboardNote: () => Promise<void>;
-  }
-  
-  const NotesList: React.FC<NotesListProps> = ({ 
-    notes, 
-    loading, 
-    onUpdateNote, 
-    onDeleteNote,
-    clipboardNote,
-    onPasteToClipboardNote
-  }) => {
-    if (loading) {
-      return <p className={styles.infoMessage}>Loading notes...</p>;
-    }
+  isSelectingMode: boolean;
+}
 
-    console.log(notes);
-  
-    const pinned=notes.filter((note)=>note.pinned).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    const notPinned=notes.filter((note)=>!note.pinned).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    return (
-        <div className={styles.notesList}>
-         
-         {clipboardNote && (
+const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => { // Accept the new prop
+  const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote, clearSelectedNotes } = useNotesStore();
+
+  if (loading) {
+    return <p className={styles.infoMessage}>Loading notes...</p>;
+  }
+
+  const pinned = notes
+    .filter((note) => note.pinned)
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  const notPinned = notes
+    .filter((note) => !note.pinned)
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+  return (
+    <div className={styles.notesList}>
+      {clipboardNote && (
+        <ClipboardNoteItem
+        />
+      )}
+
+      {pinned.length === 0 && notPinned.length === 0 ? (
+        <p className={styles.infoMessage}>No notes yet. Add one above!</p>
+      ) : (
+        <>
+          {pinned.length > 0 && <h3 className={styles.sectionHeading}>Pinned Notes</h3>}
+          {pinned.map((note) => (
             <NoteItem
-            key={`clipboard-${clipboardNote.id}`} 
-              note={clipboardNote}
-              onUpdateNote={onUpdateNote}
-              onDeleteNote={onDeleteNote}
-              onPasteToClipboardNote={onPasteToClipboardNote}
+              key={note.id}
+              note={note}
+              isSelected={selectedNoteIds.has(note.id)}
+              onToggleSelect={() => toggleSelectNote(note.id)}
+              isSelectingMode={isSelectingMode}
             />
-          )}
-  
-          {pinned.length === 0 && notPinned.length===0 ? (
-            <p className={styles.infoMessage}>No notes yet. Add one above!</p>
-          ) : (
-            <>
-            {pinned.map((note) => (
-              <NoteItem
-                key={note.id}
-                note={note}
-                onUpdateNote={onUpdateNote}
-                onDeleteNote={onDeleteNote}
-                onPasteToClipboardNote={onPasteToClipboardNote}
-              />
-            ))}
-            {
-              notPinned.map((note) => (
-                <NoteItem
-                  key={note.id}
-                  note={note}
-                  onUpdateNote={onUpdateNote}
-                  onDeleteNote={onDeleteNote}
-                  onPasteToClipboardNote={onPasteToClipboardNote}
-                />
-              ))
-            }
-            </>
-          )}
-        </div>
-      );
-    };
-    export default NotesList;
+          ))}
+          {pinned.length > 0 && notPinned.length > 0 && <h3 className={styles.sectionHeading}>Other Notes</h3>}
+          {notPinned.map((note) => (
+            <NoteItem
+              key={note.id}
+              note={note}
+              isSelected={selectedNoteIds.has(note.id)}
+              onToggleSelect={() => toggleSelectNote(note.id)}
+              isSelectingMode={isSelectingMode}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default NotesList;

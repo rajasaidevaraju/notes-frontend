@@ -1,26 +1,54 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ErrorMessage from './ErrorMessage';
-import styles from '@/Home.module.css';
+import styles from '@/Home.module.css'; // For common button styles like .button, .successButton, .cancelButton
+import noteItemStyles from './NoteItem.module.css'; // For note item specific styles like .noteItem, .noteHeader, .noteTitle, .multiSelectCheckbox, .buttonGroup, .checkboxGroup, .checkboxLabel
 import { Note } from '@/types/Notes';
 import Modal from './Modal';
-import ClipboardNoteItem from './ClipboardNoteItem';
+import { useNotesStore } from '../store/notesStore';
 
 interface NoteItemProps {
   note: Note;
-  onUpdateNote: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
-  onDeleteNote: (id: number) => Promise<void>;
-  onPasteToClipboardNote: () => Promise<void>;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  isSelectingMode: boolean;
 }
 
+// Defining CLIPBOARD_NOTE_TITLE here, although in a real app,
+// it might be better to have this in a central constants file.
+// However, since it's used only within NoteItem and ClipboardNoteItem,
+// keeping it locally is fine for now.
 const CLIPBOARD_NOTE_TITLE = 'Clipboard';
 
-const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, onPasteToClipboardNote }) => {
+const NoteItem: React.FC<NoteItemProps> = ({
+  note,
+  isSelected,
+  onToggleSelect,
+  isSelectingMode
+}) => {
+  const { updateNoteApi, deleteNoteApi, clearSelectedNotes } = useNotesStore();
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingNoteTitle, setEditingNoteTitle] = useState(note.title);
   const [editingNoteContent, setEditingNoteContent] = useState(note.content);
-  const [isPinned, setIsPinned] = useState(note.pinned); 
+  const [isPinned, setIsPinned] = useState(note.pinned);
   const [itemError, setItemError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // LOGIC FIX: Modified handleClick
+  const handleClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent clicks on the note item from bubbling up
+    // to parent elements that might have their own click handlers.
+    e.stopPropagation();
+
+    // The note item's primary click action is now ONLY to toggle selection
+    // IF the application is in multi-selection mode.
+    if (isSelectingMode) {
+      onToggleSelect();
+    }
+    // IMPORTANT: When NOT in isSelectingMode, clicking the note item itself
+    // should NOT open the edit form. Edit mode is now exclusively
+    // triggered by clicking the dedicated 'Edit' button.
+  };
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length > maxLength) {
@@ -29,12 +57,18 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
     return text;
   };
 
-  const handleEditClick = () => {
+  // handleEditClick is now exclusively for the "Edit" button click
+  const handleEditClick = (e: React.MouseEvent) => {
+    // Crucial: Stop propagation to prevent this button's click from triggering
+    // the parent noteItem's handleClick (which would toggle selection if in select mode)
+    // or any other unintended parent behaviors.
+    e.stopPropagation();
     setIsEditing(true);
     setEditingNoteTitle(note.title);
     setEditingNoteContent(note.content);
     setIsPinned(note.pinned);
     setItemError(null);
+    clearSelectedNotes(); // Clear selection if user clicks to edit a specific note
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -47,46 +81,65 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
     }
 
     try {
-      await onUpdateNote(note.id, editingNoteTitle, editingNoteContent, isPinned);
+      await updateNoteApi(note.id, editingNoteTitle, editingNoteContent, isPinned);
       setIsEditing(false);
     } catch (err: any) {
+      setItemError(`Failed to update note: ${err.message}`);
     }
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop propagation to prevent parent click from triggering
     setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
     setItemError(null);
     try {
-      await onDeleteNote(note.id);
+      await deleteNoteApi(note.id);
       setIsDeleteModalOpen(false);
     } catch (err: any) {
       setIsDeleteModalOpen(false);
+      setItemError(`Failed to delete note: ${err.message}`);
     }
   };
 
-  const handleTogglePin = async () => {
+  const handleTogglePin = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop propagation to prevent parent click from triggering
     setItemError(null);
     try {
-      await onUpdateNote(note.id, note.title, note.content, !isPinned); 
-      setIsPinned(!isPinned);
+      await updateNoteApi(note.id, note.title, note.content, !isPinned);
+      setIsPinned(!isPinned); // Optimistic update
     } catch (err: any) {
+      setItemError(`Failed to toggle pin: ${err.message}`);
     }
   };
 
-  if (note.title === CLIPBOARD_NOTE_TITLE) {
-    return (
-     <ClipboardNoteItem note={note} onPaste={onPasteToClipboardNote}></ClipboardNoteItem>
-    );
-  }
+  // Note: The conditional rendering for ClipboardNoteItem is typically done
+  // in NotesList.tsx, passing a specific `note` prop that denotes it's the clipboard note.
+  // If you also want to handle it here (e.g., if NoteItem is sometimes rendered directly
+  // with a clipboard note object), this check should be at the very top of the component.
+  // Assuming this NoteItem is only for regular notes now, or NotesList handles ClipboardNoteItem separately.
+  // If `CLIPBOARD_NOTE_TITLE` is truly a special indicator:
+  // if (note.title === CLIPBOARD_NOTE_TITLE) {
+  //   // You might render a simplified version or a placeholder,
+  //   // or assume that NotesList handles this by rendering ClipboardNoteItem directly.
+  //   // For this component, we'll assume it's dealing with regular notes.
+  //   return null; // Or render a specific ClipboardNoteItem component
+  // }
+
 
   return (
-    <div className={`${styles.noteItem} ${isPinned ? styles.pinnedNote : ''}`}>
+    <div
+      className={`${noteItemStyles.noteItem} ${isPinned ? noteItemStyles.pinnedNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
+      onClick={handleClick} // This is the main click handler for the note item
+    >
       {itemError && <ErrorMessage message={itemError} />}
+
       {isEditing ? (
-        <form onSubmit={handleUpdate} className={styles.form}>
+        // EDITING FORM
+        <form onSubmit={handleUpdate} className={styles.form} onClick={(e) => e.stopPropagation()}>
+          {/* Prevent clicks on the form itself from bubbling up to the parent div */}
           <div>
             <label htmlFor={`editTitle-${note.id}`} className={styles.formLabel}>
               Title
@@ -112,7 +165,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
               className={styles.formTextarea}
             ></textarea>
           </div>
-          <div className={styles.checkboxGroup}>
+          <div className={noteItemStyles.checkboxGroup}>
             <input
               type="checkbox"
               id={`pinNote-${note.id}`}
@@ -120,11 +173,11 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
               onChange={() => setIsPinned(!isPinned)}
               className={styles.checkboxInput}
             />
-            <label htmlFor={`pinNote-${note.id}`} className={styles.checkboxLabel}>
+            <label htmlFor={`pinNote-${note.id}`} className={noteItemStyles.checkboxLabel}>
               Pin Note
             </label>
           </div>
-          <div className={styles.buttonGroup}>
+          <div className={noteItemStyles.buttonGroup}>
             <button type="submit" className={`${styles.button} ${styles.successButton}`}>
               Save
             </button>
@@ -138,56 +191,70 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onUpdateNote, onDeleteNote, o
           </div>
         </form>
       ) : (
+        // DISPLAY MODE
         <>
-          <div className={styles.noteHeader}>
-            <h3 className={styles.noteTitle}>{truncateText(note.title, 50)}</h3>
-            <div className={styles.buttonGroup}>
-              <button
-                onClick={handleTogglePin}
-                className={`${styles.button} ${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
-                title={isPinned ? 'Unpin' : 'Pin'}
-              >
-                {isPinned ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                    <path d="M17 17L12 22L7 17V10H17V17Z" />
-                    <path d="M12 2V10" />
-                  </svg>
-                ) : (
+          <div className={noteItemStyles.noteHeader}>
+            <h3 className={noteItemStyles.noteTitle}>{truncateText(note.title, 50)}</h3>
+            {isSelectingMode ? (
+              // SHOW CHECKBOX IN SELECTION MODE
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={onToggleSelect} // Checkbox change directly calls onToggleSelect
+                className={noteItemStyles.multiSelectCheckbox}
+                onClick={(e) => e.stopPropagation()} // Prevent checkbox click from also triggering parent div's click
+              />
+            ) : (
+              // SHOW ACTION BUTTONS IN NORMAL MODE
+              <div className={noteItemStyles.buttonGroup}>
+                <button
+                  onClick={handleTogglePin}
+                  className={`${styles.button} ${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
+                  title={isPinned ? 'Unpin' : 'Pin'}
+                >
+                  {isPinned ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                      <path d="M17 17L12 22L7 17V10H17V17Z" />
+                      <path d="M12 2V10" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                      <path d="M12 17V22" />
+                      <path d="M7 10V17L12 22L17 17V10" />
+                      <path d="M17 10H7V5H17V10Z" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={handleEditClick} // This button is now the SOLE trigger for edit mode
+                  className={`${styles.button} ${styles.editButton}`}
+                  title="Edit"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                    <path d="M12 17V22" />
-                    <path d="M7 10V17L12 22L17 17V10" />
-                    <path d="M17 10H7V5H17V10Z" />
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
                   </svg>
-                )}
-              </button>
-              <button
-                onClick={handleEditClick}
-                className={`${styles.button} ${styles.editButton}`}
-                title="Edit"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
-                </svg>
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                className={`${styles.button} ${styles.deleteButton}`}
-                title="Delete"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-              </button>
-            </div>
+                </button>
+                <button
+                  onClick={handleDeleteClick}
+                  className={`${styles.button} ${styles.deleteButton}`}
+                  title="Delete"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
-          <p className={styles.noteContent}>{note.content || 'No content'}</p>
+          <p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>
         </>
       )}
 
+      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

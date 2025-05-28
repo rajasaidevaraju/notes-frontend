@@ -13,7 +13,6 @@ export default async function App() {
     });
     
     if (!response.ok) {
-      // Handle different HTTP error statuses
       if (response.status === 404) {
         initialError = 'Error: Notes endpoint not found (404).';
       } else if (response.status === 500) {
