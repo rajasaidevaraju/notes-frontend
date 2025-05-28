@@ -3,8 +3,8 @@ import { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 
 interface AddNoteFormProps {
-    onAddNote: (title: string, content: string) => Promise<void>; // Callback to add note
-    onClose: () => void; // Callback to close modal
+    onAddNote: (title: string, content: string) => Promise<void>; 
+    onClose: () => void; 
   }
   
   const AddNoteForm: React.FC<AddNoteFormProps> = ({ onAddNote, onClose }) => {
@@ -14,7 +14,7 @@ interface AddNoteFormProps {
   
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      setFormError(null); // Clear local form error
+      setFormError(null);
   
       if (!newNoteTitle.trim()) {
         setFormError('Title cannot be empty.');
@@ -25,10 +25,13 @@ interface AddNoteFormProps {
         await onAddNote(newNoteTitle, newNoteContent);
         setNewNoteTitle('');
         setNewNoteContent('');
-        onClose(); // Close modal on successful add
-      } catch (err: any) {
-        // The error is handled by the parent (NotesContainer) which sets its global error state.
-        // No need to set a local error here for API failures.
+        onClose(); 
+      }catch (err: unknown) {
+        let errorMessage = "An unknown error occurred.";
+        if (err instanceof Error) {
+          errorMessage = `Error: ${err.message}`;
+        }
+        setFormError(errorMessage)
       }
     };
   

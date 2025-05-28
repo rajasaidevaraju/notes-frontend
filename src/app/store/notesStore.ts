@@ -13,15 +13,14 @@ interface NotesState {
   setError: (error: string | null) => void;
   addNote: (note: Note) => void;
   updateNote: (updatedNote: Note) => void;
-  deleteNote: (id: number) => void; // This will likely be used internally by batch delete now
+  deleteNote: (id: number) => void;
   toggleSelectNote: (id: number) => void;
   clearSelectedNotes: () => void;
-  deleteSelectedNotes: () => Promise<void>; // This will use the batch API
-  // Async actions
+  deleteSelectedNotes: () => Promise<void>;
   fetchNotes: () => Promise<void>;
   addNoteApi: (title: string, content: string) => Promise<void>;
   updateNoteApi: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
-  deleteNoteApi: (id: number) => Promise<void>; // Kept for single delete fallback or other uses
+  deleteNoteApi: (id: number) => Promise<void>;
   pasteToClipboardNoteApi: () => Promise<void>;
 }
 
@@ -78,7 +77,6 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     }
 
     try {
-      // Use the new batch delete API endpoint
       const response = await fetch('/api/notes/batch', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -90,25 +88,24 @@ export const useNotesStore = create<NotesState>((set, get) => ({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      // If the batch delete is successful, update the store's notes and clear selections
-      // The API should return which IDs were successfully deleted or a success message.
-      // For simplicity, we assume all requested IDs were deleted on success.
       set((state) => ({
         notes: state.notes.filter((note) => !selectedIds.includes(note.id)),
-        selectedNoteIds: new Set(), // Clear all selected notes
+        selectedNoteIds: new Set(),
       }));
 
-      // You could also log a success message from the API if it returns one
-      const successData = await response.json(); // If your batch delete returns JSON
+      const successData = await response.json();
       console.log(successData.message);
 
-    } catch (err: any) {
-      get().setError(`Failed to delete selected notes: ${err.message}`);
+    } catch (err: unknown) {
+      let message = 'Failed to delete selected notes.';
+      if (err instanceof Error) {
+        message = `Failed to delete selected notes: ${err.message}`;
+      }
+      get().setError(message);
       console.error('Error deleting selected notes:', err);
     }
   },
 
-  // Async API actions
   fetchNotes: async () => {
     set({ loading: true, error: null });
     try {
@@ -121,8 +118,12 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       const regularNotes = allNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
       const clipboardNote = allNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
       set({ notes: regularNotes, clipboardNote, loading: false });
-    } catch (err: any) {
-      set({ error: `Failed to fetch notes: ${err.message}`, loading: false });
+    } catch (err: unknown) {
+      let message = 'Failed to fetch notes.';
+      if (err instanceof Error) {
+        message = `Failed to fetch notes: ${err.message}`;
+      }
+      set({ error: message, loading: false });
       console.error('Error fetching notes:', err);
     }
   },
@@ -141,8 +142,12 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       }
       const addedNote: Note = await response.json();
       get().addNote(addedNote);
-    } catch (err: any) {
-      get().setError(`Failed to add note: ${err.message}`);
+    } catch (err: unknown) {
+      let message = 'Failed to add note.';
+      if (err instanceof Error) {
+        message = `Failed to add note: ${err.message}`;
+      }
+      get().setError(message);
       console.error('Error adding note:', err);
       throw err;
     }
@@ -162,8 +167,12 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       }
       const updatedNote: Note = await response.json();
       get().updateNote(updatedNote);
-    } catch (err: any) {
-      get().setError(`Failed to update note: ${err.message}`);
+    } catch (err: unknown) {
+      let message = 'Failed to update note.';
+      if (err instanceof Error) {
+        message = `Failed to update note: ${err.message}`;
+      }
+      get().setError(message);
       console.error('Error updating note:', err);
       throw err;
     }
@@ -178,8 +187,12 @@ export const useNotesStore = create<NotesState>((set, get) => ({
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       get().deleteNote(id);
-    } catch (err: any) {
-      get().setError(`Failed to delete note: ${err.message}`);
+    } catch (err: unknown) {
+      let message = 'Failed to delete note.';
+      if (err instanceof Error) {
+        message = `Failed to delete note: ${err.message}`;
+      }
+      get().setError(message);
       console.error('Error deleting note:', err);
       throw err;
     }
@@ -200,8 +213,12 @@ export const useNotesStore = create<NotesState>((set, get) => ({
         get().setError('Clipboard API not supported or permission denied. Please ensure your browser supports it and you have granted permission.');
         console.warn('Clipboard API (readText) not supported or permission denied.');
       }
-    } catch (err: any) {
-      get().setError(`Failed to read clipboard: ${err.message}. Ensure you have granted permission.`);
+    } catch (err: unknown) {
+      let message = 'Failed to read clipboard. Ensure you have granted permission.';
+      if (err instanceof Error) {
+        message = `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`;
+      }
+      get().setError(message);
       console.error('Error reading clipboard for paste:', err);
     }
   },

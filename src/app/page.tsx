@@ -32,14 +32,17 @@ export default async function App() {
         notes = [];
       }
     }
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      initialError = 'Error: Request timed out.';
-    } else {
-      initialError = `Error fetching notes: ${error.message || 'Network error occurred.'}`;
+  } catch (error: unknown) {
+    initialError="failed to fetch notes"
+    if(error instanceof Error){
+      if (error.name === 'AbortError') {
+        initialError = 'Error: Request timed out.';
+      } else {
+        initialError = `Error fetching notes: ${error.message || 'Network error occurred.'}`;
+      }
+      notes = [];
     }
     console.error(initialError, error);
-    notes = [];
   }
 
   return (

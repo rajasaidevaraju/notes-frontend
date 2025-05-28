@@ -1,15 +1,14 @@
 import styles from '@/Home.module.css';
-import { Note } from '@/types/Notes';
 import NoteItem from './NoteItem';
-import { useNotesStore } from '../store/notesStore'; // Adjust path as needed
+import { useNotesStore } from '@/store/notesStore';
 import ClipboardNoteItem from './ClipboardNoteItem';
 
 interface NotesListProps {
   isSelectingMode: boolean;
 }
 
-const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => { // Accept the new prop
-  const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote, clearSelectedNotes } = useNotesStore();
+const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
+  const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote } = useNotesStore();
 
   if (loading) {
     return <p className={styles.infoMessage}>Loading notes...</p>;

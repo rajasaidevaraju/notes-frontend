@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import styles from '@/Home.module.css'; // For general buttons and form elements
-import noteItemStyles from './NoteItem.module.css'; // Now contains clipboardNoteItem styles
+import styles from '@/Home.module.css';
+import noteItemStyles from './NoteItem.module.css';
 import ErrorMessage from './ErrorMessage';
 import { useNotesStore } from '@/store/notesStore';
 
-interface ClipboardNoteItemProps {
-  // No props are needed anymore as the component will pull its data from the Zustand store
-}
-
-const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = () => {
-  const { clipboardNote, pasteToClipboardNoteApi, setError } = useNotesStore();
+const ClipboardNoteItem: React.FC = () => {
+  const { clipboardNote, pasteToClipboardNoteApi } = useNotesStore();
 
   const [clipboardPermissionStatus, setClipboardPermissionStatus] = useState<PermissionState>('prompt');
   const [internalError, setInternalError] = useState<string | null>(null);
@@ -32,7 +28,7 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = () => {
                 setClipboardPermissionStatus(permissionStatus.state);
               }
             };
-          } catch (err) {
+          } catch (err: unknown) {
             console.warn('Clipboard permission query not supported or failed:', err);
             setClipboardPermissionStatus('prompt');
           }
@@ -70,8 +66,12 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = () => {
     try {
       await pasteToClipboardNoteApi();
       setInternalError(null);
-    } catch (err: any) {
-      setInternalError(`Failed to read clipboard: ${err.message}. Ensure you have granted permission.`);
+    } catch (err: unknown) {
+      let message = 'Failed to read clipboard. Ensure you have granted permission.';
+      if (err instanceof Error) {
+        message = `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`;
+      }
+      setInternalError(message);
     }
   };
 
@@ -83,8 +83,12 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = () => {
     }
     try {
       await navigator.clipboard.readText();
-    } catch (err: any) {
-      setInternalError(`Failed to grant clipboard permission: ${err.message}.`);
+    } catch (err: unknown) {
+      let message = 'Failed to grant clipboard permission.';
+      if (err instanceof Error) {
+        message = `Failed to grant clipboard permission: ${err.message}.`;
+      }
+      setInternalError(message);
     }
   };
 

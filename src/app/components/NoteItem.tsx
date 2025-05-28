@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState} from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
@@ -64,8 +64,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
     try {
       await updateNoteApi(note.id, editingNoteTitle, editingNoteContent, isPinned);
       setIsEditing(false);
-    } catch (err: any) {
-      setItemError(`Failed to update note: ${err.message}`);
+    } catch (err: unknown) {
+      let message="Failed to update note"
+      if (err instanceof Error) {
+        message =`${message}: ${err.message}`
+      }
+      setItemError(message);
     }
   };
 
@@ -79,9 +83,13 @@ const NoteItem: React.FC<NoteItemProps> = ({
     try {
       await deleteNoteApi(note.id);
       setIsDeleteModalOpen(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsDeleteModalOpen(false);
-      setItemError(`Failed to delete note: ${err.message}`);
+      let message="Failed to delete note"
+      if (err instanceof Error) {
+        message =`${message}: ${err.message}`
+      }
+      setItemError(message);
     }
   };
 
@@ -91,8 +99,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
     try {
       await updateNoteApi(note.id, note.title, note.content, !isPinned);
       setIsPinned(!isPinned);
-    } catch (err: any) {
-      setItemError(`Failed to toggle pin: ${err.message}`);
+    } catch (err: unknown) {
+      let message="Failed to toggle pin"
+      if (err instanceof Error) {
+        message =`${message}: ${err.message}`
+      }
+      setItemError(message);
     }
   };
 
