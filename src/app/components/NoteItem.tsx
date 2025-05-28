@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ErrorMessage from './ErrorMessage';
-import styles from '@/Home.module.css'; // For common button styles like .button, .successButton, .cancelButton
-import noteItemStyles from './NoteItem.module.css'; // For note item specific styles like .noteItem, .noteHeader, .noteTitle, .multiSelectCheckbox, .buttonGroup, .checkboxGroup, .checkboxLabel
+import styles from '@/Home.module.css';
+import noteItemStyles from './NoteItem.module.css';
 import { Note } from '@/types/Notes';
 import Modal from './Modal';
 import { useNotesStore } from '../store/notesStore';
@@ -12,12 +12,6 @@ interface NoteItemProps {
   onToggleSelect: () => void;
   isSelectingMode: boolean;
 }
-
-// Defining CLIPBOARD_NOTE_TITLE here, although in a real app,
-// it might be better to have this in a central constants file.
-// However, since it's used only within NoteItem and ClipboardNoteItem,
-// keeping it locally is fine for now.
-const CLIPBOARD_NOTE_TITLE = 'Clipboard';
 
 const NoteItem: React.FC<NoteItemProps> = ({
   note,
@@ -34,20 +28,11 @@ const NoteItem: React.FC<NoteItemProps> = ({
   const [itemError, setItemError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // LOGIC FIX: Modified handleClick
   const handleClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent clicks on the note item from bubbling up
-    // to parent elements that might have their own click handlers.
     e.stopPropagation();
-
-    // The note item's primary click action is now ONLY to toggle selection
-    // IF the application is in multi-selection mode.
     if (isSelectingMode) {
       onToggleSelect();
     }
-    // IMPORTANT: When NOT in isSelectingMode, clicking the note item itself
-    // should NOT open the edit form. Edit mode is now exclusively
-    // triggered by clicking the dedicated 'Edit' button.
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -57,18 +42,14 @@ const NoteItem: React.FC<NoteItemProps> = ({
     return text;
   };
 
-  // handleEditClick is now exclusively for the "Edit" button click
   const handleEditClick = (e: React.MouseEvent) => {
-    // Crucial: Stop propagation to prevent this button's click from triggering
-    // the parent noteItem's handleClick (which would toggle selection if in select mode)
-    // or any other unintended parent behaviors.
     e.stopPropagation();
     setIsEditing(true);
     setEditingNoteTitle(note.title);
     setEditingNoteContent(note.content);
     setIsPinned(note.pinned);
     setItemError(null);
-    clearSelectedNotes(); // Clear selection if user clicks to edit a specific note
+    clearSelectedNotes();
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -89,7 +70,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop propagation to prevent parent click from triggering
+    e.stopPropagation();
     setIsDeleteModalOpen(true);
   };
 
@@ -105,41 +86,25 @@ const NoteItem: React.FC<NoteItemProps> = ({
   };
 
   const handleTogglePin = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop propagation to prevent parent click from triggering
+    e.stopPropagation();
     setItemError(null);
     try {
       await updateNoteApi(note.id, note.title, note.content, !isPinned);
-      setIsPinned(!isPinned); // Optimistic update
+      setIsPinned(!isPinned);
     } catch (err: any) {
       setItemError(`Failed to toggle pin: ${err.message}`);
     }
   };
 
-  // Note: The conditional rendering for ClipboardNoteItem is typically done
-  // in NotesList.tsx, passing a specific `note` prop that denotes it's the clipboard note.
-  // If you also want to handle it here (e.g., if NoteItem is sometimes rendered directly
-  // with a clipboard note object), this check should be at the very top of the component.
-  // Assuming this NoteItem is only for regular notes now, or NotesList handles ClipboardNoteItem separately.
-  // If `CLIPBOARD_NOTE_TITLE` is truly a special indicator:
-  // if (note.title === CLIPBOARD_NOTE_TITLE) {
-  //   // You might render a simplified version or a placeholder,
-  //   // or assume that NotesList handles this by rendering ClipboardNoteItem directly.
-  //   // For this component, we'll assume it's dealing with regular notes.
-  //   return null; // Or render a specific ClipboardNoteItem component
-  // }
-
-
   return (
     <div
       className={`${noteItemStyles.noteItem} ${isPinned ? noteItemStyles.pinnedNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
-      onClick={handleClick} // This is the main click handler for the note item
+      onClick={handleClick}
     >
       {itemError && <ErrorMessage message={itemError} />}
 
       {isEditing ? (
-        // EDITING FORM
         <form onSubmit={handleUpdate} className={styles.form} onClick={(e) => e.stopPropagation()}>
-          {/* Prevent clicks on the form itself from bubbling up to the parent div */}
           <div>
             <label htmlFor={`editTitle-${note.id}`} className={styles.formLabel}>
               Title
@@ -191,21 +156,18 @@ const NoteItem: React.FC<NoteItemProps> = ({
           </div>
         </form>
       ) : (
-        // DISPLAY MODE
         <>
           <div className={noteItemStyles.noteHeader}>
             <h3 className={noteItemStyles.noteTitle}>{truncateText(note.title, 50)}</h3>
             {isSelectingMode ? (
-              // SHOW CHECKBOX IN SELECTION MODE
               <input
                 type="checkbox"
                 checked={isSelected}
-                onChange={onToggleSelect} // Checkbox change directly calls onToggleSelect
+                onChange={onToggleSelect}
                 className={noteItemStyles.multiSelectCheckbox}
-                onClick={(e) => e.stopPropagation()} // Prevent checkbox click from also triggering parent div's click
+                onClick={(e) => e.stopPropagation()}
               />
             ) : (
-              // SHOW ACTION BUTTONS IN NORMAL MODE
               <div className={noteItemStyles.buttonGroup}>
                 <button
                   onClick={handleTogglePin}
@@ -226,13 +188,13 @@ const NoteItem: React.FC<NoteItemProps> = ({
                   )}
                 </button>
                 <button
-                  onClick={handleEditClick} // This button is now the SOLE trigger for edit mode
+                  onClick={handleEditClick}
                   className={`${styles.button} ${styles.editButton}`}
                   title="Edit"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
+                    <path d="M18.5 2.5a2.121 2 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
                   </svg>
                 </button>
                 <button
@@ -254,7 +216,6 @@ const NoteItem: React.FC<NoteItemProps> = ({
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
