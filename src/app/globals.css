@@ -23,6 +23,7 @@
 --color-error-background: #fee2e2;
 --color-error-border: #ef4444;
 --color-error-text: #b91c1c;
+--primary-rgb: 37, 99, 235;
 }
 
 @media (prefers-color-scheme: dark) {

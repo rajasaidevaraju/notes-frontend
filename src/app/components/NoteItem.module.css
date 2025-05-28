@@ -11,7 +11,7 @@
   }
   
   .selectedNote {
-    border: 0.125rem solid var(--primary-color);
+    border: 0.125rem solid var(--color-brand-primary);
     box-shadow: 0 0 0 0.1875rem rgba(var(--primary-rgb), 0.3);
     background-color: rgba(var(--primary-rgb), 0.05);
     transform: scale(1.01);
