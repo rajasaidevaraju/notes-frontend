@@ -1,21 +1,23 @@
+/* home.module.css */
 .container {
   min-height: 100vh;
   background-color: var(--color-neutral-100);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 2.5rem;
-  padding-bottom: 2.5rem;
+  padding: 1rem;
   font-family: 'Inter', sans-serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .card {
   width: 100%;
-  max-width: 42rem;
+  max-width: none;
   background-color: var(--color-white);
   padding: 2rem;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin: 1rem 0rem;
 }
 
 .title {
@@ -54,7 +56,8 @@
   font-size: 1.875rem;
   font-weight: 600;
   color: var(--color-neutral-900);
-  text-align: center;
+  text-align: left;
+  margin-bottom: 1.5rem;
 }
 
 .form {
@@ -93,7 +96,7 @@
 
 .button {
   width: fit-content;
-  padding: 0.5rem 1rem;
+  padding: 0.3rem .6rem;
   border-radius: 0.375rem;
   font-weight: 500;
   cursor: pointer;
@@ -216,12 +219,15 @@
 .infoMessage {
   text-align: center;
   color: var(--color-neutral-500);
+  margin-top: 1rem;
 }
 
 .notesList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .clipboardNote{
@@ -230,7 +236,7 @@
 }
 
 .clipboardNote .noteTitle {
-  color: var(--color-brand-primary); 
+  color: var(--color-brand-primary);
 }
 
 .permission{
@@ -326,34 +332,6 @@
     background-color: var(--color-brand-primary-dark);
 }
 
-@media (max-width: 768px) {
-  .card {
-    padding: 1rem;
-    margin: 0 1rem; 
-  }
-
-  .title {
-    font-size: 2rem;
-  }
-
-  .sectionTitle {
-    font-size: 1.25rem;
-  }
-
-  .notesSectionTitle {
-    font-size: 1.5rem;
-  }
-
-  .buttonGroup {
-    flex-direction: row; 
-    gap: 0.75rem; 
-  }
-
-  .buttonGroup .button {
-    width: fit-content;
-  }
-}
-
 .notesSectionTitle {
   font-size: 2em;
   color: var(--text-color-dark);
@@ -366,7 +344,7 @@
 .sectionHeading {
   font-size: 1.5em;
   color: var(--text-color-dark);
-  grid-column: 1 / -1; 
+  grid-column: 1 / -1;
   text-align: left;
 }
 
@@ -413,6 +391,41 @@
   font-style: italic;
 }
 
+@media (max-width: 768px) {
+
+  .container{
+    padding: 0rem;
+    margin: 0rem;
+  }
+  .card {
+    padding: 1rem;
+    margin: 0rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .notesSectionTitle {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .buttonGroup {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .buttonGroup .button {
+    width: fit-content;
+  }
+}
+
+
 @media (max-width: 480px) {
   .notesList{
     margin-bottom: .5rem;
@@ -424,7 +437,7 @@
 
   .button{
     min-width: 1.8rem;
-    padding: .5rem;
+    padding: .2rem .5rem;
   }
 
   .notesList {
