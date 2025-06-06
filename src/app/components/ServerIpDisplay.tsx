@@ -33,7 +33,7 @@ const ServerIpDisplay = async () => {
   return (
     <div className={styles.serverInfoContainer}>
       {serverIp && serverIp !== 'Not Found' ? (
-        <p className={styles.serverIpText}>Next.js Server IP: <strong>{serverIp}</strong></p>
+        <p className={styles.serverIpText}>Next.js Server IP: <strong>{`${serverIp}:3003`}</strong></p>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : (

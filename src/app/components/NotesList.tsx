@@ -23,7 +23,7 @@ const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
 
   return (
     <div className={styles.notesList}>
-      {clipboardNote && (
+      {clipboardNote &&pinned.length==0 && (
         <ClipboardNoteItem
         />
       )}
@@ -33,6 +33,10 @@ const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
       ) : (
         <>
           {pinned.length > 0 && <h3 className={styles.sectionHeading}>Pinned Notes</h3>}
+          {clipboardNote &&pinned.length>0 && (
+            <ClipboardNoteItem
+            />
+          )}
           {pinned.map((note) => (
             <NoteItem
               key={note.id}
