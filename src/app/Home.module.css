@@ -440,9 +440,6 @@
     padding: .2rem .5rem;
   }
 
-  .notesList {
-    grid-template-columns: 1fr;
-  }
   .createNoteButton {
       text-align: center;
   }
