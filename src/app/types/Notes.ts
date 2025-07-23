@@ -3,6 +3,7 @@ export interface Note {
   title: string;
   content: string;
   pinned:boolean;
+  hidden:boolean;
   updatedAt: string;
   createdAt:string;
 }

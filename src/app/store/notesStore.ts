@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { Note } from '@/types/Notes';
+import { handleApiRequest } from '@/utils/api';
 
 interface NotesState {
   notes: Note[];
   clipboardNote: Note | null;
+  hiddenNotes: Note[];
   selectedNoteIds: Set<number>;
   loading: boolean;
   error: string | null;
@@ -18,8 +20,9 @@ interface NotesState {
   clearSelectedNotes: () => void;
   deleteSelectedNotes: () => Promise<void>;
   fetchNotes: () => Promise<void>;
+  fetchHiddenNotes: (pin:string) => Promise<void>;
   addNoteApi: (title: string, content: string) => Promise<void>;
-  updateNoteApi: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
+  updateNoteApi: (id: number, title: string, content: string, pinned: boolean, hidden: boolean) => Promise<void>;
   deleteNoteApi: (id: number) => Promise<void>;
   pasteToClipboardNoteApi: () => Promise<void>;
 }
@@ -28,6 +31,7 @@ const CLIPBOARD_NOTE_TITLE = 'Clipboard';
 
 export const useNotesStore = create<NotesState>((set, get) => ({
   notes: [],
+  hiddenNotes: [],
   clipboardNote: null,
   selectedNoteIds: new Set(),
   loading: false,
@@ -70,132 +74,93 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   clearSelectedNotes: () => set({ selectedNoteIds: new Set() }),
 
   deleteSelectedNotes: async () => {
-    get().setError(null);
     const selectedIds = Array.from(get().selectedNoteIds);
-    if (selectedIds.length === 0) {
-      return;
-    }
+    if (selectedIds.length === 0) return;
 
-    try {
-      const response = await fetch('/api/notes/batch', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      set((state) => ({
-        notes: state.notes.filter((note) => !selectedIds.includes(note.id)),
-        selectedNoteIds: new Set(),
-      }));
-
-      const successData = await response.json();
-      console.log(successData.message);
-
-    } catch (err: unknown) {
-      let message = 'Failed to delete selected notes.';
-      if (err instanceof Error) {
-        message = `Failed to delete selected notes: ${err.message}`;
-      }
-      get().setError(message);
-      console.error('Error deleting selected notes:', err);
-    }
+    await handleApiRequest<{ message: string }>(
+      () =>
+        fetch('/api/notes/batch', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedIds }),
+        }),
+      () => {
+        set((state) => ({
+          notes: state.notes.filter((note) => !selectedIds.includes(note.id)),
+          selectedNoteIds: new Set(),
+        }));
+      },
+      (error) => get().setError(`Failed to delete selected notes: ${error}`)
+    );
   },
 
   fetchNotes: async () => {
     set({ loading: true, error: null });
-    try {
-      const response = await fetch('/api/notes');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+
+    await handleApiRequest<Note[]>(
+      () => fetch('/api/notes'),
+      (allNotes) => {
+        const regularNotes = allNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
+        const clipboardNote = allNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
+        set({ notes: regularNotes, clipboardNote, loading: false });
+      },
+      (error) => set({ error, loading: false })
+    );
+  },
+
+  fetchHiddenNotes:async(pin:string)=>{
+    set({ loading: true, error: null });
+    await handleApiRequest<Note[]>(
+      () => fetch('/api/notes/hidden', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${pin}`,
+        'Content-Type': 'application/json'
       }
-      const allNotes: Note[] = await response.json();
-      const regularNotes = allNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
-      const clipboardNote = allNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
-      set({ notes: regularNotes, clipboardNote, loading: false });
-    } catch (err: unknown) {
-      let message = 'Failed to fetch notes.';
-      if (err instanceof Error) {
-        message = `Failed to fetch notes: ${err.message}`;
-      }
-      set({ error: message, loading: false });
-      console.error('Error fetching notes:', err);
-    }
+    }),
+      (hiddenNotes) => {set({ hiddenNotes, loading: false });},
+      (error) => set({ error, loading: false })
+    );
   },
 
   addNoteApi: async (title, content) => {
     get().setError(null);
-    try {
-      const response = await fetch(`/api/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const addedNote: Note = await response.json();
-      get().addNote(addedNote);
-    } catch (err: unknown) {
-      let message = 'Failed to add note.';
-      if (err instanceof Error) {
-        message = `Failed to add note: ${err.message}`;
-      }
-      get().setError(message);
-      console.error('Error adding note:', err);
-      throw err;
-    }
+    await handleApiRequest<Note>(
+      () =>
+        fetch(`/api/notes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content }),
+        }),
+      (addedNote) => get().addNote(addedNote),
+      (error) => get().setError(`Failed to add note: ${error}`)
+    );
   },
 
-  updateNoteApi: async (id, title, content, pinned) => {
+  updateNoteApi: async (id, title, content, pinned, hidden) => {
     get().setError(null);
-    try {
-      const response = await fetch(`/api/notes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, pinned }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const updatedNote: Note = await response.json();
-      get().updateNote(updatedNote);
-    } catch (err: unknown) {
-      let message = 'Failed to update note.';
-      if (err instanceof Error) {
-        message = `Failed to update note: ${err.message}`;
-      }
-      get().setError(message);
-      console.error('Error updating note:', err);
-      throw err;
-    }
+    await handleApiRequest<Note>(
+      () =>
+        fetch(`/api/notes/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content, pinned, hidden }),
+        }),
+      (updatedNote) => get().updateNote(updatedNote),
+      (error) => get().setError(`Failed to update note: ${error}`)
+    );
   },
 
   deleteNoteApi: async (id) => {
     get().setError(null);
-    try {
-      const response = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      get().deleteNote(id);
-    } catch (err: unknown) {
-      let message = 'Failed to delete note.';
-      if (err instanceof Error) {
-        message = `Failed to delete note: ${err.message}`;
-      }
-      get().setError(message);
-      console.error('Error deleting note:', err);
-      throw err;
-    }
+    await handleApiRequest<void>(
+      () =>
+        fetch(`/api/notes/${id}`, {
+          method: 'DELETE',
+        }),
+      () => get().deleteNote(id),
+      (error) => get().setError(`Failed to delete note: ${error}`)
+    );
   },
 
   pasteToClipboardNoteApi: async () => {
@@ -205,21 +170,21 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       get().setError('Clipboard note not found. Please refresh the page.');
       return;
     }
+
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
-        await get().updateNoteApi(clipboardNote.id, clipboardNote.title, text, clipboardNote.pinned);
+        await get().updateNoteApi(clipboardNote.id, clipboardNote.title, text, clipboardNote.pinned, false);
       } else {
-        get().setError('Clipboard API not supported or permission denied. Please ensure your browser supports it and you have granted permission.');
-        console.warn('Clipboard API (readText) not supported or permission denied.');
+        get().setError('Clipboard API not supported or permission denied.');
+        console.warn('Clipboard API not supported or permission denied.');
       }
     } catch (err: unknown) {
-      let message = 'Failed to read clipboard. Ensure you have granted permission.';
-      if (err instanceof Error) {
-        message = `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`;
-      }
+      const message = err instanceof Error
+        ? `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`
+        : 'Failed to read clipboard. Ensure you have granted permission.';
       get().setError(message);
-      console.error('Error reading clipboard for paste:', err);
+      console.error('Error reading clipboard:', err);
     }
   },
 }));

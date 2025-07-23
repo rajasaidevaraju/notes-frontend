@@ -1,55 +1,56 @@
 // components/EditNoteFormModal.tsx
 import React, { useState, useEffect } from 'react';
 import ErrorMessage from './ErrorMessage';
-import styles from '@/Home.module.css'; 
-import noteItemStyles from './NoteItem.module.css'; 
-import Modal from './Modal'; 
+import styles from '@/Home.module.css';
+import noteItemStyles from './NoteItem.module.css';
+import Modal from './Modal';
+import { Note } from '@/types/Notes';
 
 interface EditNoteFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  noteId: number;
-  currentTitle: string;
-  currentContent: string;
-  currentPinned: boolean;
-  onUpdateNote: (id: number, title: string, content: string, pinned: boolean) => Promise<void>;
+  note: Note;
+  onUpdateNote: (id: number, title: string, content: string, pinned: boolean, hidden: boolean) => Promise<void>;
 }
 
 const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   isOpen,
   onClose,
-  noteId,
-  currentTitle,
-  currentContent,
-  currentPinned,
+  note,
   onUpdateNote,
 }) => {
-  const [editingNoteTitle, setEditingNoteTitle] = useState(currentTitle);
-  const [editingNoteContent, setEditingNoteContent] = useState(currentContent);
-  const [isPinned, setIsPinned] = useState(currentPinned);
+  const [formData, setFormData] = useState(note);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setEditingNoteTitle(currentTitle);
-      setEditingNoteContent(currentContent);
-      setIsPinned(currentPinned);
-      setFormError(null); 
+      setFormData(note);
+      setFormError(null);
     }
-  }, [isOpen, currentTitle, currentContent, currentPinned]);
+  }, [isOpen, note]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const isCheckbox = type === 'checkbox';
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: isCheckbox ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    if (!editingNoteTitle.trim()) {
+    if (!formData.title.trim()) {
       setFormError('Title cannot be empty.');
       return;
     }
 
     try {
-      await onUpdateNote(noteId, editingNoteTitle, editingNoteContent, isPinned);
-      onClose(); 
+      const { id, title, content, pinned, hidden } = formData;
+      await onUpdateNote(id, title, content, pinned, hidden);
+      onClose();
     } catch (err: unknown) {
       let message = "Failed to update note";
       if (err instanceof Error) {
@@ -70,8 +71,9 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
           <input
             type="text"
             id="editTitle"
-            value={editingNoteTitle}
-            onChange={(e) => setEditingNoteTitle(e.target.value)}
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
             className={styles.formInput}
             required
             autoComplete="off"
@@ -83,32 +85,50 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
           </label>
           <textarea
             id="editContent"
-            value={editingNoteContent}
-            onChange={(e) => setEditingNoteContent(e.target.value)}
+            name="content" 
+            value={formData.content}
+            onChange={handleChange}
             rows={4}
             className={styles.formTextarea}
           ></textarea>
         </div>
-        <div className={noteItemStyles.checkboxGroup}>
-          <input
-            type="checkbox"
-            id="pinNote"
-            checked={isPinned}
-            onChange={() => setIsPinned(!isPinned)}
-            className={styles.checkboxInput}
-          />
-          <label htmlFor="pinNote" className={noteItemStyles.checkboxLabel}>
-            Pin Note
-          </label>
+        <div>
+          <div>
+            <input
+              type="checkbox"
+              id="pinNote"
+              name="pinned"
+              checked={formData.pinned}
+              onChange={handleChange}
+              className={styles.checkboxInput}
+            />
+            <label htmlFor="pinNote" className={noteItemStyles.checkboxLabel}>
+              Pin Note
+            </label>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              id="hideNote"
+              name="hidden"
+              checked={formData.hidden}
+              onChange={handleChange}
+              className={styles.checkboxInput}
+            />
+            <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
+              Hide Note
+            </label>
+          </div>
         </div>
-        <div className={styles.buttonGroup}> 
+
+        <div className={styles.buttonGroup}>
           <button type="submit" className={`${styles.button} ${styles.successButton}`}>
             Save Changes
           </button>
           <button
             type="button"
             onClick={onClose}
-            className={`${styles.button} ${styles.cancelButton}`}
+            className={`${styles.button}`}
           >
             Cancel
           </button>

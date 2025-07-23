@@ -50,11 +50,11 @@ const NoteItem: React.FC<NoteItemProps> = ({
     setCopyFeedback(null);
   };
 
-  const handleUpdateFromModal = async (id: number, title: string, content: string, pinned: boolean) => {
+  const handleUpdateFromModal = async (id: number, title: string, content: string, pinned: boolean,hidden:boolean) => {
     setItemError(null);
 
     try {
-      await updateNoteApi(id, title, content, pinned);
+      await updateNoteApi(id, title, content, pinned,hidden);
     } catch (err: unknown) {
       let message = "Failed to update note";
       if (err instanceof Error) {
@@ -90,7 +90,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
     e.stopPropagation();
     setItemError(null);
     try {
-      await updateNoteApi(note.id, note.title, note.content, !note.pinned);
+      await updateNoteApi(note.id, note.title, note.content, !note.pinned,note.hidden);
     } catch (err: unknown) {
       let message = "Failed to toggle pin";
       if (err instanceof Error) {
@@ -145,13 +145,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
             <div className={noteItemStyles.buttonGroup}>
               <button
                 onClick={handleTogglePin}
-                className={`${styles.button} ${styles.pinButton} ${note.pinned ? styles.pinned : ''}`}
+                className={`${styles.button}`}
                 title={note.pinned ? 'Unpin' : 'Pin'}
               >
                 {note.pinned ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                    <path d="M17 17L12 22L7 17V10H17V17Z" />
-                    <path d="M12 2V10" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4l-8 8-2 6 6-2 8-8z"></path> <path d="M8 16l8-8"></path>
                   </svg>
                 ) : (
                   <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
@@ -163,7 +162,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </button>
               <button
                 onClick={handleEditClick}
-                className={`${styles.button} ${styles.editButton}`}
+                className={`${styles.button}`}
                 title="Edit"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
@@ -173,7 +172,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </button>
               <button
                 onClick={handleDeleteClick}
-                className={`${styles.button} ${styles.deleteButton}`}
+                className={`${styles.button}`}
                 title="Delete"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
@@ -185,7 +184,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </button>
               <button
                 onClick={handleCopyClick}
-                className={`${styles.button} ${styles.pinButton}`}
+                className={`${styles.button}`}
                 title="Copy Content"
               >
               <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
@@ -194,6 +193,21 @@ const NoteItem: React.FC<NoteItemProps> = ({
               </svg>
 
                 {copyFeedback && <span style={{ marginLeft: '0.3rem' }}>{copyFeedback}</span>}
+              </button>
+              <button
+                onClick={()=>{/*TODO*/}}
+                className={`${styles.button} ${styles.hideButton}`}
+                title={note.hidden ? 'Un-Hide' : 'Hide'}
+              >
+              {note.hidden ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <path d="M3 3l18 18"></path> <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              )}
               </button>
             </div>
           )}
@@ -206,30 +220,29 @@ const NoteItem: React.FC<NoteItemProps> = ({
         onClose={() => setIsDeleteModalOpen(false)}
         title="Confirm Deletion"
       >
-        <p className={styles.modalBodyText}>Are you sure you want to delete this note?</p>
-        <div className={styles.buttonGroup}>
-          <button
-            onClick={confirmDelete}
-            className={`${styles.button} ${styles.dangerButton}`}
-          >
-            Yes, Delete
-          </button>
-          <button
-            onClick={() => setIsDeleteModalOpen(false)}
-            className={`${styles.button} ${styles.cancelButton}`}
-          >
-            Cancel
-          </button>
+        <div className={styles.form}>
+          <p className={styles.modalBodyText}>Are you sure you want to delete this note?</p>
+          <div className={styles.buttonGroup}>
+            <button
+              onClick={confirmDelete}
+              className={`${styles.button} ${styles.deleteButton}`}
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className={`${styles.button}`}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </Modal>
 
       <EditNoteFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        noteId={note.id}
-        currentTitle={note.title}
-        currentContent={note.content}
-        currentPinned={note.pinned}
+        note = {note}
         onUpdateNote={handleUpdateFromModal}
       />
     </div>

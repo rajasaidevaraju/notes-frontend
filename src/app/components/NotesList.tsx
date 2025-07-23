@@ -8,7 +8,7 @@ interface NotesListProps {
 }
 
 const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
-  const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote } = useNotesStore();
+  const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote,hiddenNotes } = useNotesStore();
 
   if (loading) {
     return <p className={styles.infoMessage}>Loading notes...</p>;
@@ -48,6 +48,20 @@ const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
           ))}
           {pinned.length > 0 && notPinned.length > 0 && <h3 className={styles.sectionHeading}>Other Notes</h3>}
           {notPinned.map((note) => (
+            <NoteItem
+              key={note.id}
+              note={note}
+              isSelected={selectedNoteIds.has(note.id)}
+              onToggleSelect={() => toggleSelectNote(note.id)}
+              isSelectingMode={isSelectingMode}
+            />
+          ))}
+        </>
+      )}
+      {hiddenNotes.length > 0 && (
+        <>
+          <h3 className={styles.sectionHeading}>Hidden Notes</h3>
+            {hiddenNotes.map((note) => (
             <NoteItem
               key={note.id}
               note={note}

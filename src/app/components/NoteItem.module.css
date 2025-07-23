@@ -70,13 +70,6 @@
   justify-content: flex-start;
 }
 
-
-.checkboxGroup {
-  display: flex;
-  align-items: center;
-  margin-top: 0.5rem;
-}
-
 .checkboxLabel {
   font-size: 0.875rem;
   color: var(--color-neutral-700);

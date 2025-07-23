@@ -42,9 +42,10 @@
   background-color: var(--color-error-background);
   border: 1px solid var(--color-error-border);
   color: var(--color-error-text);
-  padding: 1rem;
+  padding: .5rem;
   border-radius: 0.375rem;
-  margin-bottom: 1rem;
+  margin-bottom: .5rem;
+  margin-top: .5rem;
 }
 
 .addNoteSection {
@@ -104,6 +105,21 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
+.pinInputContainer {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.pinInputField {
+  width: 3rem;
+  height: 2rem;
+  text-align: center;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
 .button {
   width: fit-content;
   padding: 0.3rem .6rem;
@@ -120,48 +136,33 @@
 }
 
 .button:focus {
-  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--focus-ring-color);
+ outline: 3px solid var(--color-brand-primary);
+ outline-offset: 2px;
+}
+
+.button:active {
+  transform: scale(0.98); 
 }
 
 .primaryButton {
   background-color: var(--color-brand-primary);
-  color: var(--color-white);
+  color: white;
 }
+
 .primaryButton:hover {
   background-color: var(--color-brand-primary-dark);
-}
-.primaryButton:focus {
-  --focus-ring-color: var(--color-brand-primary);
 }
 
 .successButton {
   background-color: var(--color-brand-success);
+  color:white;
 }
-.successButton:hover {
-  background-color: var(--color-brand-success-dark);
-}
-.successButton:focus {
-  --focus-ring-color: var(--color-brand-success);
-}
+
 
 .cancelButton {
   background-color: var(--color-neutral-400);
 }
-.cancelButton:hover {
-  background-color: var(--color-neutral-500);
-}
-.cancelButton:focus {
-  --focus-ring-color: var(--color-neutral-300);
-}
-.editButton {
-  background-color: var(--color-brand-edit);
-  color: var(--color-white);
-  border: none;
-}
 
-.editButton:hover {
-  background-color: var(--color-brand-edit-dark);
-}
 
 .deleteButton {
   background-color: var(--color-brand-danger);
@@ -173,15 +174,6 @@
   background-color: var(--color-brand-danger-dark);
 }
 
-.dangerButton {
-  background-color: var(--color-brand-danger);
-  color: var(--color-white);
-  border: none;
-}
-
-.dangerButton:hover {
-  background-color: var(--color-brand-danger-dark);
-}
 
 .pinButton {
   background-color: var(--color-neutral-200);
@@ -190,18 +182,10 @@
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
-.pinButton:hover {
-  background-color: var(--color-neutral-300);
-}
-
 .pinButton.pinned {
   background-color: var(--color-accent-pinned-border);
   color: var(--color-white);
   border-color: var(--color-accent-pinned-border);
-}
-
-.pinButton.pinned:hover {
-  background-color: color-mix(in srgb, var(--color-accent-pinned-border) 90%, black);
 }
 
 .icon {
@@ -210,17 +194,7 @@
   vertical-align: middle;
 }
 
-.pinButton .icon {
-  fill: currentColor;
-  stroke: none;
-}
 
-.pinButton.pinned .icon {
-  fill: currentColor;
-  stroke: none;
-}
-
-.editButton .icon,
 .deleteButton .icon {
   stroke: currentColor;
   fill: none;
@@ -320,7 +294,6 @@
 .modalBodyText {
   font-size: 1rem;
   color: var(--color-neutral-700);
-  margin-bottom: 1.5rem;
   text-align: left;
 }
 

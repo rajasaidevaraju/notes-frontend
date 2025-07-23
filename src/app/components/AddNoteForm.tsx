@@ -1,16 +1,17 @@
 import styles from '@/Home.module.css';
 import { useState } from 'react';
+import { useNotesStore } from '../store/notesStore';
 import ErrorMessage from './ErrorMessage';
 
 interface AddNoteFormProps {
-    onAddNote: (title: string, content: string) => Promise<void>; 
     onClose: () => void; 
-  }
+}
   
-  const AddNoteForm: React.FC<AddNoteFormProps> = ({ onAddNote, onClose }) => {
+  const AddNoteForm: React.FC<AddNoteFormProps> = ({onClose }) => {
     const [newNoteTitle, setNewNoteTitle] = useState('');
     const [newNoteContent, setNewNoteContent] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
+    const { addNoteApi } = useNotesStore();
   
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -22,7 +23,7 @@ interface AddNoteFormProps {
       }
   
       try {
-        await onAddNote(newNoteTitle, newNoteContent);
+        await addNoteApi(newNoteTitle, newNoteContent);
         setNewNoteTitle('');
         setNewNoteContent('');
         onClose(); 
