@@ -25,9 +25,12 @@ const ServerIpDisplay = async () => {
     }
     serverIp = foundIp;
 
-  } catch (e: any) {
-    console.error('Failed to get server IP on Next.js server:', e);
-    error = `Failed to get server IP: ${e.message}`;
+  } catch (e: unknown) {
+    if(e instanceof Error){
+      error = `Failed to get server IP: ${e.message}`;
+    }else{
+      error = `Failed to get server IP`;
+    }
   }
 
   return (

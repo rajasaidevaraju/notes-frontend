@@ -14,6 +14,8 @@ This is the frontend application for the Notes project, built with Next.js and R
 
 * **Pin/Unpin Notes**: Toggle a note's pinned status, affecting its display order.
 
+* **Hidden Notes**: Hide notes behind a pin.
+
 * **Special "Clipboard" Note**:
 
     * Always displayed at the very top of the list.

@@ -88,7 +88,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
     }
   };
 
-  const handleTogglePin = async (e: React.MouseEvent) => {
+  const handleTogglePin = async () => {
     setItemError(null);
     try {
       await updateNoteApi({...note,pinned:!note.pinned});

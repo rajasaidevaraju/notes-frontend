@@ -2,16 +2,16 @@ import { useRef,useEffect, useState } from "react";
 import styles from '@/Home.module.css';
 import ErrorMessage from './ErrorMessage';
 
+const emptyPin=['', '', '', ''];
+const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+
 interface PinFormProps {
     onClose: () => void;
     isOpen:boolean;
     onSubmitPin: (pin: string) => Promise<void>
-    }
+}
 
     const PinForm: React.FC<PinFormProps> = ({ isOpen, onClose,onSubmitPin }) => {
-
-    const emptyPin=['', '', '', ''];
-    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
     const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [pin, setPin] = useState<string[]>([...emptyPin]);
     const [formError, setFormError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ interface PinFormProps {
     };
 
     const handleSubmit = (e: React.FormEvent) => {
-        
+
         e.preventDefault();
         const fullPin = pin.join('');
         if(fullPin.length !== 4){

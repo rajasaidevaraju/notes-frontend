@@ -47,10 +47,6 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
         setLoading(false); 
     }, [initialNotes, initialError, setNotes, setClipboardNote, setError, setLoading]);
 
-    var displayHiddenNotes = async (pin:string) => {
-        fetchHiddenNotes(pin)
-    }
-
     const handleConfirmMultiDelete = async () => {
         await deleteSelectedNotes();
         setIsMultiDeleteModalOpen(false);
@@ -125,7 +121,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
             >
                 <PinForm 
                     onClose={() => setIsPinModalOpen(false)}
-                    onSubmitPin={(pin)=>displayHiddenNotes(pin)}
+                    onSubmitPin={(pin)=>fetchHiddenNotes(pin)}
                     isOpen={isPinModalOpen}
                 ></PinForm>
             </Modal>   
