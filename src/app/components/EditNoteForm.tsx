@@ -10,7 +10,7 @@ interface EditNoteFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   note: Note;
-  onUpdateNote: (id: number, title: string, content: string, pinned: boolean, hidden: boolean) => Promise<void>;
+  onUpdateNote: (note:Note) => Promise<void>;
 }
 
 const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
@@ -48,8 +48,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }
 
     try {
-      const { id, title, content, pinned, hidden } = formData;
-      await onUpdateNote(id, title, content, pinned, hidden);
+      await onUpdateNote(formData);
       onClose();
     } catch (err: unknown) {
       let message = "Failed to update note";
@@ -111,9 +110,10 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
               type="checkbox"
               id="hideNote"
               name="hidden"
-              checked={formData.hidden}
+              checked={formData.hidden ?? false}
               onChange={handleChange}
               className={styles.checkboxInput}
+              disabled={formData.hidden}
             />
             <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
               Hide Note

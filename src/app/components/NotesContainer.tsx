@@ -25,6 +25,8 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
         setLoading,
         setError, 
         selectedNoteIds,
+        hiddenNotes,
+        hideHiddenNotes,
         clearSelectedNotes,
         deleteSelectedNotes,
         fetchHiddenNotes
@@ -66,7 +68,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
             <div className={styles.noteHeader}>
                 <h2 className={styles.notesSectionTitle}></h2>
                 <div className={styles.mainActionButtons}>
-                    {/* Multi-select controls */}
+                    
                     {isSelectingMode ? (
                         <>
                             {selectedNoteIds.size > 0 && (
@@ -95,13 +97,16 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                             Select Notes
                         </button>
                     )}
-
-                    <button 
-                        className={`${styles.button}`}
-                        onClick={()=>setIsPinModalOpen(true)}
-                    >
-                        Show Hidden Notes
-                    </button>
+                    {hiddenNotes.length>0?(
+                        <button className={`${styles.button}`}onClick={()=>hideHiddenNotes()}>
+                            Hide Hidden Notes
+                        </button>
+                    ):(
+                        <button className={`${styles.button}`}onClick={()=>setIsPinModalOpen(true)}>
+                            Show Hidden Notes
+                        </button>
+                    )}
+                    
 
                     <button
                         onClick={() => setIsAddNoteModalOpen(true)}

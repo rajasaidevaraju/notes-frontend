@@ -16,14 +16,16 @@ interface NotesState {
   addNote: (note: Note) => void;
   updateNote: (updatedNote: Note) => void;
   deleteNote: (id: number) => void;
+  hideHiddenNotes: () => void;
   toggleSelectNote: (id: number) => void;
   clearSelectedNotes: () => void;
   deleteSelectedNotes: () => Promise<void>;
   fetchNotes: () => Promise<void>;
-  fetchHiddenNotes: (pin:string) => Promise<void>;
+  fetchHiddenNotes: (pin: string) => Promise<void>;
   addNoteApi: (title: string, content: string) => Promise<void>;
-  updateNoteApi: (id: number, title: string, content: string, pinned: boolean, hidden: boolean) => Promise<void>;
+  updateNoteApi: (note: Note) => Promise<void>;
   deleteNoteApi: (id: number) => Promise<void>;
+  unhideNoteApi: (id: number, pin: string) => Promise<void>;
   pasteToClipboardNoteApi: () => Promise<void>;
 }
 
@@ -43,24 +45,57 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   setError: (error) => set({ error }),
 
   addNote: (note) => set((state) => ({ notes: [note, ...state.notes] })),
+  
   updateNote: (updatedNote) =>
     set((state) => {
       if (updatedNote.title === CLIPBOARD_NOTE_TITLE) {
         return { clipboardNote: updatedNote };
       }
-      return {
-        notes: state.notes.map((note) =>
-          note.id === updatedNote.id ? updatedNote : note
-        ),
-      };
+
+      if (updatedNote.hidden) {
+        
+        const isAlreadyHidden = state.hiddenNotes.some(note => note.id === updatedNote.id);
+
+        if(state.hiddenNotes.length==0 ){
+          return {notes:state.notes.filter((note) => note.id !== updatedNote.id)};
+        }
+        return {
+          notes: state.notes.filter((note) => note.id !== updatedNote.id),
+          hiddenNotes: isAlreadyHidden
+            ? state.hiddenNotes.map(note =>
+                note.id === updatedNote.id ? updatedNote : note
+              )
+            : [...state.hiddenNotes, updatedNote],
+        };
+      } 
+      else if (!updatedNote.hidden && state.hiddenNotes.some(note => note.id === updatedNote.id)) {
+        return {
+          hiddenNotes: state.hiddenNotes.filter((note) => note.id !== updatedNote.id),
+          notes: [updatedNote, ...state.notes],
+        };
+      }
+      else {
+        return {
+          notes: state.notes.map((note) =>
+            note.id === updatedNote.id ? updatedNote : note
+          ),
+        };
+      }
     }),
+
   deleteNote: (id) =>
     set((state) => ({
       notes: state.notes.filter((note) => note.id !== id),
+      hiddenNotes: state.hiddenNotes.filter((note) => note.id !== id), 
       selectedNoteIds: new Set(
         [...state.selectedNoteIds].filter((selectedId) => selectedId !== id)
       ),
     })),
+
+  hideHiddenNotes:()=>{
+    set(()=>({hiddenNotes:[]}))
+  },
+
   toggleSelectNote: (id) =>
     set((state) => {
       const newSelectedNoteIds = new Set(state.selectedNoteIds);
@@ -71,6 +106,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       }
       return { selectedNoteIds: newSelectedNoteIds };
     }),
+
   clearSelectedNotes: () => set({ selectedNoteIds: new Set() }),
 
   deleteSelectedNotes: async () => {
@@ -87,6 +123,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
       () => {
         set((state) => ({
           notes: state.notes.filter((note) => !selectedIds.includes(note.id)),
+          hiddenNotes: state.hiddenNotes.filter((note) => !selectedIds.includes(note.id)),
           selectedNoteIds: new Set(),
         }));
       },
@@ -100,7 +137,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     await handleApiRequest<Note[]>(
       () => fetch('/api/notes'),
       (allNotes) => {
-        const regularNotes = allNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
+        const regularNotes = allNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE && !note.hidden);
         const clipboardNote = allNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
         set({ notes: regularNotes, clipboardNote, loading: false });
       },
@@ -108,17 +145,17 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
   },
 
-  fetchHiddenNotes:async(pin:string)=>{
+  fetchHiddenNotes: async (pin: string) => {
     set({ loading: true, error: null });
     await handleApiRequest<Note[]>(
       () => fetch('/api/notes/hidden', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${pin}`,
-        'Content-Type': 'application/json'
-      }
-    }),
-      (hiddenNotes) => {set({ hiddenNotes, loading: false });},
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${pin}`,
+          'Content-Type': 'application/json'
+        }
+      }),
+      (hiddenNotes) => { set({ hiddenNotes, loading: false }); },
       (error) => set({ error, loading: false })
     );
   },
@@ -137,7 +174,8 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
   },
 
-  updateNoteApi: async (id, title, content, pinned, hidden) => {
+  updateNoteApi: async (note: Note) => {
+    const { id, title, content, pinned, hidden } = note;
     get().setError(null);
     await handleApiRequest<Note>(
       () =>
@@ -163,6 +201,22 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
   },
 
+  unhideNoteApi: async (id: number, pin: string) => {
+    get().setError(null);
+    await handleApiRequest<Note>(
+      () =>
+        fetch(`/api/notes/${id}/unhide`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${pin}`
+          },
+        }),
+      (unhiddenNote) => get().updateNote(unhiddenNote),
+      (error) => get().setError(`Failed to unhide note: ${error}`)
+    );
+  },
+
   pasteToClipboardNoteApi: async () => {
     get().setError(null);
     const clipboardNote = get().clipboardNote;
@@ -174,7 +228,8 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
-        await get().updateNoteApi(clipboardNote.id, clipboardNote.title, text, clipboardNote.pinned, false);
+        clipboardNote.content = text;
+        await get().updateNoteApi(clipboardNote);
       } else {
         get().setError('Clipboard API not supported or permission denied.');
         console.warn('Clipboard API not supported or permission denied.');

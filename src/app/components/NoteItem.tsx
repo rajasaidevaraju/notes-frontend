@@ -6,6 +6,7 @@ import noteItemStyles from './NoteItem.module.css';
 import { Note } from '@/types/Notes';
 import Modal from './Modal';
 import EditNoteFormModal from './EditNoteForm';
+import PinForm from './PinForm';
 import { useNotesStore } from '../store/notesStore';
 
 interface NoteItemProps {
@@ -21,10 +22,11 @@ const NoteItem: React.FC<NoteItemProps> = ({
   onToggleSelect,
   isSelectingMode
 }) => {
-  const { updateNoteApi, deleteNoteApi, clearSelectedNotes } = useNotesStore();
+  const { updateNoteApi, deleteNoteApi, clearSelectedNotes,unhideNoteApi} = useNotesStore();
 
   const [itemError, setItemError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
@@ -50,11 +52,11 @@ const NoteItem: React.FC<NoteItemProps> = ({
     setCopyFeedback(null);
   };
 
-  const handleUpdateFromModal = async (id: number, title: string, content: string, pinned: boolean,hidden:boolean) => {
+  const handleUpdateFromModal = async (updatedNote:Note) => {
     setItemError(null);
 
     try {
-      await updateNoteApi(id, title, content, pinned,hidden);
+      await updateNoteApi(updatedNote);
     } catch (err: unknown) {
       let message = "Failed to update note";
       if (err instanceof Error) {
@@ -87,10 +89,9 @@ const NoteItem: React.FC<NoteItemProps> = ({
   };
 
   const handleTogglePin = async (e: React.MouseEvent) => {
-    e.stopPropagation();
     setItemError(null);
     try {
-      await updateNoteApi(note.id, note.title, note.content, !note.pinned,note.hidden);
+      await updateNoteApi({...note,pinned:!note.pinned});
     } catch (err: unknown) {
       let message = "Failed to toggle pin";
       if (err instanceof Error) {
@@ -100,6 +101,36 @@ const NoteItem: React.FC<NoteItemProps> = ({
     }
   };
 
+  const handleHideToggle=async()=>{
+    setItemError(null);
+    try {
+      if(note.hidden){
+        setIsPinModalOpen(true);
+      }else{
+        await updateNoteApi({...note,hidden:true});
+      }
+    } catch (err: unknown) {
+        let message = "Failed to toggle pin";
+        if (err instanceof Error) {
+          message = `${message}: ${err.message}`;
+        }
+        setItemError(message);
+      }
+  }
+
+  const unhideNote = async (pin:string) => {
+    setItemError(null);
+    try {
+      await unhideNoteApi(note.id,pin);
+    } catch (err: unknown) {
+        let message = "Failed to unhide";
+        if (err instanceof Error) {
+          message = `${message}: ${err.message}`;
+        }
+        setItemError(message);
+      }
+  }
+      
   const handleCopyClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setItemError(null);
@@ -195,7 +226,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 {copyFeedback && <span style={{ marginLeft: '0.3rem' }}>{copyFeedback}</span>}
               </button>
               <button
-                onClick={()=>{/*TODO*/}}
+                onClick={()=>handleHideToggle()}
                 className={`${styles.button} ${styles.hideButton}`}
                 title={note.hidden ? 'Un-Hide' : 'Hide'}
               >
@@ -245,6 +276,13 @@ const NoteItem: React.FC<NoteItemProps> = ({
         note = {note}
         onUpdateNote={handleUpdateFromModal}
       />
+      <Modal isOpen={isPinModalOpen} onClose={() => setIsPinModalOpen(false)} title="Enter Pin">
+        <PinForm 
+            onClose={() => setIsPinModalOpen(false)}
+            onSubmitPin={(pin)=>unhideNote(pin)}
+            isOpen={isPinModalOpen}
+        ></PinForm>
+      </Modal>  
     </div>
   );
 };
