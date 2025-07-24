@@ -15,6 +15,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Notes",
   description: "Share notes on LAN",
+  icons: {
+  icon: [
+    {
+      url: "/icon.svg",
+      href: "/icon.svg",
+    },
+    ],
+  }
 };
 
 export default function RootLayout({
