@@ -29,7 +29,9 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
         hideHiddenNotes,
         clearSelectedNotes,
         deleteSelectedNotes,
-        fetchHiddenNotes
+        CheckAuthStatusApi,
+        fetchHiddenNotesApi,
+        submitPinApi
     } = useNotesStore();
 
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
@@ -57,6 +59,19 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
         setIsSelectingMode(prev => !prev);
         clearSelectedNotes();
     };
+
+    const showHiddenNotes = async () => {
+        try {
+            const isLoggedIn=await CheckAuthStatusApi();
+            if(isLoggedIn){
+                await fetchHiddenNotesApi();
+            }else{
+                setIsPinModalOpen(true);
+            }
+        }catch{
+            //do nothing
+        } 
+    }
 
     return (
         <>
@@ -98,7 +113,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                             Hide Hidden Notes
                         </button>
                     ):(
-                        <button className={`${styles.button}`}onClick={()=>setIsPinModalOpen(true)}>
+                        <button className={`${styles.button}`}onClick={()=>showHiddenNotes()}>
                             Show Hidden Notes
                         </button>
                     )}
@@ -114,17 +129,20 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                 </div>
             </div>
 
-            <Modal
-                isOpen={isPinModalOpen}
-                onClose={() => setIsPinModalOpen(false)}
-                title="Enter Pin"
-            >
+            
                 <PinForm 
                     onClose={() => setIsPinModalOpen(false)}
-                    onSubmitPin={(pin)=>fetchHiddenNotes(pin)}
+                    onSubmitPin={async (pin)=>{    
+                        try {
+                            await submitPinApi(pin);
+                            await fetchHiddenNotesApi();
+                            setIsPinModalOpen(false);
+                        } catch{
+                            // Do nothing
+                        }}
+                    }
                     isOpen={isPinModalOpen}
-                ></PinForm>
-            </Modal>   
+                ></PinForm> 
 
             <Modal
                 isOpen={isAddNoteModalOpen}
@@ -169,9 +187,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                 
             </Modal>
 
-            <NotesList
-                isSelectingMode={isSelectingMode}
-            />
+            <NotesList isSelectingMode={isSelectingMode}/>
         </>
     );
 };

@@ -21,12 +21,14 @@ interface NotesState {
   clearSelectedNotes: () => void;
   deleteSelectedNotes: () => Promise<void>;
   fetchNotes: () => Promise<void>;
-  fetchHiddenNotes: (pin: string) => Promise<void>;
+  fetchHiddenNotesApi: () => Promise<void>;
+  logoutApi:()=>Promise<void>;
+  submitPinApi: (pin: string) => Promise<void>;
   addNoteApi: (title: string, content: string) => Promise<void>;
   updateNoteApi: (note: Note) => Promise<void>;
   deleteNoteApi: (id: number) => Promise<void>;
-  unhideNoteApi: (id: number, pin: string) => Promise<void>;
   pasteToClipboardNoteApi: () => Promise<void>;
+  CheckAuthStatusApi:()=>Promise<boolean>;
 }
 
 const CLIPBOARD_NOTE_TITLE = 'Clipboard';
@@ -94,6 +96,11 @@ export const useNotesStore = create<NotesState>((set, get) => ({
 
   hideHiddenNotes:()=>{
     set(()=>({hiddenNotes:[]}))
+    try{
+      get().logoutApi();
+    }catch{
+      // do nothing
+    }
   },
 
   toggleSelectNote: (id) =>
@@ -112,7 +119,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   deleteSelectedNotes: async () => {
     const selectedIds = Array.from(get().selectedNoteIds);
     if (selectedIds.length === 0) return;
-
+    set({ loading: true, error: null });
     await handleApiRequest<{ message: string }>(
       () =>
         fetch('/api/notes/batch', {
@@ -122,12 +129,19 @@ export const useNotesStore = create<NotesState>((set, get) => ({
         }),
       () => {
         set((state) => ({
+          loading: false,
           notes: state.notes.filter((note) => !selectedIds.includes(note.id)),
           hiddenNotes: state.hiddenNotes.filter((note) => !selectedIds.includes(note.id)),
           selectedNoteIds: new Set(),
         }));
       },
-      (error) => get().setError(`Failed to delete selected notes: ${error}`)
+      (error, status) => {
+        if (status === 403) {
+          set({ hiddenNotes: [], error: 'Session expired.', loading: false });
+        } else {
+          set({ error: `Failed to delete notes: ${error}`, loading: false });
+        }
+      }
     );
   },
 
@@ -145,23 +159,49 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     );
   },
 
-  fetchHiddenNotes: async (pin: string) => {
+  fetchHiddenNotesApi: async () => {
     set({ loading: true, error: null });
     await handleApiRequest<Note[]>(
       () => fetch('/api/notes/hidden', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${pin}`,
-          'Content-Type': 'application/json'
-        }
+        credentials: 'include'
       }),
       (hiddenNotes) => { set({ hiddenNotes, loading: false }); },
       (error) => set({ error, loading: false })
     );
   },
 
+  submitPinApi: async (pin: string) => {
+  set({ loading: true, error: null });
+  await handleApiRequest<{ message: string }>(
+    () =>
+      fetch('/api/auth', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      }),
+    async () => { set({loading: false });},
+    (error) => set({ error: `Login failed: ${error}`,loading: false})
+    );
+  },
+
+  logoutApi: async () => {
+  set({ loading: true, error: null });
+  await handleApiRequest<{ message: string }>(
+    () =>
+      fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    async () => { set({loading: false });},
+    (error) => set({ error: `Logout failed: ${error}`,loading: false})
+    );
+  },
+
   addNoteApi: async (title, content) => {
-    get().setError(null);
+    set({ loading: true, error: null });
     await handleApiRequest<Note>(
       () =>
         fetch(`/api/notes`, {
@@ -169,14 +209,15 @@ export const useNotesStore = create<NotesState>((set, get) => ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content }),
         }),
-      (addedNote) => get().addNote(addedNote),
-      (error) => get().setError(`Failed to add note: ${error}`)
+      (addedNote) => {set({ loading: false });get().addNote(addedNote)},
+      (error) => set({ error:`Failed to add note: ${error}`,loading: false})
     );
   },
 
   updateNoteApi: async (note: Note) => {
     const { id, title, content, pinned, hidden } = note;
-    get().setError(null);
+    set({ loading: true, error: null });
+
     await handleApiRequest<Note>(
       () =>
         fetch(`/api/notes/${id}`, {
@@ -184,62 +225,80 @@ export const useNotesStore = create<NotesState>((set, get) => ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content, pinned, hidden }),
         }),
-      (updatedNote) => get().updateNote(updatedNote),
-      (error) => get().setError(`Failed to update note: ${error}`)
+      (updatedNote) => {
+        set({ loading: false });
+        get().updateNote(updatedNote);
+      },
+      (error, status) => {
+        if (status === 403) {
+          set({ hiddenNotes: [], error: 'Session expired.', loading: false });
+        } else {
+          set({ error: `Failed to update note: ${error}`, loading: false });
+        }
+      }
     );
   },
 
+
   deleteNoteApi: async (id) => {
-    get().setError(null);
+    set({ loading: true, error: null });
+
     await handleApiRequest<void>(
       () =>
         fetch(`/api/notes/${id}`, {
           method: 'DELETE',
         }),
-      () => get().deleteNote(id),
-      (error) => get().setError(`Failed to delete note: ${error}`)
+      () => {
+        set({ loading: false });
+        get().deleteNote(id);
+      },
+      (error, status) => {
+        if (status === 403) {
+          set({ hiddenNotes: [], error: 'Session expired.', loading: false });
+        } else {
+          set({ error: `Failed to delete note: ${error}`, loading: false });
+        }
+      }
     );
   },
 
-  unhideNoteApi: async (id: number, pin: string) => {
-    get().setError(null);
-    await handleApiRequest<Note>(
+  CheckAuthStatusApi:async()=>{
+    set({ loading: true, error: null });
+    let isLoggedIn = false;
+    await handleApiRequest<{ loggedIn: boolean }>(
       () =>
-        fetch(`/api/notes/${id}/unhide`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${pin}`
-          },
-        }),
-      (unhiddenNote) => get().updateNote(unhiddenNote),
-      (error) => get().setError(`Failed to unhide note: ${error}`)
-    );
+        fetch('/api/auth/status', {
+      method: 'GET',
+      credentials: 'include',
+    }),
+    (data) => {
+      isLoggedIn = data.loggedIn;
+      set({ loading: false });
+    },
+    (error) => set({ error: `Login failed: ${error}`,loading: false}))
+    return isLoggedIn;
   },
 
   pasteToClipboardNoteApi: async () => {
-    get().setError(null);
+    set({error: null });
     const clipboardNote = get().clipboardNote;
     if (!clipboardNote) {
       get().setError('Clipboard note not found. Please refresh the page.');
       return;
     }
-
     try {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         clipboardNote.content = text;
         await get().updateNoteApi(clipboardNote);
       } else {
-        get().setError('Clipboard API not supported or permission denied.');
-        console.warn('Clipboard API not supported or permission denied.');
+        set({ error: 'Clipboard API not supported or permission denied.'});
       }
     } catch (err: unknown) {
       const message = err instanceof Error
         ? `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`
         : 'Failed to read clipboard. Ensure you have granted permission.';
-      get().setError(message);
-      console.error('Error reading clipboard:', err);
+      set({ error: message})
     }
-  },
+  }
 }));

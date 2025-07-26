@@ -76,6 +76,17 @@
   margin-left: 0.25rem;
 }
 
+.checkboxInput{
+  margin-right: 3px;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+}
+
 .multiSelectCheckbox {
   top: 0.625rem;
   left: 0.625rem;

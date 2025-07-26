@@ -1,7 +1,7 @@
 import { useRef,useEffect, useState } from "react";
 import styles from '@/Home.module.css';
 import ErrorMessage from './ErrorMessage';
-
+import Modal from './Modal';
 const emptyPin=['', '', '', ''];
 const alphanumericRegex = /^[a-zA-Z0-9]+$/;
 
@@ -81,37 +81,39 @@ interface PinFormProps {
     };
 
     return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-        {formError && <ErrorMessage message={formError} />}
-        <div className={styles.modalBodyText}>
-        Please enter your 4-digit PIN to proceed.
-        </div>
-        <div className={styles.pinInputContainer}>
-        {pin.map((digit, index) => (
-            <input
-            key={index}
-            type="password"
-            autoComplete="one-time-code"
-            maxLength={1}
-            value={digit}
-            onChange={(e) => handleChange(e, index)}
-            onKeyDown={(e) => handleKeyDown(e, index)}
-            ref={(el) => {
-                inputRefs.current[index] = el;
-            }}
-            className={styles.pinInputField}
-            />
-        ))}
-        </div>
-        <div className={styles.mainActionButtons}>
-        <button onClick={onClose} type="button" className={`${styles.button}`}>
-            Cancel
-        </button>
-        <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>
-            Submit
-        </button>
-        </div>
-    </form>
+    <Modal isOpen={isOpen} onClose={onClose} title="Enter Pin" >
+        <form onSubmit={handleSubmit} className={styles.form}>
+            {formError && <ErrorMessage message={formError} />}
+            <div className={styles.modalBodyText}>
+            Please enter your 4-digit PIN to proceed.
+            </div>
+            <div className={styles.pinInputContainer}>
+            {pin.map((digit, index) => (
+                <input
+                key={index}
+                type="password"
+                autoComplete="one-time-code"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                ref={(el) => {
+                    inputRefs.current[index] = el;
+                }}
+                className={styles.pinInputField}
+                />
+            ))}
+            </div>
+            <div className={styles.mainActionButtons}>
+            <button onClick={onClose} type="button" className={`${styles.button}`}>
+                Cancel
+            </button>
+            <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>
+                Submit
+            </button>
+            </div>
+        </form>
+    </Modal>
     );
 };
 

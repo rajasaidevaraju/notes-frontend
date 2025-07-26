@@ -61,7 +61,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Note">
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
         {formError && <ErrorMessage message={formError} />}
         <div>
           <label htmlFor="editTitle" className={styles.formLabel}>
@@ -99,7 +99,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
               name="pinned"
               checked={formData.pinned}
               onChange={handleChange}
-              className={styles.checkboxInput}
+              className={noteItemStyles.checkboxInput}
             />
             <label htmlFor="pinNote" className={noteItemStyles.checkboxLabel}>
               Pin Note
@@ -110,9 +110,8 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
               type="checkbox"
               id="hideNote"
               name="hidden"
-              checked={formData.hidden ?? false}
               onChange={handleChange}
-              className={styles.checkboxInput}
+              className={noteItemStyles.checkboxInput}
               disabled={formData.hidden}
             />
             <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
