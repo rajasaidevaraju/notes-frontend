@@ -1,5 +1,7 @@
 import styles from '@/Home.module.css';
 import NoteItem from './NoteItem';
+import {Note} from '@/types/Notes';
+import Loading from '@/components/LoadingSpinner';
 import { useNotesStore } from '@/store/notesStore';
 import ClipboardNoteItem from './ClipboardNoteItem';
 
@@ -10,16 +12,30 @@ interface NotesListProps {
 const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
   const { notes, loading, clipboardNote, selectedNoteIds, toggleSelectNote,hiddenNotes } = useNotesStore();
 
-  if (loading) {
-    return <p className={styles.infoMessage}>Loading notes...</p>;
+  const sortByUpdated = (a:Note, b:Note) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  const pinned:Note[] = [];
+  const notPinned:Note[] = [];
+  const pinnedHidden: Note[] = [];
+  const notPinnedHidden: Note[] = [];
+
+  for (const note of notes) {
+    (note.pinned ? pinned : notPinned).push(note);
   }
 
-  const pinned = notes
-    .filter((note) => note.pinned)
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-  const notPinned = notes
-    .filter((note) => !note.pinned)
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  for (const note of hiddenNotes) {
+    (note.pinned ? pinnedHidden : notPinnedHidden).push(note);
+  }
+
+
+  pinned.sort(sortByUpdated);
+  notPinned.sort(sortByUpdated);
+
+  
+  pinnedHidden.sort(sortByUpdated);
+  notPinnedHidden.sort(sortByUpdated);
+
+  const hiddenNotesSorted=[...pinnedHidden,...notPinnedHidden];
+
 
   return (
     <div className={styles.notesList}>
@@ -58,10 +74,10 @@ const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
           ))}
         </>
       )}
-      {hiddenNotes.length > 0 && (
+      {hiddenNotesSorted.length > 0 && (
         <>
           <h3 className={styles.sectionHeading}>Hidden Notes</h3>
-            {hiddenNotes.map((note) => (
+            {hiddenNotesSorted.map((note) => (
             <NoteItem
               key={note.id}
               note={note}
@@ -72,6 +88,8 @@ const NotesList: React.FC<NotesListProps> = ({ isSelectingMode }) => {
           ))}
         </>
       )}
+
+      {loading && <Loading />}
     </div>
   );
 };
