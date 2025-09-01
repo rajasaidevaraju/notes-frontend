@@ -12,7 +12,12 @@ interface AddNoteFormProps {
     const [newNoteContent, setNewNoteContent] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
     const { addNoteApi } = useNotesStore();
-  
+    
+    const autoGrow=(element: HTMLTextAreaElement) => {
+      element.style.height = "5px";
+      element.style.height = (element.scrollHeight) + "px";
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setFormError(null);
@@ -49,9 +54,10 @@ interface AddNoteFormProps {
             value={newNoteTitle}
             onChange={(e) => setNewNoteTitle(e.target.value)}
             placeholder="Enter note title"
-            className={styles.formInput}
+            className={styles.formTitle}
             required
             autoComplete="off"
+            autoFocus
           />
         </div>
         <div>
@@ -63,7 +69,7 @@ interface AddNoteFormProps {
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
             placeholder="Enter note content"
-            rows={4}
+            onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
             className={styles.formTextarea}
           ></textarea>
         </div>

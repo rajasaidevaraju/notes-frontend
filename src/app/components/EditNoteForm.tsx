@@ -1,5 +1,5 @@
 // components/EditNoteFormModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
@@ -21,15 +21,19 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState(note);
   const [formError, setFormError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setFormData(note);
       setFormError(null);
     }
+    if (textareaRef.current) {
+      autoGrow(textareaRef.current);
+    }
   }, [isOpen, note]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>):void => {
     const { name, value, type } = e.target;
     const isCheckbox = type === 'checkbox';
     setFormData(prevData => ({
@@ -37,6 +41,12 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
       [name]: isCheckbox ? (e.target as HTMLInputElement).checked : value,
     }));
   };
+
+  const autoGrow=(element: HTMLTextAreaElement) => {
+    element.style.height = "5px";
+    element.style.height = (element.scrollHeight) + "px";
+  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,30 +74,27 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
       <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
         {formError && <ErrorMessage message={formError} />}
         <div>
-          <label htmlFor="editTitle" className={styles.formLabel}>
-            Title
-          </label>
           <input
             type="text"
             id="editTitle"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className={styles.formInput}
+            className={styles.formTitle}
             required
+            placeholder="Enter note title"
             autoComplete="off"
           />
         </div>
         <div>
-          <label htmlFor="editContent" className={styles.formLabel}>
-            Content
-          </label>
-          <textarea
+           <textarea
             id="editContent"
-            name="content" 
+            name="content"
+            ref={textareaRef} 
             value={formData.content}
             onChange={handleChange}
-            rows={4}
+            onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
+
             className={styles.formTextarea}
           ></textarea>
         </div>

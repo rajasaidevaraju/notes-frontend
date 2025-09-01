@@ -85,8 +85,11 @@
   margin-bottom: 0.25rem;
 }
 
+.formTitle{
+  font-size: 1.1rem;
+}
 
-.formInput,
+.formTitle,
 .formTextarea {
   width: 100%;
   min-height: 1rem;
@@ -97,11 +100,15 @@
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.formInput:focus,
+.formTextarea{
+  max-height: 40vh;
+}
+
+.formTitle:focus,
 .formTextarea:focus {
   outline: none;
   border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px var(--color-brand-primary-light);
 }
 
 .pinInputContainer {
@@ -257,6 +264,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width:90%;
   max-width: 600px;
+  max-height: 90vh;
   overflow-y: auto;
   position: relative;
   font-family: 'Inter', sans-serif;
@@ -297,16 +305,16 @@
 }
 
 .createNoteButton {
-    width:fit-content ;
-    padding: 12px 12px;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    background-color: var(--color-brand-primary);
-    color: var(--color-white);
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width:fit-content ;
+  padding: 12px 12px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  background-color: var(--color-brand-primary);
+  color: var(--color-white);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .createNoteButton:hover {
@@ -433,16 +441,16 @@
   .buttonGroup .button {
     width: fit-content;
   }
-
-  .formTextarea{
-    padding: .5rem;
-  }
 }
 
 
 @media (max-width: 480px) {
   .notesList{
     margin-bottom: .5rem;
+  }
+
+  .card {
+    padding: .6rem;;
   }
 
   .title{
@@ -454,6 +462,13 @@
     padding: .2rem .5rem;
   }
 
+  .modalContent{
+    padding: 1rem 0.5rem;
+    width:95%;
+  }
+  .formTitle, .formTextarea  {
+    padding: .5rem;
+  }
   .createNoteButton {
       text-align: center;
   }
