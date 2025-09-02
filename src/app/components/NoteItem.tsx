@@ -6,7 +6,8 @@ import noteItemStyles from './NoteItem.module.css';
 import { Note } from '@/types/Notes';
 import Modal from './Modal';
 import EditNoteFormModal from './EditNoteForm';
-import { useNotesStore } from '../store/notesStore';
+import { useNotesStore } from '@/store/notesStore';
+import { useNoteUiStore } from "@/store/noteUiStore";
 
 interface NoteItemProps {
   note: Note;
@@ -27,7 +28,8 @@ const NoteItem: React.FC<NoteItemProps> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-
+  const minimized = useNoteUiStore((state) => state.minimizedNotes[note.id] ?? false);
+  const toggleNoteMinimize = useNoteUiStore((state) => state.toggleNoteMinimize);
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isSelectingMode) {
@@ -191,6 +193,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 onClick={()=>handleHideToggle()}
                 className={`${styles.button} ${styles.hideButton}`}
                 title={note.hidden ? 'Un-Hide' : 'Hide'}
+                aria-label={note.hidden ? 'Un-Hide' : 'Hide'}
               >
               {note.hidden ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -202,10 +205,24 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 </svg>
               )}
               </button>
+              <button className={`${styles.button}`} onClick={()=>toggleNoteMinimize(note.id)} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
+                {minimized ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                  </svg>
+
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                )}
+              </button>
             </div>
           )}
         </div>
-        <p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>
+        {minimized?(<p className={noteItemStyles.noteContent}>...</p>):(<p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>)}
+        
       </>
 
       <Modal
