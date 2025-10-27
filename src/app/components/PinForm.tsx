@@ -91,8 +91,8 @@ interface PinFormProps {
             {pin.map((digit, index) => (
                 <input
                 key={index}
-                type="password"
-                autoComplete="one-time-code"
+                type="text"
+                autoComplete="off"
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleChange(e, index)}
