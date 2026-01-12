@@ -3,36 +3,36 @@
 import React, { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
 import ErrorMessage from './ErrorMessage';
-import NotesList from './NotesList';
-import AddNoteForm from './AddNoteForm';
+import ContentList from './ContentList';
+import AddContentForm from './AddContentForm';
 import PinForm from './PinForm';
 import Modal from './Modal';
-import { useNotesStore } from '../store/notesStore';
-import { Note } from '@/types/Notes';
+import { useContentStore } from '../store/contentStore';
+import { Note, UnifiedContent } from '@/types/Types';
 
 interface NotesContainerProps {
-    initialNotes: Note[]; 
+    initialNotes: UnifiedContent[];
     initialError: string | null;
 }
 
 const CLIPBOARD_NOTE_TITLE = 'Clipboard';
 
-const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialError }) => {
+const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialError }) => {
     const {
         error,
-        setNotes, 
+        setContent,
         setClipboardNote,
         setLoading,
-        setError, 
-        selectedNoteIds,
-        hiddenNotes,
-        hideHiddenNotes,
-        clearSelectedNotes,
-        deleteSelectedNotes,
+        setError,
+        selectedContentKeys,
+        hiddenContent,
+        hideHiddenContent,
+        clearSelectedContent,
+        deleteSelectedContentApi,
         CheckAuthStatusApi,
-        fetchHiddenNotesApi,
+        fetchHiddenContentApi,
         submitPinApi
-    } = useNotesStore();
+    } = useContentStore();
 
     const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
     const [isPinModalOpen, setIsPinModalOpen] = useState(false);
@@ -40,37 +40,37 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
     const [isSelectingMode, setIsSelectingMode] = useState(false);
 
     useEffect(() => {
-        const initialRegularNotes = initialNotes.filter(note => note.title !== CLIPBOARD_NOTE_TITLE);
-        const initialClipboardNote = initialNotes.find(note => note.title === CLIPBOARD_NOTE_TITLE) || null;
+        const initialRegularNotes = initialNotes.filter(item => !(item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE));
+        const initialClipboardNote = initialNotes.find(item => item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE) as Note | undefined;
 
-        setNotes(initialRegularNotes);
-        setClipboardNote(initialClipboardNote);
+        setContent(initialRegularNotes);
+        setClipboardNote(initialClipboardNote || null);
         setError(initialError);
-        setLoading(false); 
-    }, [initialNotes, initialError, setNotes, setClipboardNote, setError, setLoading]);
+        setLoading(false);
+    }, [initialNotes, initialError, setContent, setClipboardNote, setError, setLoading]);
 
     const handleConfirmMultiDelete = async () => {
-        await deleteSelectedNotes();
+        await deleteSelectedContentApi();
         setIsMultiDeleteModalOpen(false);
         setIsSelectingMode(false);
     };
 
     const toggleSelectingMode = () => {
         setIsSelectingMode(prev => !prev);
-        clearSelectedNotes();
+        clearSelectedContent();
     };
 
     const showHiddenNotes = async () => {
         try {
-            const isLoggedIn=await CheckAuthStatusApi();
-            if(isLoggedIn){
-                await fetchHiddenNotesApi();
-            }else{
+            const isLoggedIn = await CheckAuthStatusApi();
+            if (isLoggedIn) {
+                await fetchHiddenContentApi();
+            } else {
                 setIsPinModalOpen(true);
             }
-        }catch{
+        } catch {
             //do nothing
-        } 
+        }
     }
 
     return (
@@ -79,16 +79,16 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
             <div className={styles.noteHeader}>
                 <h2 className={styles.notesSectionTitle}></h2>
                 <div className={styles.mainActionButtons}>
-                    
+
                     {isSelectingMode ? (
                         <>
-                            {selectedNoteIds.size > 0 && (
+                            {selectedContentKeys.size > 0 && (
                                 <button
                                     onClick={() => setIsMultiDeleteModalOpen(true)}
                                     className={`${styles.button} ${styles.dangerButton}`}
-                                    title={`Delete ${selectedNoteIds.size} selected notes`}
+                                    title={`Delete ${selectedContentKeys.size} selected items`}
                                 >
-                                    Delete Selected ({selectedNoteIds.size})
+                                    Delete Selected ({selectedContentKeys.size})
                                 </button>
                             )}
                             <button
@@ -103,53 +103,54 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                         <button
                             onClick={toggleSelectingMode}
                             className={`${styles.button}`}
-                            title="Select Notes for Deletion"
+                            title="Select Items for Deletion"
                         >
-                            Select Notes
+                            Select Items
                         </button>
                     )}
-                    {hiddenNotes.length>0?(
-                        <button className={`${styles.button}`}onClick={()=>hideHiddenNotes()}>
+                    {hiddenContent.length > 0 ? (
+                        <button className={`${styles.button}`} onClick={() => hideHiddenContent()}>
                             Hide Hidden Notes
                         </button>
-                    ):(
-                        <button className={`${styles.button}`}onClick={()=>showHiddenNotes()}>
+                    ) : (
+                        <button className={`${styles.button}`} onClick={() => showHiddenNotes()}>
                             Show Hidden Notes
                         </button>
                     )}
-                    
+
 
                     <button
                         onClick={() => setIsAddNoteModalOpen(true)}
                         className={`${styles.button} ${styles.primaryButton}`}
                     >
-                        Create New Note
+                        Create New
                     </button>
-                    
+
                 </div>
             </div>
 
-            
-                <PinForm 
-                    onClose={() => setIsPinModalOpen(false)}
-                    onSubmitPin={async (pin)=>{    
-                        try {
-                            await submitPinApi(pin);
-                            await fetchHiddenNotesApi();
-                            setIsPinModalOpen(false);
-                        } catch{
-                            // Do nothing
-                        }}
+
+            <PinForm
+                onClose={() => setIsPinModalOpen(false)}
+                onSubmitPin={async (pin) => {
+                    try {
+                        await submitPinApi(pin);
+                        await fetchHiddenContentApi();
+                        setIsPinModalOpen(false);
+                    } catch {
+                        // Do nothing
                     }
-                    isOpen={isPinModalOpen}
-                ></PinForm> 
+                }
+                }
+                isOpen={isPinModalOpen}
+            ></PinForm>
 
             <Modal
                 isOpen={isAddNoteModalOpen}
                 onClose={() => setIsAddNoteModalOpen(false)}
-                title="Add New Note"
+                title="Add New"
             >
-                <AddNoteForm
+                <AddContentForm
                     onClose={() => setIsAddNoteModalOpen(false)}
                 />
             </Modal>
@@ -163,7 +164,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
             >
                 <div className={styles.form}>
                     <p className={styles.modalBodyText}>
-                    Are you sure you want to delete {selectedNoteIds.size} selected notes?
+                        Are you sure you want to delete {selectedContentKeys.size} selected items?
                     </p>
                     <div className={styles.buttonGroup}>
                         <button
@@ -175,7 +176,7 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                         <button
                             onClick={() => {
                                 setIsMultiDeleteModalOpen(false);
-                                clearSelectedNotes(); 
+                                clearSelectedContent();
                                 setIsSelectingMode(false);
                             }}
                             className={`${styles.button}`}
@@ -184,12 +185,12 @@ const NotesContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialEr
                         </button>
                     </div>
                 </div>
-                
+
             </Modal>
 
-            <NotesList isSelectingMode={isSelectingMode}/>
+            <ContentList isSelectingMode={isSelectingMode} />
         </>
     );
 };
 
-export default NotesContainer;
+export default ContentContainer;

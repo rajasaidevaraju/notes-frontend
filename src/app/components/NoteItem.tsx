@@ -1,12 +1,11 @@
-// components/NoteItem.tsx
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
-import { Note } from '@/types/Notes';
+import { Note } from '@/types/Types';
 import Modal from './Modal';
 import EditNoteFormModal from './EditNoteForm';
-import { useNotesStore } from '@/store/notesStore';
+import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from "@/store/noteUiStore";
 
 interface NoteItemProps {
@@ -22,7 +21,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
   onToggleSelect,
   isSelectingMode
 }) => {
-  const { updateNoteApi, deleteNoteApi, clearSelectedNotes} = useNotesStore();
+  const { updateNoteApi, deleteNoteApi, clearSelectedContent } = useContentStore();
 
   const [itemError, setItemError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -48,16 +47,16 @@ const NoteItem: React.FC<NoteItemProps> = ({
     e.stopPropagation();
     setIsEditModalOpen(true);
     setItemError(null);
-    clearSelectedNotes();
+    clearSelectedContent();
     setCopyFeedback(null);
   };
 
-  const handleUpdate = async (updatedNote:Note) => {
+  const handleUpdate = async (updatedItem: Note) => {
     setItemError(null);
     try {
-      await updateNoteApi(updatedNote);
+      await updateNoteApi(updatedItem);
     } catch (err: unknown) {
-      let message = "Failed to update note";
+      let message = "Failed to update item";
       if (err instanceof Error) {
         message = `${message}: ${err.message}`;
       }
@@ -79,7 +78,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
       setIsDeleteModalOpen(false);
     } catch (err: unknown) {
       setIsDeleteModalOpen(false);
-      let message = "Failed to delete note";
+      let message = "Failed to delete item";
       if (err instanceof Error) {
         message = `${message}: ${err.message}`;
       }
@@ -87,26 +86,32 @@ const NoteItem: React.FC<NoteItemProps> = ({
     }
   };
 
-  const handleTogglePin = async () => {
-    handleUpdate({...note,pinned:!note.pinned});
+  const handleTogglePin = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleUpdate({ ...note, pinned: !note.pinned });
   };
 
-  const handleHideToggle=async()=>{
-    handleUpdate({...note,hidden:!note.hidden});
+  const handleHideToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleUpdate({ ...note, hidden: !note.hidden });
   }
-   
+
   const handleCopyClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setItemError(null);
     setCopyFeedback(null);
 
     try {
-      if (navigator.clipboard && note.content) {
-        await navigator.clipboard.writeText(note.content);
-        setCopyFeedback('Copied!');
+      if (navigator.clipboard) {
+        if (note.content) {
+          await navigator.clipboard.writeText(note.content);
+          setCopyFeedback('Copied!');
+        } else {
+          throw new Error('No content to copy.');
+        }
         setTimeout(() => setCopyFeedback(null), 2000);
       } else {
-        throw new Error('Clipboard API not supported or no content to copy.');
+        throw new Error('Clipboard API not supported.');
       }
     } catch (err: unknown) {
       let message = 'Failed to copy content';
@@ -144,14 +149,12 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 title={note.pinned ? 'Unpin' : 'Pin'}
               >
                 {note.pinned ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor" stroke="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 4l-8 8-2 6 6-2 8-8z"></path> <path d="M8 16l8-8"></path>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                    <path d="M12 17V22" />
-                    <path d="M7 10V17L12 22L17 17V10" />
-                    <path d="M17 10H7V5H17V10Z" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
                   </svg>
                 )}
               </button>
@@ -182,30 +185,30 @@ const NoteItem: React.FC<NoteItemProps> = ({
                 className={`${styles.button}`}
                 title="Copy Content"
               >
-              <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
 
                 {copyFeedback && <span style={{ marginLeft: '0.3rem' }}>{copyFeedback}</span>}
               </button>
               <button
-                onClick={()=>handleHideToggle()}
+                onClick={handleHideToggle}
                 className={`${styles.button} ${styles.hideButton}`}
                 title={note.hidden ? 'Un-Hide' : 'Hide'}
                 aria-label={note.hidden ? 'Un-Hide' : 'Hide'}
               >
-              {note.hidden ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <path d="M3 3l18 18"></path> <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              )}
+                {note.hidden ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <path d="M3 3l18 18"></path> <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
               </button>
-              <button className={`${styles.button}`} onClick={()=>toggleNoteMinimize(note.id)} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
+              <button className={`${styles.button}`} onClick={() => toggleNoteMinimize(note.id)} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
                 {minimized ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -221,17 +224,22 @@ const NoteItem: React.FC<NoteItemProps> = ({
             </div>
           )}
         </div>
-        {minimized?(<p className={noteItemStyles.noteContent}>...</p>):(<p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>)}
-        
+
+        {minimized ? (
+          <p className={noteItemStyles.noteContent}>...</p>
+        ) : (
+          <p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>
+        )}
+
       </>
 
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Confirm Deletion"
+        title={`Confirm Note Deletion`}
       >
         <div className={styles.form}>
-          <p className={styles.modalBodyText}>Are you sure you want to delete this note?</p>
+          <p className={styles.modalBodyText}>Are you sure you want to delete this Note?</p>
           <div className={styles.buttonGroup}>
             <button
               onClick={confirmDelete}
@@ -252,7 +260,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
       <EditNoteFormModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        note = {note}
+        note={note}
         onUpdateNote={handleUpdate}
       />
     </div>

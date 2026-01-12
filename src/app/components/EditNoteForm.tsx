@@ -4,13 +4,13 @@ import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import Modal from './Modal';
-import { Note } from '@/types/Notes';
+import { Note } from '@/types/Types';
 
 interface EditNoteFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   note: Note;
-  onUpdateNote: (note:Note) => Promise<void>;
+  onUpdateNote: (note: Note) => Promise<void>;
 }
 
 const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
@@ -33,7 +33,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }
   }, [isOpen, note]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>):void => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value, type } = e.target;
     const isCheckbox = type === 'checkbox';
     setFormData(prevData => ({
@@ -42,7 +42,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }));
   };
 
-  const autoGrow=(element: HTMLTextAreaElement) => {
+  const autoGrow = (element: HTMLTextAreaElement) => {
     element.style.height = "5px";
     element.style.height = (element.scrollHeight) + "px";
   }
@@ -87,10 +87,10 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
           />
         </div>
         <div>
-           <textarea
+          <textarea
             id="editContent"
             name="content"
-            ref={textareaRef} 
+            ref={textareaRef}
             value={formData.content}
             onChange={handleChange}
             onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}

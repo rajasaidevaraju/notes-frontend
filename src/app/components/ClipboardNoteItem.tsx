@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import ErrorMessage from './ErrorMessage';
-import { useNotesStore } from '@/store/notesStore';
+import { useContentStore } from '@/store/contentStore';
 
 const ClipboardNoteItem: React.FC = () => {
-  const { clipboardNote, pasteToClipboardNoteApi } = useNotesStore();
+  const { clipboardNote, pasteToClipboardNoteApi } = useContentStore();
 
   const [clipboardPermissionStatus, setClipboardPermissionStatus] = useState<PermissionState>('prompt');
   const [internalError, setInternalError] = useState<string | null>(null);
@@ -96,14 +96,14 @@ const ClipboardNoteItem: React.FC = () => {
 
   const handleCopyClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setInternalError(null); 
+    setInternalError(null);
     setCopyFeedback(null);
 
     try {
       if (navigator.clipboard && clipboardNote?.content) {
         await navigator.clipboard.writeText(clipboardNote.content);
         setCopyFeedback('Copied!');
-        setTimeout(() => setCopyFeedback(null), 2000); 
+        setTimeout(() => setCopyFeedback(null), 2000);
       } else if (!clipboardNote?.content) {
         throw new Error('No content available to copy from clipboard note.');
       } else {
@@ -130,7 +130,7 @@ const ClipboardNoteItem: React.FC = () => {
         <h3 className={noteItemStyles.noteTitle}>{clipboardNote.title}</h3>
         <div className={noteItemStyles.buttonGroup}>
 
-         
+
           {!isClipboardAPISupported ? (
             <p className={noteItemStyles.permissionMessage}>
               Clipboard paste not supported.

@@ -1,0 +1,75 @@
+.checklistItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.itemContent {
+  font-size: 0.95rem;
+  color: var(--color-neutral-800);
+}
+
+.itemChecked {
+  text-decoration: line-through;
+  color: var(--color-neutral-500);
+}
+
+.itemInput {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  font-size: 0.95rem;
+  color: var(--color-neutral-800);
+  outline: none;
+  border-bottom: 2px solid transparent;
+  transition: border-bottom 0.2s ease;
+}
+
+.itemInput:focus {
+  border-bottom: 2px solid var(--color-brand-primary);
+}
+
+.deleteItemButton {
+  opacity: 0;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.checklistItem:hover .deleteItemButton {
+  opacity: 1;
+}
+
+.addItemButton {
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px dashed var(--color-neutral-400);
+  padding: 0.4rem;
+  border-radius: 0.25rem;
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.addItemButton:hover {
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+  background-color: var(--color-brand-primary-light);
+}
