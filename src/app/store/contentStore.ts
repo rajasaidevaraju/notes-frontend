@@ -98,8 +98,8 @@ export const useContentStore = create<ContentState>((set, get) => ({
   deleteContent: (id, type) =>
     set((state) => {
       return {
-        content: state.content.filter((c) => c.type === type && c.id !== id),
-        hiddenContent: state.hiddenContent.filter((c) => c.type === type && c.id !== id),
+        content: state.content.filter((c) => !(c.type === type && c.id === id)),
+        hiddenContent: state.hiddenContent.filter((c) => !(c.type === type && c.id === id)),
         selectedContentKeys: new Set(),
       };
     }),
