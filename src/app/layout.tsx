@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Notification from "./components/Notification";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,24 +18,22 @@ export const metadata: Metadata = {
   title: "Notes",
   description: "Share notes on LAN",
   icons: {
-  icon: [
-    {
-      url: "/icon.svg",
-      href: "/icon.svg",
-    },
+    icon: [
+      {
+        url: "/icon.svg",
+        href: "/icon.svg",
+      },
     ],
   }
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+
+export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
+        <Notification />
       </body>
     </html>
   );

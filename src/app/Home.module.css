@@ -14,6 +14,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -25,7 +26,7 @@
   background-color: var(--color-white);
   padding: 2rem;
   border-radius: 0.5rem;
-  animation: fadeIn 0.5s ease-out forwards; 
+  animation: fadeIn 0.5s ease-out forwards;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   margin: 1rem 0rem;
 }
@@ -85,7 +86,7 @@
   margin-bottom: 0.25rem;
 }
 
-.formTitle{
+.formTitle {
   font-size: 1.1rem;
 }
 
@@ -100,7 +101,7 @@
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.formTextarea{
+.formTextarea {
   max-height: 40vh;
 }
 
@@ -143,12 +144,12 @@
 }
 
 .button:focus {
- outline: 3px solid var(--color-brand-primary);
- outline-offset: 2px;
+  outline: 3px solid var(--color-brand-primary);
+  outline-offset: 2px;
 }
 
 .button:active {
-  transform: scale(0.98); 
+  transform: scale(0.98);
 }
 
 .primaryButton {
@@ -162,7 +163,7 @@
 
 .successButton {
   background-color: var(--color-brand-success);
-  color:white;
+  color: white;
 }
 
 
@@ -221,7 +222,7 @@
   box-sizing: border-box;
 }
 
-.clipboardNote{
+.clipboardNote {
   border-color: var(--color-brand-primary);
   background-color: var(--color-background-add-section);
 }
@@ -230,19 +231,19 @@
   color: var(--color-brand-primary);
 }
 
-.permission{
+.permission {
   display: flex;
   gap: 5px;
   align-items: center;
   margin: 10px 0px;
 }
 
-.mainActionButtons{
+.mainActionButtons {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding: 1rem 0rem;
-  gap:.5rem;
+  gap: .5rem;
 }
 
 .modalOverlay {
@@ -263,7 +264,7 @@
   padding: 1rem;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width:90%;
+  width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
@@ -306,7 +307,7 @@
 }
 
 .createNoteButton {
-  width:fit-content ;
+  width: fit-content;
   padding: 12px 12px;
   font-size: 1.1rem;
   border-radius: 8px;
@@ -319,8 +320,8 @@
 }
 
 .createNoteButton:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    background-color: var(--color-brand-primary-dark);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background-color: var(--color-brand-primary-dark);
 }
 
 .notesSectionTitle {
@@ -352,13 +353,16 @@
   border-radius: 0.5rem;
   background-color: var(--color-neutral-100);
   border: 1px solid var(--color-neutral-200);
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-family: 'Inter', sans-serif;
 }
 
 .serverIpText {
   margin: 0;
   font-size: 0.95rem;
+  white-space: nowrap;
   color: var(--color-neutral-700);
 }
 
@@ -398,7 +402,7 @@
 
 .spinner {
   border: 4px solid color-mix(in srgb, var(--color-brand-primary-light) 40%, transparent);
-  border-left-color: var(--color-brand-primary-dark); 
+  border-left-color: var(--color-brand-primary-dark);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -406,16 +410,22 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {
 
-  .container{
+  .container {
     padding: 0rem;
     margin: 0rem;
   }
+
   .card {
     padding: 1rem;
     margin: 0rem;
@@ -446,38 +456,47 @@
 
 
 @media (max-width: 480px) {
-  .notesList{
+  .notesList {
     margin-bottom: .5rem;
   }
 
   .card {
-    padding: .6rem;;
+    padding: .6rem;
+    ;
   }
 
-  .title{
+  .title {
     margin-bottom: 1rem;
   }
 
-  .button{
+  .button {
     min-width: 1.8rem;
     padding: .2rem .5rem;
   }
 
-  .modalContent{
+  .modalContent {
     padding: 1rem 0.5rem;
-    width:95%;
+    width: 95%;
   }
-  .formTitle, .formTextarea  {
+
+  .formTitle,
+  .formTextarea {
     padding: .5rem;
   }
+
   .createNoteButton {
-      text-align: center;
+    text-align: center;
   }
+
   .notesSectionTitle {
-      text-align: center;
+    text-align: center;
   }
+
   .serverInfoContainer {
     padding: 0.5rem 0.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 
   .serverIpText,
@@ -485,4 +504,11 @@
   .loadingText {
     font-size: 0.85rem;
   }
+}
+
+.lanControlContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }

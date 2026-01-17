@@ -1,5 +1,6 @@
 import styles from '@/Home.module.css';
 import os from 'os';
+import LanSharingControl from './LanSharingControl';
 
 const ServerIpDisplay = async () => {
   let serverIp: string | null = null;
@@ -26,9 +27,9 @@ const ServerIpDisplay = async () => {
     serverIp = foundIp;
 
   } catch (e: unknown) {
-    if(e instanceof Error){
+    if (e instanceof Error) {
       error = `Failed to get server IP: ${e.message}`;
-    }else{
+    } else {
       error = `Failed to get server IP`;
     }
   }
@@ -36,12 +37,13 @@ const ServerIpDisplay = async () => {
   return (
     <div className={styles.serverInfoContainer}>
       {serverIp && serverIp !== 'Not Found' ? (
-        <p className={styles.serverIpText}>Next.js Server IP: <strong>{`${serverIp}:3003`}</strong></p>
+        <p className={styles.serverIpText}>Server IP: <strong>{`${serverIp}:3002`}</strong></p>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : (
-        <p className={styles.loadingText}>Next.js Server IP: Not available</p>
+        <p className={styles.loadingText}>Server IP: Not available</p>
       )}
+      <LanSharingControl />
     </div>
   );
 };

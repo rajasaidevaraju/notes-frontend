@@ -2,14 +2,24 @@ import ContentContainer from '@/components/ContentContainer'
 import styles from '@/Home.module.css'
 import { UnifiedContent } from '@/types/Types'
 import ServerIpDisplay from '@/components/ServerIpDisplay'
+import { headers } from 'next/headers';
 
 export default async function App() {
   let content: UnifiedContent[] = [];
   let initialError: string | null = null;
   const apiURL = process.env.API_URL;
+
+  const headersList = await headers();
+  const forwardedFor = headersList.get('x-forwarded-for');
+  const userAgent = headersList.get('user-agent');
+
   try {
     const response = await fetch(`${apiURL}/content`, {
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: {
+        'x-forwarded-for': forwardedFor || '',
+        'user-agent': userAgent || ''
+      }
     });
 
     if (!response.ok) {
