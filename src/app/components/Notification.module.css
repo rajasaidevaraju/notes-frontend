@@ -88,17 +88,6 @@
     }
 }
 
-.notificationExit {
-    animation: slideOut 0.2s ease-in forwards;
-}
-
-@keyframes slideOut {
-    to {
-        opacity: 0;
-        transform: translateX(30px) scale(0.95);
-    }
-}
-
 @media (max-width: 640px) {
     .notificationContainer {
         top: 0.5rem;

@@ -106,7 +106,7 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
         try {
             await handleUpdate({ ...checklist, hidden: !checklist.hidden });
             setIsHideModalOpen(false);
-        } catch (err: unknown) {
+        } catch (_err: unknown) {
             setIsHideModalOpen(false);
         }
     };
@@ -277,7 +277,7 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 checklist={checklist}
-                onUpdateChecklist={handleUpdate as any}
+                onUpdateChecklist={handleUpdate}
             />
         </div>
     );

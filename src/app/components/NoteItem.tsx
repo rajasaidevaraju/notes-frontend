@@ -3,7 +3,6 @@ import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import { Note } from '@/types/Types';
-import Modal from './Modal';
 import EditNoteFormModal from './EditNoteForm';
 import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from "@/store/noteUiStore";
@@ -105,7 +104,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
     try {
       await handleUpdate({ ...note, hidden: !note.hidden });
       setIsHideModalOpen(false);
-    } catch (err: unknown) {
+    } catch (_err: unknown) {
       setIsHideModalOpen(false);
     }
   };

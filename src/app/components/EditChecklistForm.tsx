@@ -72,7 +72,7 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
 
         setLoading(true);
         try {
-            let finalItems = [...items];
+            const finalItems = [...items];
             if (newItemContent.trim()) {
                 finalItems.push({
                     id: 0,
@@ -87,11 +87,11 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
             await onUpdateChecklist({
                 ...checklist,
                 title: title.trim(),
-                items: finalItems.map(item => ({ ...item, id: item.id < 0 ? 0 : item.id })) as any
+                items: finalItems.map(item => ({ ...item, id: item.id < 0 ? 0 : item.id }))
             });
             onClose();
-        } catch (err: any) {
-            setFormError(err.message || 'Failed to update checklist');
+        } catch (err: unknown) {
+            setFormError(err instanceof Error ? err.message : 'Failed to update checklist');
         } finally {
             setLoading(false);
         }

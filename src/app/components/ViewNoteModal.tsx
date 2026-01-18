@@ -1,7 +1,6 @@
 import React from 'react';
 import { Note } from '@/types/Types';
 import Modal from './Modal';
-import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 
 interface ViewNoteModalProps {

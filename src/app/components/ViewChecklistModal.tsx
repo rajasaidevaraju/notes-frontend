@@ -3,7 +3,6 @@ import { Checklist } from '@/types/Types';
 import Modal from './Modal';
 import noteItemStyles from './NoteItem.module.css';
 import ChecklistView from './ChecklistView';
-import styles from '@/Home.module.css';
 
 interface ViewChecklistModalProps {
     isOpen: boolean;

@@ -226,7 +226,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content }),
         }),
-      (addedNote: any) => {
+      (addedNote: Note) => {
         set({ loading: false });
         const transformedNote: Note = {
           ...addedNote,
@@ -249,14 +249,14 @@ export const useContentStore = create<ContentState>((set, get) => ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title }),
         }),
-      (addedChecklist: any) => {
+      (addedChecklist: Checklist) => {
         set({ loading: false });
         const transformedChecklist: Checklist = {
           ...addedChecklist,
           type: 'checklist',
           pinned: Boolean(addedChecklist.pinned),
           hidden: Boolean(addedChecklist.hidden),
-          items: (addedChecklist.items || []).map((item: any) => ({
+          items: (addedChecklist.items || []).map((item: ChecklistItem) => ({
             ...item,
             checked: Boolean(item.checked)
           }))
@@ -278,7 +278,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, content, pinned, hidden }),
         }),
-      (updatedNote: any) => {
+      (updatedNote: Note) => {
         set({ loading: false });
         const transformedNote: Note = {
           ...updatedNote,
@@ -310,7 +310,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           body: JSON.stringify({ title, items, pinned, hidden }),
         });
       },
-      (updatedChecklist: any) => {
+      (updatedChecklist: Checklist) => {
         set({ loading: false });
 
         const transformedChecklist: Checklist = {
@@ -318,7 +318,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           type: 'checklist',
           pinned: Boolean(updatedChecklist.pinned),
           hidden: Boolean(updatedChecklist.hidden),
-          items: (updatedChecklist.items || []).map((item: any) => ({
+          items: (updatedChecklist.items || []).map((item: ChecklistItem) => ({
             ...item,
             checked: Boolean(item.checked)
           }))

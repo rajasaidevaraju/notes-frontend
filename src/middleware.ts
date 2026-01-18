@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-    let ip = request.headers.get('x-forwarded-for') || (request as any).ip || '';
+    let ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
 
     if (ip.includes(',')) {
         ip = ip.split(',')[0].trim();

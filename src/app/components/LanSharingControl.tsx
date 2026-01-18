@@ -11,7 +11,6 @@ interface LanStatus {
 const LanSharingControl: React.FC = () => {
     const [status, setStatus] = useState<LanStatus | null>(null);
     const [loading, setLoading] = useState(false);
-    const [timeLeft, setTimeLeft] = useState<string>('');
     const addNotification = useNotificationStore((state) => state.addNotification);
 
     const fetchStatus = async () => {
@@ -32,12 +31,7 @@ const LanSharingControl: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        if (status?.enabled && status.remainingMs > 0) {
-            const mins = Math.ceil(status.remainingMs / 60000);
-            setTimeLeft(`${mins}m`);
-        }
-    }, [status]);
+
 
     const handleEnable = async () => {
         const isReset = status?.enabled;

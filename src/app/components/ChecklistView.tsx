@@ -27,8 +27,8 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({ checklist, isMinimized, h
     const handleToggleItem = async (item: ChecklistItem) => {
         try {
             await updateChecklistItemApi(checklist.id, item.id, { checked: !item.checked });
-        } catch (err: any) {
-            setError(err.message || 'Failed to update item status');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to update item status');
             setTimeout(() => setError(null), 3000);
         }
     };
