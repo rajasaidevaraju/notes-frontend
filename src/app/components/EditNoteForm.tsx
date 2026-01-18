@@ -1,5 +1,5 @@
 // components/EditNoteFormModal.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
@@ -23,13 +23,14 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) {
       setFormData(note);
       setFormError(null);
-    }
-    if (textareaRef.current) {
-      autoGrow(textareaRef.current);
+
+      if (textareaRef.current) {
+        autoGrow(textareaRef.current);
+      }
     }
   }, [isOpen, note]);
 
@@ -43,7 +44,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   };
 
   const autoGrow = (element: HTMLTextAreaElement) => {
-    element.style.height = "5px";
+    element.style.height = "auto";
     element.style.height = (element.scrollHeight) + "px";
   }
 
@@ -98,8 +99,8 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
             className={styles.formTextarea}
           ></textarea>
         </div>
-        <div>
-          <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
               id="pinNote"
@@ -112,14 +113,14 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
               Pin Note
             </label>
           </div>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
               id="hideNote"
               name="hidden"
+              checked={formData.hidden}
               onChange={handleChange}
               className={noteItemStyles.checkboxInput}
-              disabled={formData.hidden}
             />
             <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
               Hide Note

@@ -15,7 +15,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ onClose }) => {
     const { addNoteApi, addChecklistApi } = useContentStore();
 
     const autoGrow = (element: HTMLTextAreaElement) => {
-        element.style.height = "5px";
+        element.style.height = "auto";
         element.style.height = (element.scrollHeight) + "px";
     }
 
@@ -82,7 +82,6 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ onClose }) => {
                     className={styles.formTitle}
                     required
                     autoComplete="off"
-                    autoFocus
                 />
             </div>
 

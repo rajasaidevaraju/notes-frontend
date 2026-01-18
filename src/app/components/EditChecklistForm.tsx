@@ -72,10 +72,22 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
 
         setLoading(true);
         try {
+            let finalItems = [...items];
+            if (newItemContent.trim()) {
+                finalItems.push({
+                    id: 0,
+                    checklistId: checklist.id,
+                    content: newItemContent.trim(),
+                    checked: false,
+                    position: finalItems.length
+                });
+                setNewItemContent('');
+            }
+
             await onUpdateChecklist({
                 ...checklist,
                 title: title.trim(),
-                items: items.map(item => ({ ...item, id: item.id < 0 ? 0 : item.id })) as any
+                items: finalItems.map(item => ({ ...item, id: item.id < 0 ? 0 : item.id })) as any
             });
             onClose();
         } catch (err: any) {

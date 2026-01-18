@@ -40,12 +40,13 @@ const LanSharingControl: React.FC = () => {
     }, [status]);
 
     const handleEnable = async () => {
+        const isReset = status?.enabled;
         setLoading(true);
         try {
             const res = await fetch('/api/system/lan/enable', { method: 'POST' });
             if (res.ok) {
                 await fetchStatus();
-                addNotification('LAN Sharing Enabled', 'success');
+                addNotification(isReset ? 'LAN Timer Reset to 15m' : 'LAN Sharing Enabled', 'success');
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 addNotification(errorData.error || 'Failed to enable: Access denied or server error', 'error');
@@ -86,14 +87,24 @@ const LanSharingControl: React.FC = () => {
                     <span className={styles.serverIpText}>
                         LAN Active: <strong> ({Math.ceil(status.remainingMs / 60000)}m) </strong>
                     </span>
-                    <button
-                        onClick={handleDisable}
-                        className={`${styles.button} ${styles.dangerButton}`}
-                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
-                        disabled={loading}
-                    >
-                        Disable
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                        <button
+                            onClick={handleEnable}
+                            className={`${styles.button} ${styles.successButton}`}
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
+                            disabled={loading}
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={handleDisable}
+                            className={`${styles.button} ${styles.dangerButton}`}
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
+                            disabled={loading}
+                        >
+                            Disable
+                        </button>
+                    </div>
                 </>
             ) : (
                 <button

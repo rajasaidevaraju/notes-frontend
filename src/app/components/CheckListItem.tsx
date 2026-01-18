@@ -3,11 +3,13 @@ import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import { Checklist } from '@/types/Types';
-import Modal from './Modal';
+import ConfirmActionModal from './ConfirmActionModal';
 import EditChecklistForm from './EditChecklistForm';
 import ChecklistView from './ChecklistView';
 import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from "@/store/noteUiStore";
+
+import ViewChecklistModal from './ViewChecklistModal';
 
 interface CheckListItemProps {
     checklist: Checklist;
@@ -27,6 +29,8 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
     const [itemError, setItemError] = useState<string | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isHideModalOpen, setIsHideModalOpen] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const minimized = useNoteUiStore((state) => state.minimizedNotes[checklist.id] ?? false);
     const toggleNoteMinimize = useNoteUiStore((state) => state.toggleNoteMinimize);
@@ -95,8 +99,17 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
 
     const handleHideToggle = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        handleUpdate({ ...checklist, hidden: !checklist.hidden });
+        setIsHideModalOpen(true);
     }
+
+    const confirmHide = async () => {
+        try {
+            await handleUpdate({ ...checklist, hidden: !checklist.hidden });
+            setIsHideModalOpen(false);
+        } catch (err: unknown) {
+            setIsHideModalOpen(false);
+        }
+    };
 
     const handleCopyClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -207,7 +220,7 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
                                     </svg>
                                 )}
                             </button>
-                            <button className={`${styles.button}`} onClick={() => toggleNoteMinimize(checklist.id)} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
+                            <button className={`${styles.button}`} onClick={(e) => { e.stopPropagation(); toggleNoteMinimize(checklist.id); }} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
                                 {minimized ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                                         <line x1="5" y1="12" x2="19" y2="12" />
@@ -224,33 +237,41 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
                     )}
                 </div>
 
-                <ChecklistView checklist={checklist} isMinimized={minimized} />
+                <div>
+                    <ChecklistView
+                        checklist={checklist}
+                        isMinimized={minimized}
+                        onReadMore={() => setIsViewModalOpen(true)}
+                    />
+                </div>
 
             </>
 
-            <Modal
+            <ViewChecklistModal
+                isOpen={isViewModalOpen}
+                onClose={() => setIsViewModalOpen(false)}
+                checklist={checklist}
+            />
+
+
+            <ConfirmActionModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                title={`Confirm Checklist Deletion`}
-            >
-                <div className={styles.form}>
-                    <p className={styles.modalBodyText}>Are you sure you want to delete this checklist?</p>
-                    <div className={styles.buttonGroup}>
-                        <button
-                            onClick={confirmDelete}
-                            className={`${styles.button} ${styles.deleteButton}`}
-                        >
-                            Yes, Delete
-                        </button>
-                        <button
-                            onClick={() => setIsDeleteModalOpen(false)}
-                            className={`${styles.button}`}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+                onConfirm={confirmDelete}
+                title="Confirm Checklist Deletion"
+                message="Are you sure you want to delete this checklist?"
+                confirmText="Yes, Delete"
+                danger
+            />
+
+            <ConfirmActionModal
+                isOpen={isHideModalOpen}
+                onClose={() => setIsHideModalOpen(false)}
+                onConfirm={confirmHide}
+                title={checklist.hidden ? 'Confirm Un-Hide' : 'Confirm Hide'}
+                message={`Are you sure you want to ${checklist.hidden ? 'un-hide' : 'hide'} this checklist?${!checklist.hidden ? ' It will be moved to the hidden section and require authentication to view.' : ''}`}
+                confirmText={`Yes, ${checklist.hidden ? 'Un-Hide' : 'Hide'}`}
+            />
 
             <EditChecklistForm
                 isOpen={isEditModalOpen}

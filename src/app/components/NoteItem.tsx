@@ -8,6 +8,9 @@ import EditNoteFormModal from './EditNoteForm';
 import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from "@/store/noteUiStore";
 
+import ConfirmActionModal from './ConfirmActionModal';
+import ViewNoteModal from './ViewNoteModal';
+
 interface NoteItemProps {
   note: Note;
   isSelected: boolean;
@@ -26,6 +29,8 @@ const NoteItem: React.FC<NoteItemProps> = ({
   const [itemError, setItemError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isHideModalOpen, setIsHideModalOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const minimized = useNoteUiStore((state) => state.minimizedNotes[note.id] ?? false);
   const toggleNoteMinimize = useNoteUiStore((state) => state.toggleNoteMinimize);
@@ -93,8 +98,17 @@ const NoteItem: React.FC<NoteItemProps> = ({
 
   const handleHideToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    handleUpdate({ ...note, hidden: !note.hidden });
+    setIsHideModalOpen(true);
   }
+
+  const confirmHide = async () => {
+    try {
+      await handleUpdate({ ...note, hidden: !note.hidden });
+      setIsHideModalOpen(false);
+    } catch (err: unknown) {
+      setIsHideModalOpen(false);
+    }
+  };
 
   const handleCopyClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,6 +136,15 @@ const NoteItem: React.FC<NoteItemProps> = ({
       setTimeout(() => setItemError(null), 3000);
     }
   };
+
+  const contentRef = React.useRef<HTMLParagraphElement>(null);
+  const [isOverflowing, setIsOverflowing] = React.useState(false);
+
+  React.useLayoutEffect(() => {
+    if (contentRef.current) {
+      setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight);
+    }
+  }, [note.content, minimized]);
 
   return (
     <div
@@ -208,7 +231,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
                   </svg>
                 )}
               </button>
-              <button className={`${styles.button}`} onClick={() => toggleNoteMinimize(note.id)} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
+              <button className={`${styles.button}`} onClick={(e) => { e.stopPropagation(); toggleNoteMinimize(note.id); }} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
                 {minimized ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -225,37 +248,43 @@ const NoteItem: React.FC<NoteItemProps> = ({
           )}
         </div>
 
-        {minimized ? (
-          <p className={noteItemStyles.noteContent}>...</p>
-        ) : (
-          <p className={noteItemStyles.noteContent}>{note.content || 'No content'}</p>
-        )}
+        <div style={{ position: 'relative' }}>
+          <p ref={contentRef} className={noteItemStyles.noteContent}>
+            {minimized ? '...' : (note.content || 'No content')}
+          </p>
+          {isOverflowing && !minimized && (
+            <div className={noteItemStyles.fadeOverlay} onClick={(e) => { e.stopPropagation(); setIsViewModalOpen(true); }}>
+              <span className={noteItemStyles.moreIndicator}>Read More</span>
+            </div>
+          )}
+        </div>
 
       </>
 
-      <Modal
+      <ViewNoteModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        note={note}
+      />
+
+      <ConfirmActionModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title={`Confirm Note Deletion`}
-      >
-        <div className={styles.form}>
-          <p className={styles.modalBodyText}>Are you sure you want to delete this Note?</p>
-          <div className={styles.buttonGroup}>
-            <button
-              onClick={confirmDelete}
-              className={`${styles.button} ${styles.deleteButton}`}
-            >
-              Yes, Delete
-            </button>
-            <button
-              onClick={() => setIsDeleteModalOpen(false)}
-              className={`${styles.button}`}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </Modal>
+        onConfirm={confirmDelete}
+        title="Confirm Note Deletion"
+        message="Are you sure you want to delete this Note?"
+        confirmText="Yes, Delete"
+        danger
+      />
+
+      <ConfirmActionModal
+        isOpen={isHideModalOpen}
+        onClose={() => setIsHideModalOpen(false)}
+        onConfirm={confirmHide}
+        title={note.hidden ? 'Confirm Un-Hide' : 'Confirm Hide'}
+        message={`Are you sure you want to ${note.hidden ? 'un-hide' : 'hide'} this note?${!note.hidden ? ' It will be moved to the hidden section and require authentication to view.' : ''}`}
+        confirmText={`Yes, ${note.hidden ? 'Un-Hide' : 'Hide'}`}
+      />
 
       <EditNoteFormModal
         isOpen={isEditModalOpen}
