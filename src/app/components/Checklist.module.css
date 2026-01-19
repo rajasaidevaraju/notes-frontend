@@ -109,3 +109,20 @@
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
 }
+
+:global(.dark) .checklistItem:hover {
+  background-color: var(--color-neutral-100);
+}
+
+:global(.dark) .itemContent {
+  color: var(--color-neutral-600);
+}
+
+:global(.dark) .itemInput {
+  color: var(--color-neutral-800);
+}
+
+:global(.dark) .deleteItemButton:hover {
+  background-color: var(--color-brand-danger-light);
+  color: var(--color-brand-danger);
+}

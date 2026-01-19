@@ -200,7 +200,7 @@
 .editForm {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .multiSelectCheckbox {
@@ -228,6 +228,72 @@
   color: var(--color-brand-primary);
 }
 
+
+:global(.dark) .noteItem {
+  background-color: var(--color-white);
+  border-color: var(--color-neutral-200);
+}
+
+:global(.dark) .noteItem:hover {
+  border-color: var(--color-neutral-300);
+}
+
+:global(.dark) .noteTitle {
+  color: var(--color-neutral-900);
+}
+
+:global(.dark) .noteContent {
+  color: var(--color-neutral-500);
+}
+
+:global(.dark) .pinnedNote {
+  background-color: rgba(234, 179, 8, 0.15);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+:global(.dark) .pinnedNote .noteTitle {
+  color: #fef08a;
+}
+
+:global(.dark) .pinnedNote .noteContent {
+  color: var(--color-neutral-600);
+}
+
+:global(.dark) .clipboardNoteItem {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+:global(.dark) .clipboardNoteItem .noteTitle {
+  color: #93c5fd;
+}
+
+:global(.dark) .clipboardNoteItem .noteContent {
+  color: var(--color-neutral-600);
+}
+
+:global(.dark) .selectedNote {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+:global(.dark) .fadeOverlay {
+  background: linear-gradient(transparent, var(--color-white));
+}
+
+:global(.dark) .pinnedNote .fadeOverlay {
+  background: linear-gradient(transparent, #2a2208);
+}
+
+:global(.dark) .clipboardNoteItem .fadeOverlay {
+  background: linear-gradient(transparent, #0f1e38);
+}
+
+:global(.dark) .checklistItem:hover {
+  background-color: var(--color-neutral-100);
+}
+
 .permission {
   display: flex;
   gap: 0.5rem;
@@ -241,7 +307,6 @@
   margin-left: 0.25rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .noteItem {
     padding: 0.75rem;

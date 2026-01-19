@@ -11,6 +11,8 @@ interface ContentState {
   error: string | null;
   setContent: (content: UnifiedContent[]) => void;
   setClipboardNote: (note: Note | null) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   addContent: (newContent: UnifiedContent) => void;
@@ -49,6 +51,9 @@ export const useContentStore = create<ContentState>((set, get) => ({
 
   setContent: (content) => set({ content }),
   setClipboardNote: (note) => set({ clipboardNote: note }),
+  searchQuery: '',
+  setSearchQuery: (query) => set({ searchQuery: query }),
+
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 

@@ -7,6 +7,8 @@ import ContentList from './ContentList';
 import AddContentForm from './AddContentForm';
 import PinForm from './PinForm';
 import Modal from './Modal';
+import SearchBar from './SearchBar';
+import ThemeToggle from './ThemeToggle';
 import { useContentStore } from '../store/contentStore';
 import { Note, UnifiedContent } from '@/types/Types';
 
@@ -76,8 +78,8 @@ const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initial
     return (
         <>
             <ErrorMessage message={error} />
-            <div className={styles.noteHeader}>
-                <h2 className={styles.notesSectionTitle}></h2>
+            <div className={styles.controlsContainer}>
+                <SearchBar />
                 <div className={styles.mainActionButtons}>
 
                     {isSelectingMode ? (
@@ -118,6 +120,7 @@ const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initial
                         </button>
                     )}
 
+                    <ThemeToggle />
 
                     <button
                         onClick={() => setIsAddNoteModalOpen(true)}

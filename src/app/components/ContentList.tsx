@@ -12,19 +12,37 @@ interface ContentListProps {
 }
 
 const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
-  const { content, loading, clipboardNote, selectedContentKeys, toggleSelectContent, hiddenContent } = useContentStore();
+  const { content, loading, clipboardNote, selectedContentKeys, toggleSelectContent, hiddenContent, searchQuery } = useContentStore();
 
   const sortByCreated = (a: UnifiedContent, b: UnifiedContent) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+  const filterContent = (items: UnifiedContent[]) => {
+    if (!searchQuery.trim()) return items;
+    const lowerQuery = searchQuery.toLowerCase();
+    return items.filter(item => {
+      if (item.type === 'note') {
+        const note = item as Note;
+        return note.title.toLowerCase().includes(lowerQuery) || note.content.toLowerCase().includes(lowerQuery);
+      } else {
+        const checklist = item as Checklist;
+        return checklist.title.toLowerCase().includes(lowerQuery) || checklist.items.some(i => i.content.toLowerCase().includes(lowerQuery));
+      }
+    });
+  };
+
+  const filteredContent = filterContent(content);
+  const filteredHiddenContent = filterContent(hiddenContent);
+
   const pinned: UnifiedContent[] = [];
   const notPinned: UnifiedContent[] = [];
   const pinnedHidden: UnifiedContent[] = [];
   const notPinnedHidden: UnifiedContent[] = [];
 
-  for (const item of content) {
+  for (const item of filteredContent) {
     (item.pinned ? pinned : notPinned).push(item);
   }
 
-  for (const item of hiddenContent) {
+  for (const item of filteredHiddenContent) {
     (item.pinned ? pinnedHidden : notPinnedHidden).push(item);
   }
 
@@ -66,7 +84,11 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
       )}
 
       {pinned.length === 0 && notPinned.length === 0 ? (
-        <p className={styles.infoMessage}>No notes or checklists yet. Add one above!</p>
+        hiddenNotesSorted.length === 0 && (
+          <p className={styles.infoMessage}>
+            {searchQuery ? "No matches found." : "No notes or checklists yet. Add one above!"}
+          </p>
+        )
       ) : (
         <>
           {pinned.length > 0 && <h3 className={styles.sectionHeading}>Pinned</h3>}

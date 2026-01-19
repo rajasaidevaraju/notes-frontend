@@ -99,7 +99,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
             className={styles.formTextarea}
           ></textarea>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
