@@ -17,7 +17,7 @@ interface NotesContainerProps {
     initialError: string | null;
 }
 
-const CLIPBOARD_NOTE_TITLE = 'Clipboard';
+import { SPECIAL_NOTE_TITLES } from '@/constants';
 
 const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialError }) => {
     const {
@@ -42,8 +42,8 @@ const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initial
     const [isSelectingMode, setIsSelectingMode] = useState(false);
 
     useEffect(() => {
-        const initialRegularNotes = initialNotes.filter(item => !(item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE));
-        const initialClipboardNote = initialNotes.find(item => item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE) as Note | undefined;
+        const initialRegularNotes = initialNotes.filter(item => !(item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD));
+        const initialClipboardNote = initialNotes.find(item => item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD) as Note | undefined;
 
         setContent(initialRegularNotes);
         setClipboardNote(initialClipboardNote || null);

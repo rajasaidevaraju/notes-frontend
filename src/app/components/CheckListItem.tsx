@@ -137,7 +137,7 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
 
     return (
         <div
-            className={`${noteItemStyles.noteItem} ${checklist.pinned ? noteItemStyles.pinnedNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
+            className={`${noteItemStyles.noteItem} ${checklist.pinned ? noteItemStyles.pinnedNote : ''} ${checklist.hidden ? noteItemStyles.hiddenNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
             onClick={handleClick}
         >
             {itemError && <ErrorMessage message={itemError} />}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from '@/Home.module.css';
 import NoteItem from './NoteItem';
 import CheckListItem from './CheckListItem';
@@ -14,44 +14,48 @@ interface ContentListProps {
 const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
   const { content, loading, clipboardNote, selectedContentKeys, toggleSelectContent, hiddenContent, searchQuery } = useContentStore();
 
-  const sortByCreated = (a: UnifiedContent, b: UnifiedContent) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  const { pinned, notPinned, hiddenNotesSorted } = useMemo(() => {
+    const sortByCreated = (a: UnifiedContent, b: UnifiedContent) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
-  const filterContent = (items: UnifiedContent[]) => {
-    if (!searchQuery.trim()) return items;
-    const lowerQuery = searchQuery.toLowerCase();
-    return items.filter(item => {
-      if (item.type === 'note') {
-        const note = item as Note;
-        return note.title.toLowerCase().includes(lowerQuery) || note.content.toLowerCase().includes(lowerQuery);
-      } else {
-        const checklist = item as Checklist;
-        return checklist.title.toLowerCase().includes(lowerQuery) || checklist.items.some(i => i.content.toLowerCase().includes(lowerQuery));
-      }
-    });
-  };
+    const filterContent = (items: UnifiedContent[]) => {
+      if (!searchQuery.trim()) return items;
+      const lowerQuery = searchQuery.toLowerCase();
+      return items.filter(item => {
+        if (item.type === 'note') {
+          const note = item as Note;
+          return note.title.toLowerCase().includes(lowerQuery) || note.content.toLowerCase().includes(lowerQuery);
+        } else {
+          const checklist = item as Checklist;
+          return checklist.title.toLowerCase().includes(lowerQuery) || checklist.items.some(i => i.content.toLowerCase().includes(lowerQuery));
+        }
+      });
+    };
 
-  const filteredContent = filterContent(content);
-  const filteredHiddenContent = filterContent(hiddenContent);
+    const filteredContent = filterContent(content);
+    const filteredHiddenContent = filterContent(hiddenContent);
 
-  const pinned: UnifiedContent[] = [];
-  const notPinned: UnifiedContent[] = [];
-  const pinnedHidden: UnifiedContent[] = [];
-  const notPinnedHidden: UnifiedContent[] = [];
+    const pinned: UnifiedContent[] = [];
+    const notPinned: UnifiedContent[] = [];
+    const pinnedHidden: UnifiedContent[] = [];
+    const notPinnedHidden: UnifiedContent[] = [];
 
-  for (const item of filteredContent) {
-    (item.pinned ? pinned : notPinned).push(item);
-  }
+    for (const item of filteredContent) {
+      (item.pinned ? pinned : notPinned).push(item);
+    }
 
-  for (const item of filteredHiddenContent) {
-    (item.pinned ? pinnedHidden : notPinnedHidden).push(item);
-  }
+    for (const item of filteredHiddenContent) {
+      (item.pinned ? pinnedHidden : notPinnedHidden).push(item);
+    }
 
-  pinned.sort(sortByCreated);
-  notPinned.sort(sortByCreated);
-  pinnedHidden.sort(sortByCreated);
-  notPinnedHidden.sort(sortByCreated);
+    pinned.sort(sortByCreated);
+    notPinned.sort(sortByCreated);
+    pinnedHidden.sort(sortByCreated);
+    notPinnedHidden.sort(sortByCreated);
 
-  const hiddenNotesSorted = [...pinnedHidden, ...notPinnedHidden];
+    const hiddenNotesSorted = [...pinnedHidden, ...notPinnedHidden];
+
+    return { pinned, notPinned, hiddenNotesSorted };
+  }, [content, hiddenContent, searchQuery]);
 
   const renderItem = (item: UnifiedContent) => {
     if (item.type === 'note') {

@@ -147,7 +147,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
 
   return (
     <div
-      className={`${noteItemStyles.noteItem} ${note.pinned ? noteItemStyles.pinnedNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
+      className={`${noteItemStyles.noteItem} ${note.pinned ? noteItemStyles.pinnedNote : ''} ${note.hidden ? noteItemStyles.hiddenNote : ''} ${isSelected ? noteItemStyles.selectedNote : ''}`}
       onClick={handleClick}
     >
       {itemError && <ErrorMessage message={itemError} />}

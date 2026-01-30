@@ -1,5 +1,3 @@
-/* NoteItem.module.css - Modern Card Styling */
-
 .noteItem {
   display: flex;
   flex-direction: column;
@@ -15,51 +13,9 @@
   overflow: hidden;
 }
 
-.noteItem::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-brand-primary) 0%, var(--color-brand-primary-light) 100%);
-  opacity: 0;
-}
-
 .noteItem:hover {
   box-shadow: var(--shadow-lg);
   border-color: var(--color-neutral-300);
-}
-
-.noteItem:hover::before {
-  opacity: 1;
-}
-
-.selectedNote {
-  border: 2px solid var(--color-brand-primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
-  background-color: rgba(var(--primary-rgb), 0.03);
-}
-
-.selectedNote::before {
-  opacity: 1;
-}
-
-.pinnedNote {
-  border-color: #fde68a;
-  background: #fffbef;
-}
-
-.pinnedNote::before {
-  background: var(--color-accent-pinned-border);
-  opacity: 0.7;
-}
-
-.noteHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.625rem;
 }
 
 .noteTitle {
@@ -87,21 +43,6 @@
   overflow: hidden;
 }
 
-.fadeOverlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: linear-gradient(transparent, var(--color-white));
-  pointer-events: auto;
-  cursor: pointer;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 1rem;
-}
-
 .moreIndicator {
   font-size: 0.75rem;
   color: var(--color-neutral-600);
@@ -110,21 +51,17 @@
   cursor: pointer;
 }
 
-.pinnedNote .fadeOverlay {
-  background: linear-gradient(transparent, #fffbef);
+.permissionMessage {
+  font-size: 0.875rem;
+  color: var(--color-neutral-500);
+  margin-left: 0.25rem;
 }
 
-.clipboardNoteItem .fadeOverlay {
-  background: linear-gradient(transparent, #f0f7ff);
-}
-
-.selectedNote .fadeOverlay {
-  background: linear-gradient(transparent, #f8faff);
-}
-
-.moreSpecificModalContentArea .noteContent {
-  max-height: none !important;
-  overflow: visible !important;
+.noteHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
 }
 
 .buttonGroup {
@@ -145,6 +82,13 @@
   .noteItem:hover .buttonGroup {
     opacity: 1;
   }
+}
+
+.permission {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.5rem 0;
 }
 
 .checkboxInput {
@@ -196,13 +140,6 @@
   vertical-align: middle;
 }
 
-
-.editForm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .multiSelectCheckbox {
   position: absolute;
   top: 0.75rem;
@@ -214,28 +151,76 @@
   accent-color: var(--color-brand-primary);
 }
 
-.clipboardNoteItem {
-  border-color: #bfdbfe;
-  background: #f0f7ff;
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.clipboardNoteItem::before {
-  background: var(--color-brand-primary);
-  opacity: 0.7;
+.selectedNote {
+  border: 2px solid var(--color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+  background-color: rgba(var(--primary-rgb), 0.03);
+}
+
+.hiddenNote {
+  border-color: #e5e7eb;
+  background: linear-gradient(180deg, rgb(245, 245, 245) 0%, rgba(229, 231, 235, 0.92) 100%);
+}
+
+.clipboardNoteItem {
+  border-color: #bfdbfe;
+  background: linear-gradient(180deg, rgb(235, 242, 255) 0%, rgba(219, 234, 254, 0.92) 100%);
 }
 
 .clipboardNoteItem .noteTitle {
   color: var(--color-brand-primary);
 }
 
+.pinnedNote {
+  border-color: #fde68a;
+  background: linear-gradient(180deg, rgb(255, 244, 200) 0%, rgba(251, 241, 201, 0.92) 100%);
+}
+
+.fadeOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, var(--color-white));
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 1rem;
+}
+
+.hiddenNote .fadeOverlay {
+  background: linear-gradient(transparent, #e5e7eb);
+}
+
+.clipboardNoteItem .fadeOverlay {
+  background: linear-gradient(transparent, #f0f7ff);
+}
+
+.selectedNote .fadeOverlay {
+  background: linear-gradient(transparent, #f8faff);
+}
+
+.pinnedNote .fadeOverlay {
+  background: linear-gradient(transparent, rgb(251, 241, 201));
+}
+
+.moreSpecificModalContentArea .noteContent {
+  max-height: none !important;
+  overflow: visible !important;
+}
 
 :global(.dark) .noteItem {
   background-color: var(--color-white);
   border-color: var(--color-neutral-200);
-}
-
-:global(.dark) .noteItem:hover {
-  border-color: var(--color-neutral-300);
 }
 
 :global(.dark) .noteTitle {
@@ -246,22 +231,28 @@
   color: var(--color-neutral-500);
 }
 
-:global(.dark) .pinnedNote {
-  background-color: rgba(234, 179, 8, 0.15);
-  border-color: rgba(234, 179, 8, 0.4);
+:global(.dark) .checklistItem:hover {
+  background-color: var(--color-neutral-100);
 }
 
-:global(.dark) .pinnedNote .noteTitle {
-  color: #fef08a;
+:global(.dark) .selectedNote {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
-:global(.dark) .pinnedNote .noteContent {
-  color: var(--color-neutral-600);
+:global(.dark) .hiddenNote {
+  border-color: #374151;
+  background: linear-gradient(180deg, rgba(55, 65, 81, 0.6) 0%, rgba(31, 41, 55, 0.85) 100%);
+}
+
+:global(.dark) .hiddenNote .noteTitle {
+  color: #e5e7eb;
 }
 
 :global(.dark) .clipboardNoteItem {
-  background-color: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 :global(.dark) .clipboardNoteItem .noteTitle {
@@ -272,39 +263,33 @@
   color: var(--color-neutral-600);
 }
 
-:global(.dark) .selectedNote {
-  background-color: rgba(59, 130, 246, 0.15);
-  border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+:global(.dark) .pinnedNote {
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.35) 0%, rgba(234, 179, 8, 0.2) 100%);
+  border-color: rgba(234, 179, 8, 0.5);
+}
+
+:global(.dark) .pinnedNote .noteTitle {
+  color: #fdf8d5;
+}
+
+:global(.dark) .pinnedNote .noteContent {
+  color: var(--color-neutral-600);
 }
 
 :global(.dark) .fadeOverlay {
   background: linear-gradient(transparent, var(--color-white));
 }
 
-:global(.dark) .pinnedNote .fadeOverlay {
-  background: linear-gradient(transparent, #2a2208);
+:global(.dark) .hiddenNote .fadeOverlay {
+  background: linear-gradient(transparent, #1f2937);
 }
 
 :global(.dark) .clipboardNoteItem .fadeOverlay {
   background: linear-gradient(transparent, #0f1e38);
 }
 
-:global(.dark) .checklistItem:hover {
-  background-color: var(--color-neutral-100);
-}
-
-.permission {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin: 0.5rem 0;
-}
-
-.permissionMessage {
-  font-size: 0.875rem;
-  color: var(--color-neutral-500);
-  margin-left: 0.25rem;
+:global(.dark) .pinnedNote .fadeOverlay {
+  background: linear-gradient(transparent, rgb(65, 56, 26));
 }
 
 @media (max-width: 768px) {
@@ -333,10 +318,6 @@
     padding: 0.625rem;
     border-radius: var(--radius-sm);
     gap: 0.25rem;
-  }
-
-  .noteItem::before {
-    height: 2px;
   }
 
   .noteTitle {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Note, Checklist, ChecklistItem, UnifiedContent, ContentType } from '@/types/Types';
 import { handleApiRequest } from '@/utils/api';
+import { SPECIAL_NOTE_TITLES } from '@/constants';
 
 interface ContentState {
   content: UnifiedContent[];
@@ -39,8 +40,6 @@ interface ContentState {
   CheckAuthStatusApi: () => Promise<boolean>;
 }
 
-const CLIPBOARD_NOTE_TITLE = 'Clipboard';
-
 export const useContentStore = create<ContentState>((set, get) => ({
   content: [],
   hiddenContent: [],
@@ -61,7 +60,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
 
   updateContent: (updatedContent) =>
     set((state) => {
-      if (updatedContent.type === 'note' && updatedContent.title === CLIPBOARD_NOTE_TITLE) {
+      if (updatedContent.type === 'note' && updatedContent.title === SPECIAL_NOTE_TITLES.CLIPBOARD) {
         return { clipboardNote: updatedContent as Note };
       }
 
@@ -173,8 +172,8 @@ export const useContentStore = create<ContentState>((set, get) => ({
     await handleApiRequest<UnifiedContent[]>(
       () => fetch('/api/content'),
       (allContent) => {
-        const regularContent = allContent.filter(item => !(item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE));
-        const clipboardNote = allContent.find(item => item.type === 'note' && item.title === CLIPBOARD_NOTE_TITLE) as Note || null;
+        const regularContent = allContent.filter(item => !(item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD));
+        const clipboardNote = allContent.find(item => item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD) as Note || null;
         set({ content: regularContent, clipboardNote, loading: false });
       },
       (error) => set({ error, loading: false })
@@ -188,7 +187,13 @@ export const useContentStore = create<ContentState>((set, get) => ({
         method: 'GET',
         credentials: 'include'
       }),
-      (hiddenContent) => { set({ hiddenContent: hiddenContent, loading: false }); },
+      (hiddenContent) => {
+        const processedHiddenContent = hiddenContent.map(item => ({
+          ...item,
+          hidden: true
+        }));
+        set({ hiddenContent: processedHiddenContent, loading: false });
+      },
       (error) => set({ error, loading: false })
     );
   },
