@@ -85,7 +85,6 @@ const LanSharingControl: React.FC = () => {
                         <button
                             onClick={handleEnable}
                             className={`${styles.button} ${styles.successButton}`}
-                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
                             disabled={loading}
                         >
                             Reset
@@ -93,7 +92,6 @@ const LanSharingControl: React.FC = () => {
                         <button
                             onClick={handleDisable}
                             className={`${styles.button} ${styles.dangerButton}`}
-                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
                             disabled={loading}
                         >
                             Disable
@@ -104,7 +102,6 @@ const LanSharingControl: React.FC = () => {
                 <button
                     onClick={handleEnable}
                     className={`${styles.button} ${styles.primaryButton}`}
-                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
                     disabled={loading}
                 >
                     Share on LAN (15m)

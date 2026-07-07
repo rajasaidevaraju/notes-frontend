@@ -58,7 +58,6 @@ export default async function App() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h2 className={styles.title}>Your Notes</h2>
         <ServerIpDisplay></ServerIpDisplay>
         <ContentContainer initialNotes={content} initialError={initialError} />
       </div>
