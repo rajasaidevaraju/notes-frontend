@@ -29,8 +29,9 @@ const ClipboardNoteItem: React.FC = () => {
                 setClipboardPermissionStatus(permissionStatus.state);
               }
             };
-          } catch (err: unknown) {
-            console.warn('Clipboard permission query not supported or failed:', err);
+          } catch {
+            // Some browsers (e.g. Firefox) don't support querying the
+            // 'clipboard-read' permission.
             setClipboardPermissionStatus('prompt');
           }
         } else {
