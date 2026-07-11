@@ -182,6 +182,20 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-height: 0;
+}
+
+/* Read-only note view inside a modal; scrolls internally when content is long */
+.viewContentContainer {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.viewContent {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-neutral-700);
+  line-height: 1.6;
 }
 
 .selectedNote {

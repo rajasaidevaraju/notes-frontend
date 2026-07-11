@@ -4,6 +4,8 @@ import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import Modal from './Modal';
+import ConfirmActionModal from './ConfirmActionModal';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Note } from '@/types/Types';
 
 interface EditNoteFormModalProps {
@@ -23,16 +25,28 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const isDirty =
+    formData.title !== note.title ||
+    formData.content !== note.content ||
+    formData.pinned !== note.pinned ||
+    formData.hidden !== note.hidden;
+
+  const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
+    useUnsavedChangesGuard(isDirty, onClose);
+
   useLayoutEffect(() => {
     if (isOpen) {
       setFormData(note);
       setFormError(null);
-
-      if (textareaRef.current) {
-        autoGrow(textareaRef.current);
-      }
     }
   }, [isOpen, note]);
+
+  // Runs after the content above is rendered, so the measured height is current
+  useLayoutEffect(() => {
+    if (isOpen && textareaRef.current) {
+      autoGrow(textareaRef.current);
+    }
+  }, [isOpen, formData.content]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value, type } = e.target;
@@ -71,35 +85,32 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Note">
+    <>
+    <Modal isOpen={isOpen} onClose={requestClose} title="Edit Note">
       <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
         {formError && <ErrorMessage message={formError} />}
-        <div>
-          <input
-            type="text"
-            id="editTitle"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className={styles.formTitle}
-            required
-            placeholder="Enter note title"
-            autoComplete="off"
-          />
-        </div>
-        <div>
-          <textarea
-            id="editContent"
-            name="content"
-            ref={textareaRef}
-            value={formData.content}
-            onChange={handleChange}
-            onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
-
-            className={styles.formTextarea}
-          ></textarea>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <input
+          type="text"
+          id="editTitle"
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          className={styles.formTitle}
+          required
+          placeholder="Enter note title"
+          autoComplete="off"
+          style={{ flexShrink: 0 }}
+        />
+        <textarea
+          id="editContent"
+          name="content"
+          ref={textareaRef}
+          value={formData.content}
+          onChange={handleChange}
+          onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
+          className={styles.formTextarea}
+        ></textarea>
+        <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
@@ -134,7 +145,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className={`${styles.button}`}
           >
             Cancel
@@ -142,6 +153,18 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
         </div>
       </form>
     </Modal>
+
+    <ConfirmActionModal
+      isOpen={isConfirmOpen}
+      onClose={cancelDiscard}
+      onConfirm={confirmDiscard}
+      title="Discard Changes?"
+      message="You have unsaved changes. Are you sure you want to cancel? Your changes will be lost."
+      confirmText="Discard"
+      cancelText="Keep Editing"
+      danger
+    />
+    </>
   );
 };
 

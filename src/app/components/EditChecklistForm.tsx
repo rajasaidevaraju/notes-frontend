@@ -4,6 +4,8 @@ import checklistStyles from './Checklist.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import Modal from './Modal';
 import ErrorMessage from './ErrorMessage';
+import ConfirmActionModal from './ConfirmActionModal';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Checklist, ChecklistItem } from '@/types/Types';
 
 interface EditChecklistFormProps {
@@ -24,6 +26,17 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
     const [newItemContent, setNewItemContent] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const itemsSnapshot = (list: ChecklistItem[]) =>
+        JSON.stringify(list.map(item => ({ content: item.content, checked: item.checked })));
+
+    const isDirty =
+        title !== checklist.title ||
+        newItemContent.trim() !== '' ||
+        itemsSnapshot(items) !== itemsSnapshot(checklist.items);
+
+    const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
+        useUnsavedChangesGuard(isDirty, onClose);
 
     useEffect(() => {
         if (isOpen) {
@@ -98,7 +111,8 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Edit Checklist">
+        <>
+        <Modal isOpen={isOpen} onClose={requestClose} title="Edit Checklist">
             <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
                 {formError && <ErrorMessage message={formError} />}
 
@@ -166,7 +180,7 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
                     </button>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={requestClose}
                         className={`${styles.button}`}
                     >
                         Cancel
@@ -174,6 +188,18 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
                 </div>
             </form>
         </Modal>
+
+        <ConfirmActionModal
+            isOpen={isConfirmOpen}
+            onClose={cancelDiscard}
+            onConfirm={confirmDiscard}
+            title="Discard Changes?"
+            message="You have unsaved changes. Are you sure you want to cancel? Your changes will be lost."
+            confirmText="Discard"
+            cancelText="Keep Editing"
+            danger
+        />
+        </>
     );
 };
 

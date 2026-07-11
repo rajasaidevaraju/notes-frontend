@@ -148,15 +148,10 @@ const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initial
                 isOpen={isPinModalOpen}
             ></PinForm>
 
-            <Modal
+            <AddContentForm
                 isOpen={isAddNoteModalOpen}
                 onClose={() => setIsAddNoteModalOpen(false)}
-                title="Add New"
-            >
-                <AddContentForm
-                    onClose={() => setIsAddNoteModalOpen(false)}
-                />
-            </Modal>
+            />
 
 
 

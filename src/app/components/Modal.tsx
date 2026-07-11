@@ -11,37 +11,68 @@ interface ModalProps {
   title: string;
 }
 
+// Matches the bottom-sheet breakpoint in Home.module.css — keep in sync
+const MOBILE_MODAL_BREAKPOINT = 600;
+
+// Body scroll lock is shared across stacked modals (e.g. an edit modal plus a
+// confirm dialog). Only the first modal to open saves the original styles and
+// locks; only the last one to close restores — otherwise a nested modal's
+// cleanup would "restore" the lock styles it captured from the outer modal.
+let openModalCount = 0;
+let savedBodyStyles: {
+  overflow: string;
+  position: string;
+  width: string;
+  height: string;
+  top: string;
+  scrollY: number;
+} | null = null;
+
+const lockBodyScroll = () => {
+  openModalCount++;
+  if (openModalCount > 1) return;
+
+  savedBodyStyles = {
+    overflow: document.body.style.overflow,
+    position: document.body.style.position,
+    width: document.body.style.width,
+    height: document.body.style.height,
+    top: document.body.style.top,
+    scrollY: window.scrollY,
+  };
+
+  document.body.style.overflow = 'hidden';
+  if (window.innerWidth <= MOBILE_MODAL_BREAKPOINT) {
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.top = `-${savedBodyStyles.scrollY}px`;
+  }
+};
+
+const unlockBodyScroll = () => {
+  openModalCount--;
+  if (openModalCount > 0 || !savedBodyStyles) return;
+
+  document.body.style.overflow = savedBodyStyles.overflow;
+  document.body.style.position = savedBodyStyles.position;
+  document.body.style.width = savedBodyStyles.width;
+  document.body.style.height = savedBodyStyles.height;
+  document.body.style.top = savedBodyStyles.top;
+  if (window.innerWidth <= MOBILE_MODAL_BREAKPOINT) {
+    window.scrollTo(0, savedBodyStyles.scrollY);
+  }
+  savedBodyStyles = null;
+};
+
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     if (isOpen) {
-      const scrollY = window.scrollY;
-      const originalOverflow = document.body.style.overflow;
-      const originalPosition = document.body.style.position;
-      const originalWidth = document.body.style.width;
-      const originalHeight = document.body.style.height;
-      const originalTop = document.body.style.top;
-
-      document.body.style.overflow = 'hidden';
-      if (window.innerWidth <= 768) {
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.height = '100%';
-        document.body.style.top = `-${scrollY}px`;
-      }
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.position = originalPosition;
-        document.body.style.width = originalWidth;
-        document.body.style.height = originalHeight;
-        document.body.style.top = originalTop;
-        if (window.innerWidth <= 768) {
-          window.scrollTo(0, scrollY);
-        }
-      };
+      lockBodyScroll();
+      return unlockBodyScroll;
     }
   }, [isOpen]);
 

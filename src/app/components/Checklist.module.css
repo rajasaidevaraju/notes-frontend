@@ -5,6 +5,9 @@
   flex-direction: column;
   gap: 0.25rem;
   margin-top: 0.5rem;
+  /* In the edit modal, long lists scroll internally so Save/Cancel stay visible */
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .checklistItem {
