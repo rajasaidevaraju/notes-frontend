@@ -81,6 +81,15 @@
   font-family: inherit;
 }
 
+.formTextarea {
+  clip-path: inset(0 round var(--radius-lg));
+}
+
+.formTextarea::-webkit-scrollbar-track {
+  background: transparent;
+  margin: var(--radius-lg) 0;
+}
+
 .formTitle:hover,
 .formTextarea:hover {
   background-color: var(--color-neutral-200);

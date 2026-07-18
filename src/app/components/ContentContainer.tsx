@@ -10,22 +10,11 @@ import Modal from './Modal';
 import SearchBar from './SearchBar';
 import ThemeToggle from './ThemeToggle';
 import { useContentStore } from '../store/contentStore';
-import { Note, UnifiedContent } from '@/types/Types';
 
-interface NotesContainerProps {
-    initialNotes: UnifiedContent[];
-    initialError: string | null;
-}
-
-import { SPECIAL_NOTE_TITLES } from '@/constants';
-
-const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initialError }) => {
+const ContentContainer: React.FC = () => {
     const {
         error,
-        setContent,
-        setClipboardNote,
-        setLoading,
-        setError,
+        fetchContentApi,
         selectedContentKeys,
         hiddenContent,
         hideHiddenContent,
@@ -42,14 +31,8 @@ const ContentContainer: React.FC<NotesContainerProps> = ({ initialNotes, initial
     const [isSelectingMode, setIsSelectingMode] = useState(false);
 
     useEffect(() => {
-        const initialRegularNotes = initialNotes.filter(item => !(item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD));
-        const initialClipboardNote = initialNotes.find(item => item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD) as Note | undefined;
-
-        setContent(initialRegularNotes);
-        setClipboardNote(initialClipboardNote || null);
-        setError(initialError);
-        setLoading(false);
-    }, [initialNotes, initialError, setContent, setClipboardNote, setError, setLoading]);
+        fetchContentApi();
+    }, [fetchContentApi]);
 
     const handleConfirmMultiDelete = async () => {
         await deleteSelectedContentApi();
