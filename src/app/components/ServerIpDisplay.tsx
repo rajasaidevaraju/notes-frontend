@@ -1,43 +1,46 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
-import os from 'os';
 import LanSharingControl from './LanSharingControl';
 
-const ServerIpDisplay = async () => {
-  let serverIp: string | null = null;
-  let error: string | null = null;
+const ServerIpDisplay = () => {
+  const [serverIp, setServerIp] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  try {
-    const networkInterfaces = os.networkInterfaces();
-    let foundIp = 'Not Found';
+  useEffect(() => {
+    let cancelled = false;
 
-    for (const interfaceName in networkInterfaces) {
-      const networkInterface = networkInterfaces[interfaceName];
-      if (networkInterface) {
-        for (const alias of networkInterface) {
-          if (alias.family === 'IPv4' && !alias.internal) {
-            foundIp = alias.address;
-            break;
-          }
+    const fetchIp = async () => {
+      try {
+        const res = await fetch('/api/server-ip');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setServerIp(data.ip || null);
+          setError(null);
+        }
+      } catch (e: unknown) {
+        if (!cancelled) {
+          setError(e instanceof Error ? `Failed to get server IP: ${e.message}` : 'Failed to get server IP');
         }
       }
-      if (foundIp !== 'Not Found') {
-        break;
-      }
-    }
-    serverIp = foundIp;
+    };
 
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      error = `Failed to get server IP: ${e.message}`;
-    } else {
-      error = `Failed to get server IP`;
-    }
-  }
+    fetchIp();
+    window.addEventListener('focus', fetchIp);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', fetchIp);
+    };
+  }, []);
+
+  const port = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
 
   return (
     <div className={styles.serverInfoContainer}>
       {serverIp && serverIp !== 'Not Found' ? (
-        <p className={styles.serverIpText}>Server IP: <strong>{`${serverIp}:3002`}</strong></p>
+        <p className={styles.serverIpText}>Server IP: <strong>{`${serverIp}${port}`}</strong></p>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : (

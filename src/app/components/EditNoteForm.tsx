@@ -4,9 +4,11 @@ import ErrorMessage from './ErrorMessage';
 import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import Modal from './Modal';
+import EditableTitle from './EditableTitle';
 import ConfirmActionModal from './ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Note } from '@/types/Types';
+import { LIMITS } from '@/constants';
 
 interface EditNoteFormModalProps {
   isOpen: boolean;
@@ -86,21 +88,19 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
 
   return (
     <>
-    <Modal isOpen={isOpen} onClose={requestClose} title="Edit Note">
+    <Modal
+      isOpen={isOpen}
+      onClose={requestClose}
+      title={
+        <EditableTitle
+          value={formData.title}
+          onChange={(title) => setFormData(prev => ({ ...prev, title }))}
+          placeholder="Note title"
+        />
+      }
+    >
       <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
         {formError && <ErrorMessage message={formError} />}
-        <input
-          type="text"
-          id="editTitle"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className={styles.formTitle}
-          required
-          placeholder="Enter note title"
-          autoComplete="off"
-          style={{ flexShrink: 0 }}
-        />
         <textarea
           id="editContent"
           name="content"
@@ -109,6 +109,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
           onChange={handleChange}
           onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
           className={styles.formTextarea}
+          maxLength={LIMITS.NOTE_CONTENT}
         ></textarea>
         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>

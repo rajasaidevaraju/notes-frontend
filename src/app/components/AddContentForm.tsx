@@ -5,6 +5,7 @@ import ErrorMessage from './ErrorMessage';
 import Modal from './Modal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { LIMITS } from '@/constants';
 
 interface AddContentFormProps {
     isOpen: boolean;
@@ -14,11 +15,12 @@ interface AddContentFormProps {
 const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [itemType, setItemType] = useState<'note' | 'checklist'>('note');
+    const [unit, setUnit] = useState('');
+    const [itemType, setItemType] = useState<'note' | 'checklist' | 'tracker'>('note');
     const [formError, setFormError] = useState<string | null>(null);
-    const { addNoteApi, addChecklistApi } = useContentStore();
+    const { addNoteApi, addChecklistApi, addTrackerApi } = useContentStore();
 
-    const isDirty = title.trim() !== '' || content.trim() !== '';
+    const isDirty = title.trim() !== '' || content.trim() !== '' || unit.trim() !== '';
     const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
         useUnsavedChangesGuard(isDirty, onClose);
 
@@ -26,6 +28,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
         if (isOpen) {
             setTitle('');
             setContent('');
+            setUnit('');
             setItemType('note');
             setFormError(null);
         }
@@ -48,11 +51,14 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
         try {
             if (itemType === 'note') {
                 await addNoteApi(title, content);
-            } else {
+            } else if (itemType === 'checklist') {
                 await addChecklistApi(title);
+            } else {
+                await addTrackerApi(title, unit.trim() || null);
             }
             setTitle('');
             setContent('');
+            setUnit('');
             onClose();
         } catch (err: unknown) {
             let errorMessage = "An unknown error occurred.";
@@ -86,6 +92,14 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
                     >
                         Checklist
                     </button>
+                    <button
+                        type="button"
+                        onClick={() => setItemType('tracker')}
+                        className={`${styles.button} ${itemType === 'tracker' ? styles.primaryButton : ''}`}
+                        style={{ flex: 1 }}
+                    >
+                        Tracker
+                    </button>
                 </div>
 
                 <div>
@@ -100,9 +114,28 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
                         placeholder={`Enter ${itemType} title`}
                         className={styles.formTitle}
                         required
+                        maxLength={LIMITS.TITLE}
                         autoComplete="off"
                     />
                 </div>
+
+                {itemType === 'tracker' && (
+                    <div>
+                        <label htmlFor="itemUnit" className={styles.formLabel}>
+                            Unit (Optional)
+                        </label>
+                        <input
+                            type="text"
+                            id="itemUnit"
+                            value={unit}
+                            onChange={(e) => setUnit(e.target.value)}
+                            placeholder="kg, steps, hours…"
+                            className={styles.formTitle}
+                            maxLength={LIMITS.TRACKER_UNIT}
+                            autoComplete="off"
+                        />
+                    </div>
+                )}
 
                 {itemType === 'note' && (
                     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -116,12 +149,13 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
                             placeholder="Enter note content"
                             onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
                             className={styles.formTextarea}
+                            maxLength={LIMITS.NOTE_CONTENT}
                         ></textarea>
                     </div>
                 )}
 
                 <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>
-                    Add {itemType === 'note' ? 'Note' : 'Checklist'}
+                    Add {itemType === 'note' ? 'Note' : itemType === 'checklist' ? 'Checklist' : 'Tracker'}
                 </button>
             </form>
         </Modal>

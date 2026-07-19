@@ -8,7 +8,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
 }
 
 // Matches the bottom-sheet breakpoint in Home.module.css — keep in sync
@@ -82,7 +82,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{title}</h2>
+          {typeof title === 'string' ? (
+            <h2 className={styles.modalTitle}>{title}</h2>
+          ) : (
+            title
+          )}
           <button className={styles.modalCloseButton} onClick={onClose}>
             &times;
           </button>

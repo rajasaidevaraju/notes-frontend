@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Note, Checklist, ChecklistItem, UnifiedContent, ContentType } from '@/types/Types';
+import { Note, Checklist, ChecklistItem, Tracker, TrackerEntry, UnifiedContent, ContentType } from '@/types/Types';
 import { handleApiRequest } from '@/utils/api';
 import { SPECIAL_NOTE_TITLES } from '@/constants';
 
@@ -36,6 +36,11 @@ interface ContentState {
   addChecklistItemApi: (checklistId: number, content: string) => Promise<void>;
   updateChecklistItemApi: (checklistId: number, itemId: number, updates: Partial<{ content: string, checked: boolean, position: number }>) => Promise<void>;
   deleteChecklistItemApi: (checklistId: number, itemId: number) => Promise<void>;
+  addTrackerApi: (title: string, unit: string | null) => Promise<void>;
+  updateTrackerApi: (tracker: Tracker, deletedEntryIds?: number[]) => Promise<void>;
+  deleteTrackerApi: (id: number) => Promise<void>;
+  addTrackerEntryApi: (trackerId: number, value: string) => Promise<void>;
+  updateTrackerEntryApi: (trackerId: number, entryId: number, value: string) => Promise<void>;
   pasteToClipboardNoteApi: () => Promise<void>;
   CheckAuthStatusApi: () => Promise<boolean>;
 }
@@ -398,12 +403,13 @@ export const useContentStore = create<ContentState>((set, get) => ({
         body: JSON.stringify({ content }),
       }),
       (addedItem) => {
+        const mapChecklist = (item: UnifiedContent) =>
+          (item.type === 'checklist' && item.id === checklistId)
+            ? { ...item, items: [...item.items, addedItem], updatedAt: new Date().toISOString() }
+            : item;
         set((state) => ({
-          content: state.content.map(item =>
-            (item.type === 'checklist' && item.id === checklistId)
-              ? { ...item, items: [...item.items, addedItem], updatedAt: new Date().toISOString() }
-              : item
-          )
+          content: state.content.map(mapChecklist),
+          hiddenContent: state.hiddenContent.map(mapChecklist),
         }));
       },
       (error) => set({ error: `Failed to add item: ${error}` })
@@ -418,16 +424,17 @@ export const useContentStore = create<ContentState>((set, get) => ({
         body: JSON.stringify(updates),
       }),
       (updatedContent) => {
+        const mapChecklist = (item: UnifiedContent) =>
+          (item.type === 'checklist' && item.id === checklistId)
+            ? {
+              ...item,
+              items: item.items.map((i: ChecklistItem) => i.id === itemId ? updatedContent : i),
+              updatedAt: new Date().toISOString()
+            }
+            : item;
         set((state) => ({
-          content: state.content.map(item =>
-            (item.type === 'checklist' && item.id === checklistId)
-              ? {
-                ...item,
-                items: item.items.map((i: ChecklistItem) => i.id === itemId ? updatedContent : i),
-                updatedAt: new Date().toISOString()
-              }
-              : item
-          )
+          content: state.content.map(mapChecklist),
+          hiddenContent: state.hiddenContent.map(mapChecklist),
         }));
       },
       (error) => set({ error: `Failed to update item: ${error}` })
@@ -440,19 +447,144 @@ export const useContentStore = create<ContentState>((set, get) => ({
         method: 'DELETE',
       }),
       () => {
+        const mapChecklist = (item: UnifiedContent) =>
+          (item.type === 'checklist' && item.id === checklistId)
+            ? {
+              ...item,
+              items: item.items.filter((i: ChecklistItem) => i.id !== itemId),
+              updatedAt: new Date().toISOString()
+            }
+            : item;
         set((state) => ({
-          content: state.content.map(item =>
-            (item.type === 'checklist' && item.id === checklistId)
-              ? {
-                ...item,
-                items: item.items.filter((i: ChecklistItem) => i.id !== itemId),
-                updatedAt: new Date().toISOString()
-              }
-              : item
-          )
+          content: state.content.map(mapChecklist),
+          hiddenContent: state.hiddenContent.map(mapChecklist),
         }));
       },
       (error) => set({ error: `Failed to delete item: ${error}` })
+    );
+  },
+
+  addTrackerApi: async (title, unit) => {
+    set({ loading: true, error: null });
+    await handleApiRequest<Tracker>(
+      () =>
+        fetch(`/api/trackers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, unit }),
+        }),
+      (addedTracker: Tracker) => {
+        set({ loading: false });
+        const transformedTracker: Tracker = {
+          ...addedTracker,
+          type: 'tracker',
+          pinned: Boolean(addedTracker.pinned),
+          hidden: Boolean(addedTracker.hidden),
+          entries: addedTracker.entries || []
+        };
+        get().addContent(transformedTracker);
+      },
+      (error) => set({ error: `Failed to add tracker: ${error}`, loading: false })
+    );
+  },
+
+  updateTrackerApi: async (tracker: Tracker, deletedEntryIds?: number[]) => {
+    const { id, title, unit, pinned, hidden } = tracker;
+    set({ loading: true, error: null });
+
+    await handleApiRequest<Tracker>(
+      () =>
+        fetch(`/api/trackers/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, unit, pinned, hidden, deletedEntryIds }),
+        }),
+      (updatedTracker: Tracker) => {
+        set({ loading: false });
+        const transformedTracker: Tracker = {
+          ...updatedTracker,
+          type: 'tracker',
+          pinned: Boolean(updatedTracker.pinned),
+          hidden: Boolean(updatedTracker.hidden),
+          entries: updatedTracker.entries || []
+        };
+        get().updateContent(transformedTracker);
+      },
+      (error, status) => {
+        if (status === 403) {
+          set({ hiddenContent: [], error: 'Session expired.', loading: false });
+        } else {
+          set({ error: `Failed to update tracker: ${error}`, loading: false });
+        }
+      }
+    );
+  },
+
+  deleteTrackerApi: async (id) => {
+    set({ loading: true, error: null });
+
+    await handleApiRequest<void>(
+      () =>
+        fetch(`/api/trackers/${id}`, {
+          method: 'DELETE',
+        }),
+      () => {
+        set({ loading: false });
+        get().deleteContent(id, 'tracker');
+      },
+      (error, status) => {
+        if (status === 403) {
+          set({ hiddenContent: [], error: 'Session expired.', loading: false });
+        } else {
+          set({ error: `Failed to delete tracker: ${error}`, loading: false });
+        }
+      }
+    );
+  },
+
+  addTrackerEntryApi: async (trackerId, value) => {
+    await handleApiRequest<TrackerEntry>(
+      () => fetch(`/api/trackers/${trackerId}/entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      }),
+      (addedEntry) => {
+        const mapTracker = (item: UnifiedContent) =>
+          (item.type === 'tracker' && item.id === trackerId)
+            ? { ...item, entries: [addedEntry, ...item.entries], updatedAt: new Date().toISOString() }
+            : item;
+        set((state) => ({
+          content: state.content.map(mapTracker),
+          hiddenContent: state.hiddenContent.map(mapTracker),
+        }));
+      },
+      (error) => set({ error: `Failed to add entry: ${error}` })
+    );
+  },
+
+  updateTrackerEntryApi: async (trackerId, entryId, value) => {
+    await handleApiRequest<TrackerEntry>(
+      () => fetch(`/api/trackers/entries/${entryId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      }),
+      (updatedEntry) => {
+        const mapTracker = (item: UnifiedContent) =>
+          (item.type === 'tracker' && item.id === trackerId)
+            ? {
+              ...item,
+              entries: item.entries.map((e: TrackerEntry) => e.id === entryId ? updatedEntry : e),
+              updatedAt: new Date().toISOString()
+            }
+            : item;
+        set((state) => ({
+          content: state.content.map(mapTracker),
+          hiddenContent: state.hiddenContent.map(mapTracker),
+        }));
+      },
+      (error) => set({ error: `Failed to update entry: ${error}` })
     );
   },
 

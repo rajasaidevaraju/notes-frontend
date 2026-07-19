@@ -28,8 +28,27 @@ export interface Checklist {
   type: 'checklist';
 }
 
-export type UnifiedContent = Note | Checklist;
-export const CONTENT_TYPES = ['note', 'checklist'] as const;
+export interface TrackerEntry {
+  id: number;
+  trackerId: number;
+  value: string;
+  recordedAt: string;
+}
+
+export interface Tracker {
+  id: number;
+  title: string;
+  unit: string | null;
+  pinned: boolean;
+  hidden: boolean;
+  updatedAt: string;
+  createdAt: string;
+  entries: TrackerEntry[];
+  type: 'tracker';
+}
+
+export type UnifiedContent = Note | Checklist | Tracker;
+export const CONTENT_TYPES = ['note', 'checklist', 'tracker'] as const;
 export type ContentType = typeof CONTENT_TYPES[number];
 
 export interface ErrorMessageProps {

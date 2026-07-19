@@ -382,6 +382,38 @@
   overflow-wrap: anywhere;
 }
 
+.editableTitle {
+  cursor: text;
+  flex: 1;
+  min-width: 0;
+  margin-right: 0.5rem;
+}
+
+.editableTitleInput {
+  flex: 1;
+  min-width: 0;
+  margin-right: 0.5rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-neutral-900);
+  background-color: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.editableTitleInput:focus {
+  outline: none;
+  background-color: var(--color-white);
+  border-color: var(--color-brand-primary);
+}
+
+.editableTitleInput::placeholder {
+  color: var(--color-neutral-400);
+}
+
 .modalCloseButton {
   background: var(--color-neutral-100);
   border: none;

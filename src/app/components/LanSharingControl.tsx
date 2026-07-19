@@ -6,6 +6,7 @@ import { useNotificationStore } from '../store/notificationStore';
 interface LanStatus {
     enabled: boolean;
     remainingMs: number;
+    canManage: boolean;
 }
 
 const LanSharingControl: React.FC = () => {
@@ -81,24 +82,26 @@ const LanSharingControl: React.FC = () => {
                     <span className={styles.serverIpText}>
                         LAN Active: <strong> ({Math.ceil(status.remainingMs / 60000)}m) </strong>
                     </span>
-                    <div style={{ display: 'flex', gap: '0.375rem' }}>
-                        <button
-                            onClick={handleEnable}
-                            className={`${styles.button} ${styles.successButton}`}
-                            disabled={loading}
-                        >
-                            Reset
-                        </button>
-                        <button
-                            onClick={handleDisable}
-                            className={`${styles.button} ${styles.dangerButton}`}
-                            disabled={loading}
-                        >
-                            Disable
-                        </button>
-                    </div>
+                    {status.canManage && (
+                        <div style={{ display: 'flex', gap: '0.375rem' }}>
+                            <button
+                                onClick={handleEnable}
+                                className={`${styles.button} ${styles.successButton}`}
+                                disabled={loading}
+                            >
+                                Reset
+                            </button>
+                            <button
+                                onClick={handleDisable}
+                                className={`${styles.button} ${styles.dangerButton}`}
+                                disabled={loading}
+                            >
+                                Disable
+                            </button>
+                        </div>
+                    )}
                 </>
-            ) : (
+            ) : status.canManage && (
                 <button
                     onClick={handleEnable}
                     className={`${styles.button} ${styles.primaryButton}`}

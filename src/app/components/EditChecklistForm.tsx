@@ -3,10 +3,13 @@ import styles from '@/Home.module.css';
 import checklistStyles from './Checklist.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import Modal from './Modal';
+import EditableTitle from './EditableTitle';
 import ErrorMessage from './ErrorMessage';
 import ConfirmActionModal from './ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Checklist, ChecklistItem } from '@/types/Types';
+import { LIMITS } from '@/constants';
+type EditableChecklistItem = Omit<ChecklistItem, 'id'> & { id: number | string };
 
 interface EditChecklistFormProps {
     isOpen: boolean;
@@ -22,12 +25,12 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
     onUpdateChecklist,
 }) => {
     const [title, setTitle] = useState(checklist.title);
-    const [items, setItems] = useState<ChecklistItem[]>(checklist.items);
+    const [items, setItems] = useState<EditableChecklistItem[]>(checklist.items);
     const [newItemContent, setNewItemContent] = useState('');
     const [formError, setFormError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const itemsSnapshot = (list: ChecklistItem[]) =>
+    const itemsSnapshot = (list: EditableChecklistItem[]) =>
         JSON.stringify(list.map(item => ({ content: item.content, checked: item.checked })));
 
     const isDirty =
@@ -50,8 +53,8 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
         e.preventDefault();
         if (!newItemContent.trim()) return;
 
-        const newItem: ChecklistItem = {
-            id: Date.now() * -1, // Temporary negative ID
+        const newItem: EditableChecklistItem = {
+            id: crypto.randomUUID(), // Temporary client id for new items
             checklistId: checklist.id,
             content: newItemContent.trim(),
             checked: false,
@@ -62,15 +65,15 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
         setNewItemContent('');
     };
 
-    const handleUpdateItemContent = (id: number, content: string) => {
+    const handleUpdateItemContent = (id: number | string, content: string) => {
         setItems(items.map(item => item.id === id ? { ...item, content } : item));
     };
 
-    const handleToggleItemStatus = (id: number) => {
+    const handleToggleItemStatus = (id: number | string) => {
         setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
     };
 
-    const handleDeleteItem = (id: number) => {
+    const handleDeleteItem = (id: number | string) => {
         setItems(items.filter(item => item.id !== id));
     };
 
@@ -85,10 +88,10 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
 
         setLoading(true);
         try {
-            const finalItems = [...items];
+            const finalItems: EditableChecklistItem[] = [...items];
             if (newItemContent.trim()) {
                 finalItems.push({
-                    id: 0,
+                    id: crypto.randomUUID(),
                     checklistId: checklist.id,
                     content: newItemContent.trim(),
                     checked: false,
@@ -100,7 +103,8 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
             await onUpdateChecklist({
                 ...checklist,
                 title: title.trim(),
-                items: finalItems.map(item => ({ ...item, id: item.id < 0 ? 0 : item.id }))
+                // Normalize temp (string) ids to 0; server re-inserts with real ids
+                items: finalItems.map(item => ({ ...item, id: typeof item.id === 'string' ? 0 : item.id }))
             });
             onClose();
         } catch (err: unknown) {
@@ -112,24 +116,15 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
 
     return (
         <>
-        <Modal isOpen={isOpen} onClose={requestClose} title="Edit Checklist">
+        <Modal
+            isOpen={isOpen}
+            onClose={requestClose}
+            title={<EditableTitle value={title} onChange={setTitle} placeholder="Checklist title" />}
+        >
             <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
                 {formError && <ErrorMessage message={formError} />}
 
-                <div>
-                    <label className={styles.formLabel}>Title</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className={styles.formTitle}
-                        required
-                        placeholder="Enter checklist title"
-                    />
-                </div>
-
                 <div className={checklistStyles.checklistItems}>
-                    <label className={styles.formLabel}>Items</label>
                     {items.map((item) => (
                         <div key={item.id} className={checklistStyles.checklistItem}>
                             <input
@@ -143,6 +138,7 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
                                 value={item.content}
                                 onChange={(e) => handleUpdateItemContent(item.id, e.target.value)}
                                 className={`${checklistStyles.itemInput} ${item.checked ? checklistStyles.itemChecked : ''}`}
+                                maxLength={LIMITS.CHECKLIST_ITEM}
                             />
                             <button
                                 type="button"
@@ -164,6 +160,7 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
                             onChange={(e) => setNewItemContent(e.target.value)}
                             placeholder="Add new item..."
                             className={checklistStyles.itemInput}
+                            maxLength={LIMITS.CHECKLIST_ITEM}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();

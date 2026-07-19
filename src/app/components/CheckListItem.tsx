@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
-import styles from '@/Home.module.css';
 import noteItemStyles from './NoteItem.module.css';
 import { Checklist } from '@/types/Types';
 import ConfirmActionModal from './ConfirmActionModal';
@@ -10,6 +9,7 @@ import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from "@/store/noteUiStore";
 
 import ViewChecklistModal from './ViewChecklistModal';
+import ItemToolbar from './ItemToolbar';
 
 interface CheckListItemProps {
     checklist: Checklist;
@@ -154,86 +154,18 @@ const CheckListItem: React.FC<CheckListItemProps> = ({
                             onClick={(e) => e.stopPropagation()}
                         />
                     ) : (
-                        <div className={noteItemStyles.buttonGroup}>
-                            <button
-                                onClick={handleTogglePin}
-                                className={`${styles.button}`}
-                                title={checklist.pinned ? 'Unpin' : 'Pin'}
-                            >
-                                {checklist.pinned ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
-                                    </svg>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
-                                    </svg>
-                                )}
-                            </button>
-                            <button
-                                onClick={handleEditClick}
-                                className={`${styles.button}`}
-                                title="Edit"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z" />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={handleDeleteClick}
-                                className={`${styles.button}`}
-                                title="Delete"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                                    <path d="M3 6h18" />
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                    <line x1="10" y1="11" x2="10" y2="17" />
-                                    <line x1="14" y1="11" x2="14" y2="17" />
-                                </svg>
-                            </button>
-                            <button
-                                onClick={handleCopyClick}
-                                className={`${styles.button}`}
-                                title="Copy Content"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" >
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-
-                                {copyFeedback && <span style={{ marginLeft: '0.3rem' }}>{copyFeedback}</span>}
-                            </button>
-                            <button
-                                onClick={handleHideToggle}
-                                className={`${styles.button} ${styles.hideButton}`}
-                                title={checklist.hidden ? 'Un-Hide' : 'Hide'}
-                                aria-label={checklist.hidden ? 'Un-Hide' : 'Hide'}
-                            >
-                                {checklist.hidden ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <circle cx="12" cy="12" r="3"></circle>
-                                    </svg>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <path d="M3 3l18 18"></path> <circle cx="12" cy="12" r="3"></circle>
-                                    </svg>
-                                )}
-                            </button>
-                            <button className={`${styles.button}`} onClick={(e) => { e.stopPropagation(); toggleNoteMinimize(checklist.id); }} title={minimized ? 'Expand' : 'Minimize'} aria-label={minimized ? 'Expand' : 'Minimize'}>
-                                {minimized ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                        <line x1="12" y1="5" x2="12" y2="19" />
-                                    </svg>
-
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                    </svg>
-                                )}
-                            </button>
-                        </div>
+                        <ItemToolbar
+                            pinned={checklist.pinned}
+                            hidden={checklist.hidden}
+                            minimized={minimized}
+                            copyFeedback={copyFeedback}
+                            onTogglePin={handleTogglePin}
+                            onEdit={handleEditClick}
+                            onDelete={handleDeleteClick}
+                            onCopy={handleCopyClick}
+                            onToggleHide={handleHideToggle}
+                            onToggleMinimize={(e) => { e.stopPropagation(); toggleNoteMinimize(checklist.id); }}
+                        />
                     )}
                 </div>
 

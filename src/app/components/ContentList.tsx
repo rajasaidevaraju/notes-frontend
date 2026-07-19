@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import styles from '@/Home.module.css';
 import NoteItem from './NoteItem';
 import CheckListItem from './CheckListItem';
-import { UnifiedContent, Note, Checklist } from '@/types/Types';
+import TrackerItem from './TrackerItem';
+import { UnifiedContent, Note, Checklist, Tracker } from '@/types/Types';
 import Loading from '@/components/LoadingSpinner';
 import { useContentStore } from '@/store/contentStore';
 import ClipboardNoteItem from './ClipboardNoteItem';
@@ -24,9 +25,12 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
         if (item.type === 'note') {
           const note = item as Note;
           return note.title.toLowerCase().includes(lowerQuery) || note.content.toLowerCase().includes(lowerQuery);
-        } else {
+        } else if (item.type === 'checklist') {
           const checklist = item as Checklist;
           return checklist.title.toLowerCase().includes(lowerQuery) || checklist.items.some(i => i.content.toLowerCase().includes(lowerQuery));
+        } else {
+          const tracker = item as Tracker;
+          return tracker.title.toLowerCase().includes(lowerQuery) || tracker.entries.some(e => e.value.toLowerCase().includes(lowerQuery));
         }
       });
     };
@@ -68,11 +72,21 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
           isSelectingMode={isSelectingMode}
         />
       );
-    } else {
+    } else if (item.type === 'checklist') {
       return (
         <CheckListItem
           key={`${item.type}-${item.id}`}
           checklist={item as Checklist}
+          isSelected={selectedContentKeys.has(`${item.type}-${item.id}`)}
+          onToggleSelect={() => toggleSelectContent(item.id, item.type)}
+          isSelectingMode={isSelectingMode}
+        />
+      );
+    } else {
+      return (
+        <TrackerItem
+          key={`${item.type}-${item.id}`}
+          tracker={item as Tracker}
           isSelected={selectedContentKeys.has(`${item.type}-${item.id}`)}
           onToggleSelect={() => toggleSelectContent(item.id, item.type)}
           isSelectingMode={isSelectingMode}
