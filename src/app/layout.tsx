@@ -39,11 +39,15 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
                 try {
                   var storedTheme = localStorage.getItem('theme');
                   var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
+                  var isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+                  document.documentElement.classList.toggle('dark', isDark);
+                  var meta = document.querySelector('meta[name="theme-color"]');
+                  if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute('name', 'theme-color');
+                    document.head.appendChild(meta);
                   }
+                  meta.setAttribute('content', isDark ? '#171717' : '#f8fafc');
                 } catch (e) {}
               })();
             `,

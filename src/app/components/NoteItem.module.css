@@ -169,7 +169,8 @@
 .permissionMessage {
   font-size: 0.875rem;
   color: var(--color-neutral-500);
-  margin-left: 0.25rem;
+  margin: 0 0 0 0.25rem;
+  align-self: center;
 }
 
 .checkboxInput {

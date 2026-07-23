@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
 
+const setThemeColorMeta = (isDark: boolean) => {
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', isDark ? '#171717' : '#f8fafc');
+};
+
 const ThemeToggle: React.FC = () => {
     const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -9,25 +19,18 @@ const ThemeToggle: React.FC = () => {
         const storedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
-            setIsDarkMode(true);
-            document.documentElement.classList.add('dark');
-        } else {
-            setIsDarkMode(false);
-            document.documentElement.classList.remove('dark');
-        }
+        const isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+        setIsDarkMode(isDark);
+        document.documentElement.classList.toggle('dark', isDark);
+        setThemeColorMeta(isDark);
     }, []);
 
     const toggleTheme = () => {
-        if (isDarkMode) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-            setIsDarkMode(false);
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            setIsDarkMode(true);
-        }
+        const nextIsDark = !isDarkMode;
+        document.documentElement.classList.toggle('dark', nextIsDark);
+        localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
+        setThemeColorMeta(nextIsDark);
+        setIsDarkMode(nextIsDark);
     };
 
     return (

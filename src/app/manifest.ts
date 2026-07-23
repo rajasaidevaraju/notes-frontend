@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Share notes on LAN",
     start_url: "/",
     display: "standalone",
-    background_color: "#153723",
-    theme_color: "#153723",
+    background_color: "#f8fafc",
+    theme_color: "#f8fafc",
     icons: [
       {
         src: "/icon-192x192.png",
@@ -23,6 +23,18 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/icon-192x192-maskable.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icon-512x512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
   };
