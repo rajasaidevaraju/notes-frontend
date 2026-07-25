@@ -28,6 +28,8 @@
 
   --color-white: #ffffff;
 
+  --overlay-background: rgba(255, 255, 255, 0.8);
+
   --color-error-background: #fef2f2;
   --color-error-border: #fca5a5;
   --color-error-text: #dc2626;
@@ -50,12 +52,16 @@
   :root {
     --background: #0f172a;
     --foreground: #f1f5f9;
+
+    --overlay-background: rgba(15, 23, 42, 0.8);
   }
 }
 
 :root.dark {
   --background: #171717;
   --foreground: #f5f5f5;
+
+  --overlay-background: rgba(23, 23, 23, 0.8);
 
   --color-neutral-50: #1f1f1f;
   --color-neutral-100: #262626;
