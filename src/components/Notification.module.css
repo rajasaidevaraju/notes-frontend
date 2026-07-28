@@ -1,0 +1,113 @@
+.notificationContainer {
+    position: fixed;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 9999;
+    pointer-events: none;
+    font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.notification {
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 380px;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-neutral-200);
+    animation: slideIn 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+    transition: all var(--transition-normal);
+}
+
+.notification:hover {
+    box-shadow: var(--shadow-xl);
+}
+
+.message {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--color-neutral-800);
+    flex: 1;
+}
+
+.closeBtn {
+    background: var(--color-neutral-100);
+    border: none;
+    color: var(--color-neutral-400);
+    font-size: 0.875rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.closeBtn:hover {
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-700);
+}
+
+.info {
+    border-left: 3px solid var(--color-brand-primary);
+}
+
+.success {
+    border-left: 3px solid var(--color-brand-success);
+}
+
+.warning {
+    border-left: 3px solid var(--color-accent-pinned-border);
+}
+
+.error {
+    border-left: 3px solid var(--color-brand-danger);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@media (max-width: 640px) {
+    .notificationContainer {
+        top: 0.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+    }
+
+    .notification {
+        min-width: 0;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+    }
+
+    .message {
+        font-size: 0.8rem;
+    }
+
+    .closeBtn {
+        width: 1.125rem;
+        height: 1.125rem;
+        font-size: 0.75rem;
+    }
+}
