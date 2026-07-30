@@ -1,10 +1,10 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
-import ErrorMessage from './ErrorMessage';
+import ErrorMessage from '@/components/ErrorMessage';
 import styles from '@/Home.module.css';
-import noteItemStyles from './NoteItem.module.css';
-import Modal from './Modal';
-import EditableTitle from './EditableTitle';
-import ConfirmActionModal from './ConfirmActionModal';
+import noteItemStyles from '@/components/ItemCard.module.css';
+import Modal from '@/components/Modal';
+import EditableTitle from '@/components/EditableTitle';
+import ConfirmActionModal from '@/components/ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Note } from '@/types/Types';
 import { LIMITS } from '@/constants';

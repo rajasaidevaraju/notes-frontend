@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import ErrorMessage from './ErrorMessage';
-import noteItemStyles from './NoteItem.module.css';
+import ErrorMessage from '@/components/ErrorMessage';
+import noteItemStyles from '@/components/ItemCard.module.css';
 import { Note } from '@/types/Types';
 import EditNoteFormModal from './EditNoteForm';
 import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from '@/store/noteUiStore';
 
-import ConfirmActionModal from './ConfirmActionModal';
+import ConfirmActionModal from '@/components/ConfirmActionModal';
 import ViewNoteModal from './ViewNoteModal';
-import ItemToolbar from './ItemToolbar';
+import ItemToolbar from '@/components/ItemToolbar';
 import { useUpdateNoteMutation, useDeleteNoteMutation } from '@/hooks/useContentQuery';
 
 interface NoteItemProps {

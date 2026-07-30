@@ -1,8 +1,8 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { Checklist, ChecklistItem } from '@/types/Types';
 import checklistStyles from './Checklist.module.css';
-import noteItemStyles from './NoteItem.module.css';
-import ErrorMessage from './ErrorMessage';
+import noteItemStyles from '@/components/ItemCard.module.css';
+import ErrorMessage from '@/components/ErrorMessage';
 import { useUpdateChecklistItemMutation } from '@/hooks/useContentQuery';
 
 interface ChecklistViewProps {

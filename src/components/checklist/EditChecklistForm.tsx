@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from '@/Home.module.css';
 import checklistStyles from './Checklist.module.css';
-import noteItemStyles from './NoteItem.module.css';
-import Modal from './Modal';
-import EditableTitle from './EditableTitle';
-import ErrorMessage from './ErrorMessage';
-import ConfirmActionModal from './ConfirmActionModal';
+import noteItemStyles from '@/components/ItemCard.module.css';
+import Modal from '@/components/Modal';
+import EditableTitle from '@/components/EditableTitle';
+import ErrorMessage from '@/components/ErrorMessage';
+import ConfirmActionModal from '@/components/ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { Checklist, ChecklistItem } from '@/types/Types';
 import { LIMITS } from '@/constants';

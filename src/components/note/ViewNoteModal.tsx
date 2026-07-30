@@ -1,7 +1,7 @@
 import React from 'react';
 import { Note } from '@/types/Types';
-import Modal from './Modal';
-import noteItemStyles from './NoteItem.module.css';
+import Modal from '@/components/Modal';
+import noteItemStyles from '@/components/ItemCard.module.css';
 
 interface ViewNoteModalProps {
     isOpen: boolean;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '@/Home.module.css';
-import noteItemStyles from './NoteItem.module.css';
-import ErrorMessage from './ErrorMessage';
+import noteItemStyles from '@/components/ItemCard.module.css';
+import ErrorMessage from '@/components/ErrorMessage';
 import { Note } from '@/types/Types';
 import { useUpdateNoteMutation } from '@/hooks/useContentQuery';
 

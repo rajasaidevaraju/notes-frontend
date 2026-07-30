@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import styles from '@/Home.module.css';
-import NoteItem from './NoteItem';
-import CheckListItem from './CheckListItem';
-import TrackerItem from './TrackerItem';
+import NoteItem from './note/NoteItem';
+import CheckListItem from './checklist/CheckListItem';
+import TrackerItem from './tracker/TrackerItem';
 import { UnifiedContent, Note, Checklist, Tracker } from '@/types/Types';
 import Loading from '@/components/LoadingSpinner';
 import { useContentStore } from '@/store/contentStore';
-import ClipboardNoteItem from './ClipboardNoteItem';
+import ClipboardNoteItem from './clipboard/ClipboardNoteItem';
 import { useContentQuery, useHiddenContentQuery } from '@/hooks/useContentQuery';
 
 interface ContentListProps {

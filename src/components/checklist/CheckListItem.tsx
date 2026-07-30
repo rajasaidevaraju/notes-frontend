@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import ErrorMessage from './ErrorMessage';
-import noteItemStyles from './NoteItem.module.css';
+import ErrorMessage from '@/components/ErrorMessage';
+import noteItemStyles from '@/components/ItemCard.module.css';
 import { Checklist } from '@/types/Types';
-import ConfirmActionModal from './ConfirmActionModal';
+import ConfirmActionModal from '@/components/ConfirmActionModal';
 import EditChecklistForm from './EditChecklistForm';
 import ChecklistView from './ChecklistView';
 import { useContentStore } from '@/store/contentStore';
 import { useNoteUiStore } from '@/store/noteUiStore';
 
 import ViewChecklistModal from './ViewChecklistModal';
-import ItemToolbar from './ItemToolbar';
+import ItemToolbar from '@/components/ItemToolbar';
 import { useUpdateChecklistMutation, useDeleteChecklistMutation } from '@/hooks/useContentQuery';
 
 interface CheckListItemProps {

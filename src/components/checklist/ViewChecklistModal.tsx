@@ -1,7 +1,7 @@
 import React from 'react';
 import { Checklist } from '@/types/Types';
-import Modal from './Modal';
-import noteItemStyles from './NoteItem.module.css';
+import Modal from '@/components/Modal';
+import noteItemStyles from '@/components/ItemCard.module.css';
 import ChecklistView from './ChecklistView';
 
 interface ViewChecklistModalProps {

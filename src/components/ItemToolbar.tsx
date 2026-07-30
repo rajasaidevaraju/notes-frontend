@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '@/Home.module.css';
-import noteItemStyles from './NoteItem.module.css';
+import noteItemStyles from './ItemCard.module.css';
 
 interface ItemToolbarProps {
     pinned: boolean;
@@ -9,6 +9,7 @@ interface ItemToolbarProps {
     copyFeedback: string | null;
     onTogglePin: (e: React.MouseEvent) => void;
     onEdit: (e: React.MouseEvent) => void;
+    onAdd?: (e: React.MouseEvent) => void;
     onDelete: (e: React.MouseEvent) => void;
     onCopy: (e: React.MouseEvent) => void;
     onToggleHide: (e: React.MouseEvent) => void;
@@ -17,8 +18,9 @@ interface ItemToolbarProps {
 
 /**
  * Shared header action bar for notes, checklists and trackers. Every item card
- * renders the same six controls (pin, edit, delete, copy, hide, minimize); this
- * keeps the markup and icons in one place instead of duplicated per item type.
+ * renders the same six controls (pin, edit, delete, copy, hide, minimize), plus
+ * an optional add button for item types that support it; this keeps the markup
+ * and icons in one place instead of duplicated per item type.
  */
 const ItemToolbar: React.FC<ItemToolbarProps> = ({
     pinned,
@@ -27,6 +29,7 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
     copyFeedback,
     onTogglePin,
     onEdit,
+    onAdd,
     onDelete,
     onCopy,
     onToggleHide,
@@ -34,16 +37,23 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
 }) => (
     <div className={noteItemStyles.buttonGroup}>
         <button onClick={onTogglePin} className={`${styles.button}`} title={pinned ? 'Unpin' : 'Pin'}>
-            {pinned ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
-                </svg>
-            ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 12V4H17V2H7V4H8V12L5 17V19H11V22H13V19H19V17L16 12Z" />
-                </svg>
-            )}
+            <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 17v5" />
+                <path
+                    d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
+                    fill={pinned ? 'currentColor' : 'none'}
+                />
+            </svg>
         </button>
+        {onAdd && (
+            <button onClick={onAdd} className={`${styles.button}`} title="Add Entry" aria-label="Add Entry">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M8 12h8" />
+                    <path d="M12 8v8" />
+                </svg>
+            </button>
+        )}
         <button onClick={onEdit} className={`${styles.button}`} title="Edit">
             <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -77,7 +87,10 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
                 </svg>
             ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 4.5C17.25 4.5 21.75 8 21.75 12s-4.5 7.5-9.75 7.5S2.25 16 2.25 12 6.75 4.5 12 4.5z"></path> <path d="M3 3l18 18"></path> <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                    <path d="m2 2 20 20" />
                 </svg>
             )}
         </button>
@@ -88,13 +101,18 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
             aria-label={minimized ? 'Expand' : 'Minimize'}
         >
             {minimized ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <line x1="12" y1="5" x2="12" y2="19" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h6v6" />
+                    <path d="m21 3-7 7" />
+                    <path d="m3 21 7-7" />
+                    <path d="M9 21H3v-6" />
                 </svg>
             ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="5" y1="12" x2="19" y2="12" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m14 10 7-7" />
+                    <path d="M20 10h-6V4" />
+                    <path d="m3 21 7-7" />
+                    <path d="M4 14h6v6" />
                 </svg>
             )}
         </button>

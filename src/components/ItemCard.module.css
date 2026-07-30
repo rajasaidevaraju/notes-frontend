@@ -1,10 +1,11 @@
-/* Each variant only overrides --note-bg (and border); the card background and
-   the "Read More" fade overlay both read it, so they always stay in sync. */
+
 .noteItem {
   --note-bg: var(--color-white);
+  --note-border: var(--color-neutral-200);
+  --note-border-hover: var(--color-neutral-300);
   display: flex;
   flex-direction: column;
-  border: 1.5px solid var(--color-neutral-200);
+  border: 1.5px solid var(--note-border);
   border-radius: var(--radius-lg);
   height: fit-content;
   max-height: 400px;
@@ -18,7 +19,7 @@
 }
 
 .noteItem:hover {
-  border-color: var(--color-neutral-300);
+  border-color: var(--note-border-hover);
 }
 
 .noteTitle {
@@ -103,27 +104,25 @@
 /* Card variants */
 .selectedNote {
   --note-bg: #f8faff;
-  border-color: var(--color-brand-primary);
+  --note-border: var(--color-brand-primary);
+  --note-border-hover: var(--color-brand-primary);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
 }
 
 .hiddenNote {
   --note-bg: #eceef1;
-  border-color: var(--color-neutral-300);
+  --note-border: var(--color-neutral-300);
+  --note-border-hover: var(--color-neutral-400);
 }
 
 .clipboardNoteItem {
-  --note-bg: #e8f1fe;
-  border-color: #bfdbfe;
-}
-
-.clipboardNoteItem .noteTitle {
-  color: var(--color-brand-primary);
+  --note-border: var(--color-brand-primary);
+  --note-border-hover: var(--color-brand-primary-dark);
 }
 
 .pinnedNote {
-  --note-bg: #fdf3c9;
-  border-color: #fde68a;
+  --note-border: var(--color-accent-pinned-border);
+  --note-border-hover: var(--color-accent-pinned-border);
 }
 
 :global(.dark) .selectedNote {
@@ -133,32 +132,14 @@
 
 :global(.dark) .hiddenNote {
   --note-bg: #1f2937;
-  border-color: #374151;
+  --note-border: #374151;
+  --note-border-hover: #4b5563;
 }
 
 :global(.dark) .hiddenNote .noteTitle {
   color: #e5e7eb;
 }
 
-:global(.dark) .clipboardNoteItem {
-  --note-bg: #14263f;
-  border-color: rgba(59, 130, 246, 0.5);
-}
-
-:global(.dark) .clipboardNoteItem .noteTitle {
-  color: #93c5fd;
-}
-
-:global(.dark) .pinnedNote {
-  --note-bg: #41381a;
-  border-color: rgba(234, 179, 8, 0.5);
-}
-
-:global(.dark) .pinnedNote .noteTitle {
-  color: #fdf8d5;
-}
-
-/* Form / selection controls */
 .permission {
   display: flex;
   gap: 0.5rem;
