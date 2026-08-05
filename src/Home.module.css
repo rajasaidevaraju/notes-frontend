@@ -81,6 +81,17 @@
   box-sizing: border-box;
 }
 
+.formFieldGrow {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.formFieldGrow .formTextarea {
+  flex: 1 1 auto;
+  min-height: 4.5rem;
+}
+
 .formTextarea::-webkit-scrollbar-track {
   background: transparent;
   margin: var(--radius-lg) 0;
@@ -333,6 +344,8 @@
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @media (max-width: 600px) {
@@ -361,6 +374,23 @@
   .formTextarea {
     padding: 0.5rem 0.625rem;
     font-size: 1rem;
+  }
+
+  .modalHeader {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .form {
+    gap: 0.75rem;
+  }
+
+  .formLabel {
+    padding: 2px 3px;
+  }
+
+  .formTitle {
+    margin-bottom: 0;
   }
 }
 

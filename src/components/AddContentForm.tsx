@@ -141,7 +141,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
           )}
 
           {itemType === 'note' && (
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className={styles.formFieldGrow}>
               <label htmlFor="itemContent" className={styles.formLabel}>
                 Content (Optional)
               </label>
