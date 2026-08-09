@@ -156,3 +156,10 @@
   font-size: 0.85rem;
   margin-top: 0.5rem;
 }
+
+/* Entries column inside the edit modal; shrinks so the list scrolls, not the modal */
+.entriesField {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}

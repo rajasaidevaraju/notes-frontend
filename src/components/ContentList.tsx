@@ -3,7 +3,7 @@ import styles from '@/Home.module.css';
 import NoteItem from './note/NoteItem';
 import CheckListItem from './checklist/CheckListItem';
 import TrackerItem from './tracker/TrackerItem';
-import { UnifiedContent, Note, Checklist, Tracker } from '@/types/Types';
+import { UnifiedContent, contentKey } from '@/types/Types';
 import Loading from '@/components/LoadingSpinner';
 import { useContentStore } from '@/store/contentStore';
 import ClipboardNoteItem from './clipboard/ClipboardNoteItem';
@@ -13,145 +13,106 @@ interface ContentListProps {
   isSelectingMode: boolean;
 }
 
+const EMPTY: UnifiedContent[] = [];
+
+const matchesQuery = (item: UnifiedContent, query: string): boolean => {
+  if (item.title.toLowerCase().includes(query)) return true;
+  switch (item.type) {
+    case 'note':
+      return item.content.toLowerCase().includes(query);
+    case 'checklist':
+      return item.items.some((i) => i.content.toLowerCase().includes(query));
+    case 'tracker':
+      return item.entries.some((e) => e.value.toLowerCase().includes(query));
+  }
+};
+
+const byNewestFirst = (a: UnifiedContent, b: UnifiedContent) =>
+  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+/** Splits a list into pinned/unpinned, filtered by the search query and sorted. */
+const partition = (items: UnifiedContent[], query: string) => {
+  const trimmed = query.trim().toLowerCase();
+  const filtered = trimmed ? items.filter((item) => matchesQuery(item, trimmed)) : items;
+
+  const pinned: UnifiedContent[] = [];
+  const notPinned: UnifiedContent[] = [];
+  for (const item of filtered) (item.pinned ? pinned : notPinned).push(item);
+
+  return { pinned: pinned.sort(byNewestFirst), notPinned: notPinned.sort(byNewestFirst) };
+};
+
 const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
-  const { selectedContentKeys, toggleSelectContent, searchQuery, hiddenUnlocked, activeTab } =
+  const { selectedContent, toggleSelectContent, searchQuery, hiddenUnlocked, activeTab } =
     useContentStore();
   const { data: contentData, isLoading: isContentLoading } = useContentQuery();
-  const { data: hiddenContentData = [], isLoading: isHiddenLoading } =
+  const { data: hiddenContentData, isLoading: isHiddenLoading } =
     useHiddenContentQuery(hiddenUnlocked);
 
-  const regularContent = contentData?.regularContent || [];
-  const clipboardNote = contentData?.clipboardNote || null;
-  const hiddenContent = hiddenUnlocked ? hiddenContentData : [];
+  // Stable fallbacks: a fresh `[]` here would change identity every render and
+  // defeat the memos below.
+  const regularContent = contentData?.regularContent ?? EMPTY;
+  const hiddenContent = hiddenUnlocked ? hiddenContentData ?? EMPTY : EMPTY;
+  const clipboardNote = contentData?.clipboardNote ?? null;
 
   const isLoading = isContentLoading || isHiddenLoading;
 
-  const { pinned, notPinned, pinnedHidden, notPinnedHidden } = useMemo(() => {
-    const sortByCreated = (a: UnifiedContent, b: UnifiedContent) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-
-    const filterContent = (items: UnifiedContent[]) => {
-      if (!searchQuery.trim()) return items;
-      const lowerQuery = searchQuery.toLowerCase();
-      return items.filter((item) => {
-        if (item.type === 'note') {
-          const note = item as Note;
-          return note.title.toLowerCase().includes(lowerQuery) || note.content.toLowerCase().includes(lowerQuery);
-        } else if (item.type === 'checklist') {
-          const checklist = item as Checklist;
-          return (
-            checklist.title.toLowerCase().includes(lowerQuery) ||
-            checklist.items.some((i) => i.content.toLowerCase().includes(lowerQuery))
-          );
-        } else {
-          const tracker = item as Tracker;
-          return (
-            tracker.title.toLowerCase().includes(lowerQuery) ||
-            tracker.entries.some((e) => e.value.toLowerCase().includes(lowerQuery))
-          );
-        }
-      });
-    };
-
-    const filteredContent = filterContent(regularContent);
-    const filteredHiddenContent = filterContent(hiddenContent);
-
-    const pinned: UnifiedContent[] = [];
-    const notPinned: UnifiedContent[] = [];
-    const pinnedHidden: UnifiedContent[] = [];
-    const notPinnedHidden: UnifiedContent[] = [];
-
-    for (const item of filteredContent) {
-      (item.pinned ? pinned : notPinned).push(item);
-    }
-
-    for (const item of filteredHiddenContent) {
-      (item.pinned ? pinnedHidden : notPinnedHidden).push(item);
-    }
-
-    pinned.sort(sortByCreated);
-    notPinned.sort(sortByCreated);
-    pinnedHidden.sort(sortByCreated);
-    notPinnedHidden.sort(sortByCreated);
-
-    return { pinned, notPinned, pinnedHidden, notPinnedHidden };
-  }, [regularContent, hiddenContent, searchQuery]);
+  const regular = useMemo(() => partition(regularContent, searchQuery), [regularContent, searchQuery]);
+  const hidden = useMemo(() => partition(hiddenContent, searchQuery), [hiddenContent, searchQuery]);
 
   const renderItem = (item: UnifiedContent) => {
-    if (item.type === 'note') {
-      return (
-        <NoteItem
-          key={`${item.type}-${item.id}`}
-          note={item as Note}
-          isSelected={selectedContentKeys.has(`${item.type}-${item.id}`)}
-          onToggleSelect={() => toggleSelectContent(item.id, item.type)}
-          isSelectingMode={isSelectingMode}
-        />
-      );
-    } else if (item.type === 'checklist') {
-      return (
-        <CheckListItem
-          key={`${item.type}-${item.id}`}
-          checklist={item as Checklist}
-          isSelected={selectedContentKeys.has(`${item.type}-${item.id}`)}
-          onToggleSelect={() => toggleSelectContent(item.id, item.type)}
-          isSelectingMode={isSelectingMode}
-        />
-      );
-    } else {
-      return (
-        <TrackerItem
-          key={`${item.type}-${item.id}`}
-          tracker={item as Tracker}
-          isSelected={selectedContentKeys.has(`${item.type}-${item.id}`)}
-          onToggleSelect={() => toggleSelectContent(item.id, item.type)}
-          isSelectingMode={isSelectingMode}
-        />
-      );
+    const key = contentKey(item);
+    const shared = {
+      key,
+      isSelected: selectedContent.has(key),
+      onToggleSelect: () => toggleSelectContent({ id: item.id, type: item.type }),
+      isSelectingMode,
+    };
+
+    switch (item.type) {
+      case 'note':
+        return <NoteItem {...shared} note={item} />;
+      case 'checklist':
+        return <CheckListItem {...shared} checklist={item} />;
+      case 'tracker':
+        return <TrackerItem {...shared} tracker={item} />;
     }
   };
 
-  // Hidden Notes View
-  if (activeTab === 'hidden') {
-    const hasItems = pinnedHidden.length > 0 || notPinnedHidden.length > 0;
-    return (
-      <div className={styles.notesList}>
-        {!hasItems ? (
-          <p className={styles.infoMessage}>
-            {searchQuery ? 'No matching hidden notes found.' : 'No hidden notes stored.'}
-          </p>
-        ) : (
-          <>
-            {pinnedHidden.length > 0 && <h3 className={styles.sectionHeading}>Pinned Hidden</h3>}
-            {pinnedHidden.map(renderItem)}
-            {pinnedHidden.length > 0 && notPinnedHidden.length > 0 && (
-              <h3 className={styles.sectionHeading}>Other Hidden Notes</h3>
-            )}
-            {notPinnedHidden.map(renderItem)}
-          </>
-        )}
-        {isLoading && <Loading />}
-      </div>
-    );
-  }
-
-  // Default: Regular Notes View (activeTab === 'all')
+  const isHiddenView = activeTab === 'hidden';
+  const { pinned, notPinned } = isHiddenView ? hidden : regular;
   const hasItems = pinned.length > 0 || notPinned.length > 0;
+
+  const emptyMessage = isHiddenView
+    ? searchQuery
+      ? 'No matching hidden notes found.'
+      : 'No hidden notes stored.'
+    : searchQuery
+      ? 'No matching notes found.'
+      : 'No notes or checklists yet. Add one above!';
+
   return (
     <div className={styles.notesList}>
-      {clipboardNote && pinned.length === 0 && <ClipboardNoteItem clipboardNote={clipboardNote} />}
+      {/* The clipboard card always leads the regular view, before or after the pinned heading */}
+      {!isHiddenView && clipboardNote && pinned.length === 0 && (
+        <ClipboardNoteItem clipboardNote={clipboardNote} />
+      )}
 
       {!hasItems ? (
-        <p className={styles.infoMessage}>
-          {searchQuery ? 'No matching notes found.' : 'No notes or checklists yet. Add one above!'}
-        </p>
+        <p className={styles.infoMessage}>{emptyMessage}</p>
       ) : (
         <>
-          {pinned.length > 0 && <h3 className={styles.sectionHeading}>Pinned</h3>}
-          {clipboardNote && pinned.length > 0 && <ClipboardNoteItem clipboardNote={clipboardNote} />}
+          {pinned.length > 0 && (
+            <h3 className={styles.sectionHeading}>{isHiddenView ? 'Pinned Hidden' : 'Pinned'}</h3>
+          )}
+          {!isHiddenView && clipboardNote && pinned.length > 0 && (
+            <ClipboardNoteItem clipboardNote={clipboardNote} />
+          )}
           {pinned.map(renderItem)}
           {pinned.length > 0 && notPinned.length > 0 && (
-            <h3 className={styles.sectionHeading}>Others</h3>
+            <h3 className={styles.sectionHeading}>
+              {isHiddenView ? 'Other Hidden Notes' : 'Others'}
+            </h3>
           )}
           {notPinned.map(renderItem)}
         </>

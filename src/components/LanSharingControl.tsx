@@ -43,7 +43,7 @@ const LanSharingControl: React.FC = () => {
             LAN Active: <strong> ({Math.ceil(status.remainingMs / 60000)}m) </strong>
           </span>
           {status.canManage && (
-            <div style={{ display: 'flex', gap: '0.375rem' }}>
+            <div className={styles.lanButtonRow}>
               <button
                 onClick={handleEnable}
                 className={`${styles.button} ${styles.successButton}`}

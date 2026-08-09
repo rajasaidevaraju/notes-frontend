@@ -14,7 +14,7 @@ const ViewNoteModal: React.FC<ViewNoteModalProps> = ({ isOpen, onClose, note }) 
         <Modal isOpen={isOpen} onClose={onClose} title={note.title}>
             <div className={noteItemStyles.viewContentContainer}>
                 <div className={noteItemStyles.viewContent}>
-                    {note.content || <i style={{ opacity: 0.5 }}>No content</i>}
+                    {note.content || <i className={noteItemStyles.emptyContent}>No content</i>}
                 </div>
             </div>
         </Modal>

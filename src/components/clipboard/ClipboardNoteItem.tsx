@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styles from '@/Home.module.css';
 import noteItemStyles from '@/components/ItemCard.module.css';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Note } from '@/types/Types';
+import { toMessage } from '@/utils/errors';
 import { useUpdateNoteMutation } from '@/hooks/useContentQuery';
 
 interface ClipboardNoteItemProps {
@@ -17,7 +18,13 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
   const [internalError, setInternalError] = useState<string | null>(null);
   const [isClipboardAPISupported, setIsClipboardAPISupported] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const contentRef = React.useRef<HTMLParagraphElement>(null);
+  const contentRef = useRef<HTMLParagraphElement>(null);
+
+  const timers = useRef<number[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const clearLater = useCallback((fn: () => void, ms: number) => {
+    timers.current.push(window.setTimeout(fn, ms));
+  }, []);
 
   useEffect(() => {
     let permissionStatus: PermissionStatus | undefined;
@@ -78,17 +85,11 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
 
     try {
       const text = await navigator.clipboard.readText();
-      await updateNoteMutation.mutateAsync({
-        ...clipboardNote,
-        content: text,
-      });
-      setInternalError(null);
+      await updateNoteMutation.mutateAsync({ ...clipboardNote, content: text });
     } catch (err: unknown) {
-      let message = 'Failed to read clipboard. Ensure you have granted permission.';
-      if (err instanceof Error) {
-        message = `Failed to read clipboard: ${err.message}. Ensure you have granted permission.`;
-      }
-      setInternalError(message);
+      setInternalError(
+        `${toMessage(err, 'Failed to read clipboard')}. Ensure you have granted permission.`
+      );
     }
   };
 
@@ -101,79 +102,60 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
     try {
       await navigator.clipboard.readText();
     } catch (err: unknown) {
-      let message = 'Failed to grant clipboard permission.';
-      if (err instanceof Error) {
-        message = `Failed to grant clipboard permission: ${err.message}.`;
-      }
-      setInternalError(message);
+      setInternalError(`${toMessage(err, 'Failed to grant clipboard permission')}.`);
     }
   };
 
-  const handleSelectClick = (e: React.MouseEvent) => {
+  /** Selects the note text as a fallback for browsers without clipboard-write. */
+  const selectContent = () => {
+    const contentEl = contentRef.current;
+    const selection = window.getSelection();
+    if (!contentEl || !selection) throw new Error('Text selection is not supported here.');
+    const range = document.createRange();
+    range.selectNodeContents(contentEl);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const handleCopyClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setInternalError(null);
     setCopyFeedback(null);
 
     try {
-      if (!clipboardNote?.content) {
-        throw new Error('No content available to select from clipboard note.');
-      }
-      const contentEl = contentRef.current;
-      const selection = window.getSelection();
-      if (!contentEl || !selection) {
-        throw new Error('Text selection is not supported in this environment.');
-      }
-      const range = document.createRange();
-      range.selectNodeContents(contentEl);
-      selection.removeAllRanges();
-      selection.addRange(range);
+      if (!clipboardNote.content) throw new Error('No content to copy.');
 
-      let copied = false;
-      try {
-        copied = document.execCommand('copy');
-      } catch {
-        copied = false;
-      }
-
-      if (copied) {
-        selection.removeAllRanges();
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(clipboardNote.content);
         setCopyFeedback('Copied!');
       } else {
+        // Older browsers: leave the text selected so the user can copy manually.
+        selectContent();
         setCopyFeedback('Selected!');
       }
-      setTimeout(() => setCopyFeedback(null), 3000);
+      clearLater(() => setCopyFeedback(null), 3000);
     } catch (err: unknown) {
-      let message = 'Failed to select content';
-      if (err instanceof Error) {
-        message = `${message}: ${err.message}`;
-      }
-      setInternalError(message);
-      setTimeout(() => setInternalError(null), 3000);
+      setInternalError(toMessage(err, 'Failed to copy content'));
+      clearLater(() => setInternalError(null), 3000);
     }
   };
 
-  if (!clipboardNote) {
-    return null;
-  }
-
   return (
     <div className={`${noteItemStyles.noteItem} ${noteItemStyles.clipboardNoteItem}`}>
-      {internalError && <ErrorMessage message={internalError} />}
+      <ErrorMessage message={internalError} />
       <div className={noteItemStyles.noteHeader}>
         <h3 className={noteItemStyles.noteTitle}>{clipboardNote.title}</h3>
-        <div className={noteItemStyles.buttonGroup}>
+        <div className={noteItemStyles.toolbarGroup}>
           {!isClipboardAPISupported ? (
-            <p className={noteItemStyles.permissionMessage}>
-              Clipboard paste not supported.
-            </p>
+            <p className={noteItemStyles.permissionMessage}>Clipboard paste not supported.</p>
           ) : clipboardPermissionStatus === 'denied' ? (
             <div className={noteItemStyles.permission}>
               <button
                 onClick={requestClipboardPermission}
-                className={`${styles.button}`}
+                className={styles.button}
                 title="Grant Clipboard Permission"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1l1-4L16.5 3.5z"></path>
                 </svg>
@@ -189,7 +171,7 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
               className={`${styles.button} ${styles.primaryButton}`}
               title="Paste from Clipboard"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                 <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
               </svg>
@@ -198,23 +180,20 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
           )}
 
           <button
-            onClick={handleSelectClick}
+            onClick={handleCopyClick}
             className={`${styles.button} ${styles.pinButton}`}
-            title="Select Note Content"
+            title="Copy Note Content"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 8V6a2 2 0 0 1 2-2h2"></path>
-              <path d="M16 4h2a2 2 0 0 1 2 2v2"></path>
-              <path d="M20 16v2a2 2 0 0 1-2 2h-2"></path>
-              <path d="M8 20H6a2 2 0 0 1-2-2v-2"></path>
-              <path d="M8 12h8"></path>
+            <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            {copyFeedback && <span style={{ marginLeft: '0.3rem' }}>{copyFeedback}</span>}
+            {copyFeedback && <span className={noteItemStyles.copyFeedback}>{copyFeedback}</span>}
           </button>
         </div>
       </div>
       <p ref={contentRef} className={noteItemStyles.noteContent}>
-        {clipboardNote.content ? clipboardNote.content : 'Click "Paste" to get content from your clipboard.'}
+        {clipboardNote.content || 'Click "Paste" to get content from your clipboard.'}
       </p>
     </div>
   );

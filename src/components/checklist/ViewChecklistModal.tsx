@@ -13,7 +13,7 @@ interface ViewChecklistModalProps {
 const ViewChecklistModal: React.FC<ViewChecklistModalProps> = ({ isOpen, onClose, checklist }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={checklist.title}>
-            <div style={{ marginTop: '0.5rem' }} className={noteItemStyles.moreSpecificModalContentArea}>
+            <div className={noteItemStyles.modalContentArea}>
                 <ChecklistView checklist={checklist} isMinimized={false} hideReadMore />
             </div>
         </Modal>

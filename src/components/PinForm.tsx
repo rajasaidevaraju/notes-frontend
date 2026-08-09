@@ -1,7 +1,8 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import styles from '@/Home.module.css';
 import ErrorMessage from './ErrorMessage';
 import Modal from './Modal';
+import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 const emptyPin = ['', '', '', ''];
 const alphanumericRegex = /^[a-zA-Z0-9]+$/;
 
@@ -16,18 +17,11 @@ const PinForm: React.FC<PinFormProps> = ({ isOpen, onClose, onSubmitPin }) => {
     const [pin, setPin] = useState<string[]>([...emptyPin]);
     const [formError, setFormError] = useState<string | null>(null);
 
-    useEffect(() => {
-
-        if (isOpen) {
-            setPin([...emptyPin]);
-            setFormError(null);
-        }
-
-        if (inputRefs.current[0]) {
-            inputRefs.current[0].focus({ preventScroll: true });
-        }
-
-    }, [isOpen]);
+    useResetOnOpen(isOpen, () => {
+        setPin([...emptyPin]);
+        setFormError(null);
+        inputRefs.current[0]?.focus({ preventScroll: true });
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const value = e.target.value;
@@ -83,7 +77,7 @@ const PinForm: React.FC<PinFormProps> = ({ isOpen, onClose, onSubmitPin }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Enter Pin" >
             <form onSubmit={handleSubmit} className={styles.form}>
-                {formError && <ErrorMessage message={formError} />}
+                <ErrorMessage message={formError} />
                 <div className={styles.modalBodyText}>
                     Please enter your 4-digit PIN to proceed.
                 </div>
@@ -104,7 +98,7 @@ const PinForm: React.FC<PinFormProps> = ({ isOpen, onClose, onSubmitPin }) => {
                         />
                     ))}
                 </div>
-                <div className={styles.mainActionButtons}>
+                <div className={styles.formActions}>
                     <button onClick={onClose} type="button" className={`${styles.button}`}>
                         Cancel
                     </button>

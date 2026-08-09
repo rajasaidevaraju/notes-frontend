@@ -1,36 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
 
-const setThemeColorMeta = (isDark: boolean) => {
-    let meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('name', 'theme-color');
-        document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', isDark ? '#171717' : '#f8fafc');
+/**
+ * Keeps the browser UI colour in step with the theme, reading the value from
+ * the `--background` token so the palette is only defined in globals.css.
+ */
+const syncThemeColorMeta = () => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const background = getComputedStyle(document.documentElement)
+        .getPropertyValue('--background')
+        .trim();
+    if (background) meta.setAttribute('content', background);
 };
 
 const ThemeToggle: React.FC = () => {
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    // index.html already resolved stored-preference-else-system before paint, so
+    // the class on <html> is the source of truth; re-deriving it here would be a
+    // second copy of that rule, free to drift.
+    const [isDarkMode, setIsDarkMode] = useState(
+        () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+    );
 
-    useEffect(() => {
-        // Check local storage or system preference
-        const storedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        const isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
-        setIsDarkMode(isDark);
-        document.documentElement.classList.toggle('dark', isDark);
-        setThemeColorMeta(isDark);
-    }, []);
+    useEffect(syncThemeColorMeta, []);
 
     const toggleTheme = () => {
         const nextIsDark = !isDarkMode;
         document.documentElement.classList.toggle('dark', nextIsDark);
         localStorage.setItem('theme', nextIsDark ? 'dark' : 'light');
-        setThemeColorMeta(nextIsDark);
         setIsDarkMode(nextIsDark);
+        syncThemeColorMeta();
     };
 
     return (

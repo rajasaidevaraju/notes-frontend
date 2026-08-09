@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react-query';
 import {
   UnifiedContent,
   Note,
@@ -6,8 +6,9 @@ import {
   ChecklistItem,
   Tracker,
   TrackerEntry,
+  ContentType,
 } from '@/types/Types';
-import { handleApiRequest } from '@/utils/api';
+import { apiFetch, apiSend } from '@/utils/api';
 import { SPECIAL_NOTE_TITLES } from '@/constants';
 
 export const CONTENT_QUERY_KEY = ['content'];
@@ -16,35 +17,47 @@ export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
 export const AUTH_STATUS_QUERY_KEY = ['auth-status'];
 
+/** Visible list only — a freshly created item is never hidden. */
+const AFTER_CREATE = [CONTENT_QUERY_KEY];
+/** Anything that can move an item between the two lists must refresh both. */
+const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY];
+const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY];
+
+/**
+ * Every mutation here does the same thing on success: invalidate the query keys
+ * its write could have affected. This wrapper is that shared behaviour.
+ */
+function useApiMutation<TData, TVars = void>(
+  mutationFn: (vars: TVars) => Promise<TData>,
+  invalidate: QueryKey[]
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      for (const queryKey of invalidate) queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
 export interface ContentQueryResult {
-  allContent: UnifiedContent[];
   regularContent: UnifiedContent[];
   clipboardNote: Note | null;
 }
+
+const isClipboardNote = (item: UnifiedContent): item is Note =>
+  item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD;
 
 export function useContentQuery() {
   return useQuery<ContentQueryResult>({
     queryKey: CONTENT_QUERY_KEY,
     queryFn: async () => {
-      let regularContent: UnifiedContent[] = [];
-      let clipboardNote: Note | null = null;
-      let allContent: UnifiedContent[] = [];
-
-      await handleApiRequest<UnifiedContent[]>(
-        () => fetch('/api/content'),
-        (data) => {
-          allContent = data;
-          regularContent = data.filter(
-            (item) => !(item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD)
-          );
-          clipboardNote =
-            (data.find(
-              (item) => item.type === 'note' && item.title === SPECIAL_NOTE_TITLES.CLIPBOARD
-            ) as Note) || null;
-        }
-      );
-
-      return { allContent, regularContent, clipboardNote };
+      const data = await apiFetch<UnifiedContent[]>('/api/content');
+      return {
+        regularContent: data.filter((item) => !isClipboardNote(item)),
+        clipboardNote: data.find(isClipboardNote) ?? null,
+      };
     },
   });
 }
@@ -54,18 +67,8 @@ export function useHiddenContentQuery(enabled = false) {
     queryKey: HIDDEN_CONTENT_QUERY_KEY,
     enabled,
     queryFn: async () => {
-      let result: UnifiedContent[] = [];
-      await handleApiRequest<UnifiedContent[]>(
-        () =>
-          fetch('/api/content/hidden', {
-            method: 'GET',
-            credentials: 'include',
-          }),
-        (hiddenContent) => {
-          result = hiddenContent.map((item) => ({ ...item, hidden: true }));
-        }
-      );
-      return result;
+      const hiddenContent = await apiFetch<UnifiedContent[]>('/api/content/hidden');
+      return hiddenContent.map((item) => ({ ...item, hidden: true }));
     },
   });
 }
@@ -73,11 +76,7 @@ export function useHiddenContentQuery(enabled = false) {
 export function useServerIpQuery() {
   return useQuery<{ ip: string }>({
     queryKey: SERVER_IP_QUERY_KEY,
-    queryFn: async () => {
-      const res = await fetch('/api/server-ip');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    },
+    queryFn: () => apiFetch<{ ip: string }>('/api/server-ip'),
   });
 }
 
@@ -90,397 +89,131 @@ export interface LanStatus {
 export function useLanStatusQuery() {
   return useQuery<LanStatus>({
     queryKey: LAN_STATUS_QUERY_KEY,
-    queryFn: async () => {
-      const res = await fetch('/api/system/lan/status');
-      if (!res.ok) throw new Error('Failed to fetch LAN status');
-      return res.json();
-    },
+    queryFn: () => apiFetch<LanStatus>('/api/system/lan/status'),
     refetchInterval: 30000,
   });
 }
 
 export function useEnableLanMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/system/lan/enable', { method: 'POST' });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to enable LAN sharing');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LAN_STATUS_QUERY_KEY });
-    },
-  });
+  return useApiMutation(() => apiSend('/api/system/lan/enable', 'POST'), [LAN_STATUS_QUERY_KEY]);
 }
 
 export function useDisableLanMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/system/lan/disable', { method: 'POST' });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to disable LAN sharing');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LAN_STATUS_QUERY_KEY });
-    },
-  });
+  return useApiMutation(() => apiSend('/api/system/lan/disable', 'POST'), [LAN_STATUS_QUERY_KEY]);
 }
 
 export function useAuthStatusQuery() {
   return useQuery<{ loggedIn: boolean }>({
     queryKey: AUTH_STATUS_QUERY_KEY,
-    queryFn: async () => {
-      let loggedIn = false;
-      await handleApiRequest<{ loggedIn: boolean }>(
-        () => fetch('/api/auth/status', { method: 'GET', credentials: 'include' }),
-        (data) => {
-          loggedIn = data.loggedIn;
-        }
-      );
-      return { loggedIn };
-    },
+    // Only ever read on demand, when the user asks to open the hidden section.
+    enabled: false,
+    queryFn: () => apiFetch<{ loggedIn: boolean }>('/api/auth/status'),
   });
 }
 
 export function useSubmitPinMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (pin: string) => {
-      await handleApiRequest<{ message: string }>(
-        () =>
-          fetch('/api/auth', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pin }),
-          }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation((pin: string) => apiSend('/api/auth', 'POST', { pin }), AFTER_AUTH);
 }
 
 export function useLogoutMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      await handleApiRequest<{ message: string }>(
-        () =>
-          fetch('/api/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-          }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUTH_STATUS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(() => apiSend('/api/logout', 'POST'), AFTER_AUTH);
 }
 
 // --- CRUD Mutations ---
 
 export function useAddNoteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ title, content }: { title: string; content: string }) => {
-      let added: Note | null = null;
-      await handleApiRequest<Note>(
-        () =>
-          fetch('/api/notes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content }),
-          }),
-        (note) => {
-          added = note;
-        }
-      );
-      return added;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    (body: { title: string; content: string }) => apiSend<Note>('/api/notes', 'POST', body),
+    AFTER_CREATE
+  );
 }
 
 export function useUpdateNoteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (note: Note) => {
-      const { id, title, content, pinned, hidden } = note;
-      let updated: Note | null = null;
-      await handleApiRequest<Note>(
-        () =>
-          fetch(`/api/notes/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, pinned, hidden }),
-          }),
-        (res) => {
-          updated = res;
-        }
-      );
-      return updated;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    ({ id, title, content, pinned, hidden }: Note) =>
+      apiSend<Note>(`/api/notes/${id}`, 'PUT', { title, content, pinned, hidden }),
+    AFTER_WRITE
+  );
 }
 
 export function useDeleteNoteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: number) => {
-      await handleApiRequest<void>(
-        () => fetch(`/api/notes/${id}`, { method: 'DELETE' }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation((id: number) => apiSend<void>(`/api/notes/${id}`, 'DELETE'), AFTER_WRITE);
 }
 
 export function useAddChecklistMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (title: string) => {
-      let added: Checklist | null = null;
-      await handleApiRequest<Checklist>(
-        () =>
-          fetch('/api/checklists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title }),
-          }),
-        (checklist) => {
-          added = checklist;
-        }
-      );
-      return added;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    (title: string) => apiSend<Checklist>('/api/checklists', 'POST', { title }),
+    AFTER_CREATE
+  );
 }
 
 export function useUpdateChecklistMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (checklist: Checklist) => {
-      const { id, title, items, pinned, hidden } = checklist;
-      let updated: Checklist | null = null;
-      await handleApiRequest<Checklist>(
-        () =>
-          fetch(`/api/checklists/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, items, pinned, hidden }),
-          }),
-        (res) => {
-          updated = res;
-        }
-      );
-      return updated;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    ({ id, title, items, pinned, hidden }: Checklist) =>
+      apiSend<Checklist>(`/api/checklists/${id}`, 'PUT', { title, items, pinned, hidden }),
+    AFTER_WRITE
+  );
 }
 
 export function useDeleteChecklistMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: number) => {
-      await handleApiRequest<void>(
-        () => fetch(`/api/checklists/${id}`, { method: 'DELETE' }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
-}
-
-export function useAddTrackerMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ title, unit }: { title: string; unit: string | null }) => {
-      let added: Tracker | null = null;
-      await handleApiRequest<Tracker>(
-        () =>
-          fetch('/api/trackers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, unit }),
-          }),
-        (tracker) => {
-          added = tracker;
-        }
-      );
-      return added;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-    },
-  });
-}
-
-export function useUpdateTrackerMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ tracker, deletedEntryIds }: { tracker: Tracker; deletedEntryIds?: number[] }) => {
-      const { id, title, unit, pinned, hidden } = tracker;
-      let updated: Tracker | null = null;
-      await handleApiRequest<Tracker>(
-        () =>
-          fetch(`/api/trackers/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, unit, pinned, hidden, deletedEntryIds }),
-          }),
-        (res) => {
-          updated = res;
-        }
-      );
-      return updated;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
-}
-
-export function useAddTrackerEntryMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ trackerId, value }: { trackerId: number; value: string }) => {
-      let added: TrackerEntry | null = null;
-      await handleApiRequest<TrackerEntry>(
-        () =>
-          fetch(`/api/trackers/${trackerId}/entries`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value }),
-          }),
-        (entry) => {
-          added = entry;
-        }
-      );
-      return added;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    (id: number) => apiSend<void>(`/api/checklists/${id}`, 'DELETE'),
+    AFTER_WRITE
+  );
 }
 
 export function useUpdateChecklistItemMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
+  return useApiMutation(
+    ({
       itemId,
       updates,
     }: {
       itemId: number;
       updates: Partial<Pick<ChecklistItem, 'content' | 'checked' | 'position'>>;
-    }) => {
-      let updated: ChecklistItem | null = null;
-      await handleApiRequest<ChecklistItem>(
-        () =>
-          fetch(`/api/checklists/items/${itemId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updates),
-          }),
-        (res) => {
-          updated = res;
-        }
-      );
-      return updated;
+    }) => apiSend<ChecklistItem>(`/api/checklists/items/${itemId}`, 'PUT', updates),
+    AFTER_WRITE
+  );
+}
+
+export function useAddTrackerMutation() {
+  return useApiMutation(
+    (body: { title: string; unit: string | null }) => apiSend<Tracker>('/api/trackers', 'POST', body),
+    AFTER_CREATE
+  );
+}
+
+export function useUpdateTrackerMutation() {
+  return useApiMutation(
+    ({ tracker, deletedEntryIds }: { tracker: Tracker; deletedEntryIds?: number[] }) => {
+      const { id, title, unit, pinned, hidden } = tracker;
+      return apiSend<Tracker>(`/api/trackers/${id}`, 'PUT', {
+        title,
+        unit,
+        pinned,
+        hidden,
+        deletedEntryIds,
+      });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+    AFTER_WRITE
+  );
 }
 
 export function useDeleteTrackerMutation() {
-  const queryClient = useQueryClient();
+  return useApiMutation((id: number) => apiSend<void>(`/api/trackers/${id}`, 'DELETE'), AFTER_WRITE);
+}
 
-  return useMutation({
-    mutationFn: async (id: number) => {
-      await handleApiRequest<void>(
-        () => fetch(`/api/trackers/${id}`, { method: 'DELETE' }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+export function useAddTrackerEntryMutation() {
+  return useApiMutation(
+    ({ trackerId, value }: { trackerId: number; value: string }) =>
+      apiSend<TrackerEntry>(`/api/trackers/${trackerId}/entries`, 'POST', { value }),
+    AFTER_WRITE
+  );
 }
 
 export function useBatchDeleteMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (items: Array<{ id: number; type: string }>) => {
-      await handleApiRequest<{ message: string }>(
-        () =>
-          fetch('/api/content/batch', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items }),
-          }),
-        () => {}
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: HIDDEN_CONTENT_QUERY_KEY });
-    },
-  });
+  return useApiMutation(
+    (items: Array<{ id: number; type: ContentType }>) =>
+      apiSend<void>('/api/content/batch', 'DELETE', { items }),
+    AFTER_WRITE
+  );
 }

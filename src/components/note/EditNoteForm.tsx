@@ -6,8 +6,11 @@ import Modal from '@/components/Modal';
 import EditableTitle from '@/components/EditableTitle';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 import { Note } from '@/types/Types';
 import { LIMITS } from '@/constants';
+import { autoGrow } from '@/utils/dom';
+import { toMessage } from '@/utils/errors';
 import { useUpdateNoteMutation } from '@/hooks/useContentQuery';
 
 interface EditNoteFormModalProps {
@@ -35,12 +38,10 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
 
-  useLayoutEffect(() => {
-    if (isOpen) {
-      setFormData(note);
-      setFormError(null);
-    }
-  }, [isOpen, note]);
+  useResetOnOpen(isOpen, () => {
+    setFormData(note);
+    setFormError(null);
+  });
 
   useLayoutEffect(() => {
     if (isOpen && textareaRef.current) {
@@ -57,11 +58,6 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }));
   };
 
-  const autoGrow = (element: HTMLTextAreaElement) => {
-    element.style.height = 'auto';
-    element.style.height = `${element.scrollHeight}px`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -75,11 +71,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
       await updateNoteMutation.mutateAsync(formData);
       onClose();
     } catch (err: unknown) {
-      let message = 'Failed to update note';
-      if (err instanceof Error) {
-        message = `${message}: ${err.message}`;
-      }
-      setFormError(message);
+      setFormError(toMessage(err, 'Failed to update note'));
     }
   };
 
@@ -108,17 +100,8 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
             className={styles.formTextarea}
             maxLength={LIMITS.NOTE_CONTENT}
           ></textarea>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: '1.5rem',
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className={noteItemStyles.checkboxRow}>
+            <div className={noteItemStyles.checkboxField}>
               <input
                 type="checkbox"
                 id="pinNote"
@@ -131,7 +114,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
                 Pin Note
               </label>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className={noteItemStyles.checkboxField}>
               <input
                 type="checkbox"
                 id="hideNote"
@@ -146,7 +129,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
             </div>
           </div>
 
-          <div className={styles.buttonGroup}>
+          <div className={styles.formActions}>
             <button
               type="submit"
               className={`${styles.button} ${styles.successButton}`}

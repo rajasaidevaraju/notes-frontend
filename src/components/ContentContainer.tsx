@@ -4,11 +4,12 @@ import ErrorMessage from './ErrorMessage';
 import ContentList from './ContentList';
 import AddContentForm from './AddContentForm';
 import PinForm from './PinForm';
-import Modal from './Modal';
+import ConfirmActionModal from './ConfirmActionModal';
 import SearchBar from './SearchBar';
 import ThemeToggle from './ThemeToggle';
 import ContentTabs from './ContentTabs';
 import { useContentStore, ContentTab } from '@/store/contentStore';
+import { toMessage } from '@/utils/errors';
 import {
   useContentQuery,
   useHiddenContentQuery,
@@ -20,7 +21,7 @@ import {
 
 const ContentContainer: React.FC = () => {
   const {
-    selectedContentKeys,
+    selectedContent,
     clearSelectedContent,
     hiddenUnlocked,
     setHiddenUnlocked,
@@ -51,21 +52,14 @@ const ContentContainer: React.FC = () => {
     actionError ?? (loadError instanceof Error ? `Failed to load content: ${loadError.message}` : null);
 
   const handleConfirmMultiDelete = async () => {
-    const selectedKeys = Array.from(selectedContentKeys);
-    if (selectedKeys.length === 0) return;
+    const itemsToDelete = Array.from(selectedContent.values());
+    if (itemsToDelete.length === 0) return;
 
     setActionError(null);
-    const itemsToDelete = selectedKeys.map((key) => {
-      const [type, idStr] = key.split('-');
-      return { id: Number(idStr), type };
-    });
-
     try {
       await batchDeleteMutation.mutateAsync(itemsToDelete);
     } catch (err: unknown) {
-      setActionError(
-        err instanceof Error ? `Failed to delete items: ${err.message}` : 'Failed to delete items'
-      );
+      setActionError(toMessage(err, 'Failed to delete items'));
     } finally {
       setIsMultiDeleteModalOpen(false);
       setIsSelectingMode(false);
@@ -95,7 +89,7 @@ const ContentContainer: React.FC = () => {
     try {
       await logoutMutation.mutateAsync();
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? `Failed to log out: ${err.message}` : 'Failed to log out');
+      setActionError(toMessage(err, 'Failed to log out'));
     }
   };
 
@@ -110,13 +104,13 @@ const ContentContainer: React.FC = () => {
         <div className={styles.mainActionButtons}>
           {isSelectingMode ? (
             <>
-              {selectedContentKeys.size > 0 && (
+              {selectedContent.size > 0 && (
                 <button
                   onClick={() => setIsMultiDeleteModalOpen(true)}
                   className={`${styles.button} ${styles.dangerButton}`}
-                  title={`Delete ${selectedContentKeys.size} selected items`}
+                  title={`Delete ${selectedContent.size} selected items`}
                 >
-                  Delete Selected ({selectedContentKeys.size})
+                  Delete Selected ({selectedContent.size})
                 </button>
               )}
               <button
@@ -191,35 +185,19 @@ const ContentContainer: React.FC = () => {
         onClose={() => setIsAddNoteModalOpen(false)}
       />
 
-      <Modal
+      <ConfirmActionModal
         isOpen={isMultiDeleteModalOpen}
-        onClose={() => setIsMultiDeleteModalOpen(false)}
+        onClose={() => {
+          setIsMultiDeleteModalOpen(false);
+          clearSelectedContent();
+          setIsSelectingMode(false);
+        }}
+        onConfirm={handleConfirmMultiDelete}
         title="Confirm Bulk Deletion"
-      >
-        <div className={styles.form}>
-          <p className={styles.modalBodyText}>
-            Are you sure you want to delete {selectedContentKeys.size} selected items?
-          </p>
-          <div className={styles.buttonGroup}>
-            <button
-              onClick={handleConfirmMultiDelete}
-              className={`${styles.button} ${styles.deleteButton}`}
-            >
-              Yes, Delete All
-            </button>
-            <button
-              onClick={() => {
-                setIsMultiDeleteModalOpen(false);
-                clearSelectedContent();
-                setIsSelectingMode(false);
-              }}
-              className={`${styles.button}`}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </Modal>
+        message={`Are you sure you want to delete ${selectedContent.size} selected items?`}
+        confirmText="Yes, Delete All"
+        danger
+      />
 
       <ContentList isSelectingMode={isSelectingMode} />
     </>

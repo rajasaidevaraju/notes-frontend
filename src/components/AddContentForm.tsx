@@ -1,11 +1,21 @@
 import styles from '@/Home.module.css';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 import Modal from './Modal';
 import ConfirmActionModal from './ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
+import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 import { LIMITS } from '@/constants';
+import { ContentType } from '@/types/Types';
+import { autoGrow } from '@/utils/dom';
+import { toMessage } from '@/utils/errors';
 import { useAddNoteMutation, useAddChecklistMutation, useAddTrackerMutation } from '@/hooks/useContentQuery';
+
+const TYPE_OPTIONS: Array<{ type: ContentType; label: string }> = [
+  { type: 'note', label: 'Note' },
+  { type: 'checklist', label: 'Checklist' },
+  { type: 'tracker', label: 'Tracker' },
+];
 
 interface AddContentFormProps {
   isOpen: boolean;
@@ -16,7 +26,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [unit, setUnit] = useState('');
-  const [itemType, setItemType] = useState<'note' | 'checklist' | 'tracker'>('note');
+  const [itemType, setItemType] = useState<ContentType>('note');
   const [formError, setFormError] = useState<string | null>(null);
 
   const addNoteMutation = useAddNoteMutation();
@@ -27,20 +37,13 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
 
-  useEffect(() => {
-    if (isOpen) {
-      setTitle('');
-      setContent('');
-      setUnit('');
-      setItemType('note');
-      setFormError(null);
-    }
-  }, [isOpen]);
-
-  const autoGrow = (element: HTMLTextAreaElement) => {
-    element.style.height = 'auto';
-    element.style.height = `${element.scrollHeight}px`;
-  };
+  useResetOnOpen(isOpen, () => {
+    setTitle('');
+    setContent('');
+    setUnit('');
+    setItemType('note');
+    setFormError(null);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,11 +67,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
       setUnit('');
       onClose();
     } catch (err: unknown) {
-      let errorMessage = 'An unknown error occurred.';
-      if (err instanceof Error) {
-        errorMessage = `Error: ${err.message}`;
-      }
-      setFormError(errorMessage);
+      setFormError(toMessage(err, `Failed to add ${itemType}`));
     }
   };
 
@@ -76,33 +75,20 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
     <>
       <Modal isOpen={isOpen} onClose={requestClose} title="Add New">
         <form onSubmit={handleSubmit} className={styles.form}>
-          {formError && <ErrorMessage message={formError} />}
+          <ErrorMessage message={formError} />
 
-          <div className={styles.buttonGroup} style={{ marginBottom: '1rem', opacity: 1 }}>
-            <button
-              type="button"
-              onClick={() => setItemType('note')}
-              className={`${styles.button} ${itemType === 'note' ? styles.primaryButton : ''}`}
-              style={{ flex: 1 }}
-            >
-              Note
-            </button>
-            <button
-              type="button"
-              onClick={() => setItemType('checklist')}
-              className={`${styles.button} ${itemType === 'checklist' ? styles.primaryButton : ''}`}
-              style={{ flex: 1 }}
-            >
-              Checklist
-            </button>
-            <button
-              type="button"
-              onClick={() => setItemType('tracker')}
-              className={`${styles.button} ${itemType === 'tracker' ? styles.primaryButton : ''}`}
-              style={{ flex: 1 }}
-            >
-              Tracker
-            </button>
+          <div className={styles.typePicker} role="group" aria-label="Item type">
+            {TYPE_OPTIONS.map(({ type, label }) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setItemType(type)}
+                className={`${styles.button} ${itemType === type ? styles.primaryButton : ''}`}
+                aria-pressed={itemType === type}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <div>
@@ -158,7 +144,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
           )}
 
           <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>
-            Add {itemType === 'note' ? 'Note' : itemType === 'checklist' ? 'Checklist' : 'Tracker'}
+            Add {TYPE_OPTIONS.find((option) => option.type === itemType)?.label}
           </button>
         </form>
       </Modal>

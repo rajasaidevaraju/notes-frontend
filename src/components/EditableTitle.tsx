@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import styles from '@/Home.module.css';
+import InlineEdit from './InlineEdit';
 import { LIMITS } from '@/constants';
 
 interface EditableTitleProps {
@@ -9,45 +10,26 @@ interface EditableTitleProps {
     maxLength?: number;
 }
 
-const EditableTitle: React.FC<EditableTitleProps> = ({ value, onChange, placeholder, maxLength = LIMITS.TITLE }) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        if (editing) inputRef.current?.select();
-    }, [editing]);
-
-    if (editing) {
-        return (
-            <input
-                ref={inputRef}
-                type="text"
-                value={value}
-                maxLength={maxLength}
-                onChange={(e) => onChange(e.target.value)}
-                onBlur={() => setEditing(false)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === 'Escape') {
-                        e.preventDefault();
-                        setEditing(false);
-                    }
-                }}
-                className={styles.editableTitleInput}
-                placeholder={placeholder}
-                autoComplete="off"
-            />
-        );
-    }
-
-    return (
-        <h2
-            className={`${styles.modalTitle} ${styles.editableTitle}`}
-            onClick={() => setEditing(true)}
-            title="Click to edit title"
-        >
-            {value.trim() ? value : (placeholder || 'Untitled')}
-        </h2>
-    );
-};
+/** The click-to-edit heading used as a modal title. */
+const EditableTitle: React.FC<EditableTitleProps> = ({
+    value,
+    onChange,
+    placeholder,
+    maxLength = LIMITS.TITLE,
+}) => (
+    <InlineEdit
+        value={value}
+        onChange={onChange}
+        displayAs="heading"
+        displayClassName={`${styles.modalTitle} ${styles.editableTitle}`}
+        inputClassName={styles.editableTitleInput}
+        tooltip="Click to edit title"
+        placeholder={placeholder}
+        maxLength={maxLength}
+        ariaLabel="Title"
+    >
+        {value.trim() ? value : (placeholder || 'Untitled')}
+    </InlineEdit>
+);
 
 export default EditableTitle;

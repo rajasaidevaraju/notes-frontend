@@ -7,20 +7,20 @@
     <meta name="description" content="Share notes on LAN" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f8fafc" />
     <script>
-      (function() {
+      // Applied here, before first paint, to avoid a flash of the wrong theme.
+      // This is the ONLY place the stored-preference-else-system rule lives; the
+      // in-app toggle reads the resulting class rather than re-deriving it, and
+      // the bar colour is read from the --background token so the palette stays
+      // defined in one place (globals.css).
+      (function () {
         try {
-          var storedTheme = localStorage.getItem('theme');
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+          var stored = localStorage.getItem('theme');
+          var isDark =
+            stored === 'dark' ||
+            (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.classList.toggle('dark', isDark);
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (!meta) {
-            meta = document.createElement('meta');
-            meta.setAttribute('name', 'theme-color');
-            document.head.appendChild(meta);
-          }
-          meta.setAttribute('content', isDark ? '#171717' : '#f8fafc');
         } catch (e) {}
       })();
     </script>

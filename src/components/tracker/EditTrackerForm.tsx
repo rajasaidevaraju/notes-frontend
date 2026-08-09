@@ -10,13 +10,14 @@ import EditableTitle from '@/components/EditableTitle';
 import { Tracker } from '@/types/Types';
 import { LIMITS } from '@/constants';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
-import { useAddTrackerEntryMutation } from '@/hooks/useContentQuery';
+import { useResetOnOpen } from '@/hooks/useResetOnOpen';
+import { toMessage } from '@/utils/errors';
+import { useAddTrackerEntryMutation, useUpdateTrackerMutation } from '@/hooks/useContentQuery';
 
 interface EditTrackerFormProps {
   isOpen: boolean;
   onClose: () => void;
   tracker: Tracker;
-  onUpdateTracker: (tracker: Tracker, deletedEntryIds?: number[]) => Promise<void>;
 }
 
 /**
@@ -24,7 +25,7 @@ interface EditTrackerFormProps {
  * deletion. Entry deletions are staged locally and only applied on save; added
  * entries post immediately, since the server timestamps them on arrival.
  */
-const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, tracker, onUpdateTracker }) => {
+const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, tracker }) => {
   const [title, setTitle] = useState(tracker.title);
   const [unit, setUnit] = useState(tracker.unit || '');
   const [newValue, setNewValue] = useState('');
@@ -32,6 +33,7 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
   const [deletedEntryIds, setDeletedEntryIds] = useState<number[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const addTrackerEntryMutation = useAddTrackerEntryMutation();
+  const updateTrackerMutation = useUpdateTrackerMutation();
 
   const isDirty =
     title !== tracker.title ||
@@ -41,15 +43,13 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
 
-  React.useLayoutEffect(() => {
-    if (isOpen) {
-      setTitle(tracker.title);
-      setUnit(tracker.unit || '');
-      setNewValue('');
-      setDeletedEntryIds([]);
-      setFormError(null);
-    }
-  }, [isOpen, tracker]);
+  useResetOnOpen(isOpen, () => {
+    setTitle(tracker.title);
+    setUnit(tracker.unit || '');
+    setNewValue('');
+    setDeletedEntryIds([]);
+    setFormError(null);
+  });
 
   const handleAddEntry = async () => {
     const value = newValue.trim();
@@ -61,9 +61,7 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
       await addTrackerEntryMutation.mutateAsync({ trackerId: tracker.id, value });
       setNewValue('');
     } catch (err: unknown) {
-      setFormError(
-        err instanceof Error ? `Failed to add entry: ${err.message}` : 'Failed to add entry'
-      );
+      setFormError(toMessage(err, 'Failed to add entry'));
     } finally {
       setAdding(false);
     }
@@ -92,17 +90,13 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
         });
         setNewValue('');
       }
-      await onUpdateTracker(
-        { ...tracker, title: title.trim(), unit: unit.trim() || null },
-        deletedEntryIds.length > 0 ? deletedEntryIds : undefined
-      );
+      await updateTrackerMutation.mutateAsync({
+        tracker: { ...tracker, title: title.trim(), unit: unit.trim() || null },
+        deletedEntryIds: deletedEntryIds.length > 0 ? deletedEntryIds : undefined,
+      });
       onClose();
     } catch (err: unknown) {
-      let message = 'Failed to update tracker';
-      if (err instanceof Error) {
-        message = `${message}: ${err.message}`;
-      }
-      setFormError(message);
+      setFormError(toMessage(err, 'Failed to update tracker'));
     }
   };
 
@@ -119,8 +113,8 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
         }
       >
         <form onSubmit={handleSubmit} className={styles.form}>
-          {formError && <ErrorMessage message={formError} />}
-          <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <ErrorMessage message={formError} />
+          <div className={trackerStyles.entriesField}>
             <label htmlFor="trackerNewEntry" className={styles.formLabel}>Entries</label>
             <div className={trackerStyles.quickAddRow}>
               <input
@@ -157,7 +151,7 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
             )}
           </div>
 
-          <div className={styles.buttonGroup}>
+          <div className={styles.formActions}>
             <button type="submit" className={`${styles.button} ${styles.successButton}`}>
               Save Changes
             </button>

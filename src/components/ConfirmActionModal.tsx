@@ -27,7 +27,7 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className={styles.form}>
                 <p className={styles.modalBodyText}>{message}</p>
-                <div className={styles.buttonGroup}>
+                <div className={styles.formActions}>
                     <button
                         onClick={onConfirm}
                         className={`${styles.button} ${danger ? styles.deleteButton : ''}`}

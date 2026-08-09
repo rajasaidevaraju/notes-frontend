@@ -51,7 +51,7 @@
   gap: 0.625rem;
 }
 
-.buttonGroup {
+.toolbarGroup {
   display: flex;
   gap: 0.35rem;
   width: 100%;
@@ -60,14 +60,29 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .buttonGroup {
+  .toolbarGroup {
     opacity: 0;
   }
 
-  .noteItem:hover .buttonGroup,
-  .noteItem:focus-within .buttonGroup {
+  .noteItem:hover .toolbarGroup,
+  .noteItem:focus-within .toolbarGroup {
     opacity: 1;
   }
+}
+
+/* Positioning context for .fadeOverlay, which anchors to the body's bottom edge */
+.bodyAnchor {
+  position: relative;
+}
+
+.copyFeedback {
+  margin-left: 0.3rem;
+}
+
+.emptyBody {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-style: italic;
 }
 
 .fadeOverlay {
@@ -163,6 +178,19 @@
   margin-right: 0.5rem;
 }
 
+.checkboxRow {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+}
+
 .checkboxLabel {
   font-size: 0.9rem;
   color: var(--color-neutral-700);
@@ -188,6 +216,11 @@
   min-height: 0;
 }
 
+.emptyContent {
+  opacity: 0.5;
+  font-style: italic;
+}
+
 /* Read-only note view inside a modal; scrolls internally when content is long */
 .viewContentContainer {
   min-height: 0;
@@ -201,7 +234,11 @@
   line-height: 1.6;
 }
 
-.moreSpecificModalContentArea .noteContent {
+.modalContentArea {
+  margin-top: 0.5rem;
+}
+
+.modalContentArea .noteContent {
   max-height: none;
   overflow: visible;
 }
@@ -219,7 +256,7 @@
     font-size: 0.85rem;
   }
 
-  .buttonGroup {
+  .toolbarGroup {
     gap: 0.25rem;
   }
 

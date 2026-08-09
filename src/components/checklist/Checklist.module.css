@@ -94,3 +94,8 @@
     padding: 0.5rem;
   }
 }
+
+/* The always-present "add new item" row sits slightly apart from saved rows */
+.newItemRow {
+  margin-top: 0.5rem;
+}

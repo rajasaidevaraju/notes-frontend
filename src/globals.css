@@ -92,6 +92,25 @@
 
 html {
   scrollbar-gutter: stable;
+
+  /*
+   * Breakpoint tiers used across the stylesheets. CSS cannot share a value with
+   * a media query, so the numbers still repeat per file — but these are the only
+   * three that should ever appear:
+   *   768px  layout switches to the stacked mobile arrangement
+   *   600px  modals become bottom sheets
+   *   480px  narrow-phone tightening
+   *
+   * --sheet-layout mirrors the 600px tier for JavaScript, so Modal.tsx can ask
+   * CSS which layout is active instead of hard-coding the number a second time.
+   */
+  --sheet-layout: 0;
+}
+
+@media (max-width: 600px) {
+  html {
+    --sheet-layout: 1;
+  }
 }
 
 html,
@@ -172,8 +191,8 @@ a:hover {
   background: var(--color-neutral-400);
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Tied to the .dark class, not to prefers-color-scheme: an explicit Light choice
+   on a dark-preferring OS must not leave form controls and scrollbars dark. */
+:root.dark {
+  color-scheme: dark;
 }

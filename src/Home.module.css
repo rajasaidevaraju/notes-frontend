@@ -296,8 +296,12 @@
   margin-top: 0.5rem;
 }
 
-.buttonGroup {
+/* Save/Cancel style action row at the bottom of a modal form */
+.formActions {
   display: flex;
+  /* Right-aligned: the app is used mostly on phones, where the trailing edge is
+     the easiest reach for a thumb. */
+  justify-content: flex-end;
   gap: 0.5rem;
   margin: 0.5rem 0;
   flex-shrink: 0;
@@ -588,10 +592,9 @@
     gap: 0.75rem;
   }
 
-  .buttonGroup {
+  .formActions {
     gap: 0.375rem;
     width: 100%;
-    justify-content: space-between;
   }
 
   .mainActionButtons {
@@ -638,4 +641,20 @@
     height: 2.75rem;
     font-size: 1rem;
   }
+}
+/* Segmented control for choosing what kind of item to add */
+.typePicker {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.typePicker>.button {
+  flex: 1;
+}
+
+.lanButtonRow {
+  display: flex;
+  gap: 0.375rem;
 }

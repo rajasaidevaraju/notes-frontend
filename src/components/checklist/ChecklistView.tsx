@@ -4,6 +4,7 @@ import checklistStyles from './Checklist.module.css';
 import noteItemStyles from '@/components/ItemCard.module.css';
 import ErrorMessage from '@/components/ErrorMessage';
 import { useUpdateChecklistItemMutation } from '@/hooks/useContentQuery';
+import { toMessage } from '@/utils/errors';
 
 interface ChecklistViewProps {
   checklist: Checklist;
@@ -36,7 +37,7 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
         updates: { checked: !item.checked },
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update item status');
+      setError(toMessage(err, 'Failed to update item status'));
       setTimeout(() => setError(null), 3000);
     }
   };
@@ -52,12 +53,12 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={noteItemStyles.bodyAnchor}>
       <div ref={contentRef} className={noteItemStyles.noteContent}>
-        {error && <ErrorMessage message={error} />}
+        <ErrorMessage message={error} />
         <div className={checklistStyles.checklistItems}>
           {checklist.items.length === 0 ? (
-            <p style={{ fontSize: '0.8rem', opacity: 0.6, fontStyle: 'italic' }}>No items</p>
+            <p className={noteItemStyles.emptyBody}>No items</p>
           ) : (
             checklist.items.map((item) => (
               <div key={item.id} className={checklistStyles.checklistItem}>
@@ -72,7 +73,6 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
                     item.checked ? checklistStyles.itemChecked : ''
                   }`}
                   onClick={() => handleToggleItem(item)}
-                  style={{ cursor: 'pointer' }}
                 >
                   {item.content}
                 </span>

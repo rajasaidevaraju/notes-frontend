@@ -58,7 +58,7 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ tracker, onClose }) => {
         />
       </div>
 
-      <div className={styles.buttonGroup}>
+      <div className={styles.formActions}>
         <button
           type="submit"
           className={`${styles.button} ${styles.successButton}`}
