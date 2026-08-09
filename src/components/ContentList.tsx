@@ -14,7 +14,7 @@ interface ContentListProps {
 }
 
 const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
-  const { selectedContentKeys, toggleSelectContent, searchQuery, hiddenUnlocked } =
+  const { selectedContentKeys, toggleSelectContent, searchQuery, hiddenUnlocked, activeTab } =
     useContentStore();
   const { data: contentData, isLoading: isContentLoading } = useContentQuery();
   const { data: hiddenContentData = [], isLoading: isHiddenLoading } =
@@ -26,7 +26,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
 
   const isLoading = isContentLoading || isHiddenLoading;
 
-  const { pinned, notPinned, hiddenNotesSorted } = useMemo(() => {
+  const { pinned, notPinned, pinnedHidden, notPinnedHidden } = useMemo(() => {
     const sortByCreated = (a: UnifiedContent, b: UnifiedContent) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
@@ -74,9 +74,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
     pinnedHidden.sort(sortByCreated);
     notPinnedHidden.sort(sortByCreated);
 
-    const hiddenNotesSorted = [...pinnedHidden, ...notPinnedHidden];
-
-    return { pinned, notPinned, hiddenNotesSorted };
+    return { pinned, notPinned, pinnedHidden, notPinnedHidden };
   }, [regularContent, hiddenContent, searchQuery]);
 
   const renderItem = (item: UnifiedContent) => {
@@ -113,16 +111,40 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
     }
   };
 
+  // Hidden Notes View
+  if (activeTab === 'hidden') {
+    const hasItems = pinnedHidden.length > 0 || notPinnedHidden.length > 0;
+    return (
+      <div className={styles.notesList}>
+        {!hasItems ? (
+          <p className={styles.infoMessage}>
+            {searchQuery ? 'No matching hidden notes found.' : 'No hidden notes stored.'}
+          </p>
+        ) : (
+          <>
+            {pinnedHidden.length > 0 && <h3 className={styles.sectionHeading}>Pinned Hidden</h3>}
+            {pinnedHidden.map(renderItem)}
+            {pinnedHidden.length > 0 && notPinnedHidden.length > 0 && (
+              <h3 className={styles.sectionHeading}>Other Hidden Notes</h3>
+            )}
+            {notPinnedHidden.map(renderItem)}
+          </>
+        )}
+        {isLoading && <Loading />}
+      </div>
+    );
+  }
+
+  // Default: Regular Notes View (activeTab === 'all')
+  const hasItems = pinned.length > 0 || notPinned.length > 0;
   return (
     <div className={styles.notesList}>
       {clipboardNote && pinned.length === 0 && <ClipboardNoteItem clipboardNote={clipboardNote} />}
 
-      {pinned.length === 0 && notPinned.length === 0 ? (
-        hiddenNotesSorted.length === 0 && (
-          <p className={styles.infoMessage}>
-            {searchQuery ? 'No matches found.' : 'No notes or checklists yet. Add one above!'}
-          </p>
-        )
+      {!hasItems ? (
+        <p className={styles.infoMessage}>
+          {searchQuery ? 'No matching notes found.' : 'No notes or checklists yet. Add one above!'}
+        </p>
       ) : (
         <>
           {pinned.length > 0 && <h3 className={styles.sectionHeading}>Pinned</h3>}
@@ -134,13 +156,6 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
           {notPinned.map(renderItem)}
         </>
       )}
-      {hiddenNotesSorted.length > 0 && (
-        <>
-          <h3 className={styles.sectionHeading}>Hidden</h3>
-          {hiddenNotesSorted.map(renderItem)}
-        </>
-      )}
-
       {isLoading && <Loading />}
     </div>
   );

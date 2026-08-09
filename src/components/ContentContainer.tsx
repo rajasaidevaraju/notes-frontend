@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from '@/Home.module.css';
 import ErrorMessage from './ErrorMessage';
 import ContentList from './ContentList';
@@ -7,7 +7,8 @@ import PinForm from './PinForm';
 import Modal from './Modal';
 import SearchBar from './SearchBar';
 import ThemeToggle from './ThemeToggle';
-import { useContentStore } from '@/store/contentStore';
+import ContentTabs from './ContentTabs';
+import { useContentStore, ContentTab } from '@/store/contentStore';
 import {
   useContentQuery,
   useHiddenContentQuery,
@@ -18,14 +19,21 @@ import {
 } from '@/hooks/useContentQuery';
 
 const ContentContainer: React.FC = () => {
-  const { selectedContentKeys, clearSelectedContent, hiddenUnlocked, setHiddenUnlocked } =
-    useContentStore();
+  const {
+    selectedContentKeys,
+    clearSelectedContent,
+    hiddenUnlocked,
+    setHiddenUnlocked,
+    setActiveTab,
+  } = useContentStore();
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isMultiDeleteModalOpen, setIsMultiDeleteModalOpen] = useState(false);
   const [isSelectingMode, setIsSelectingMode] = useState(false);
+
+  const pendingTab = useRef<ContentTab>('hidden');
 
   // TanStack Query automatically manages caching & fetching
   const contentQuery = useContentQuery();
@@ -69,13 +77,14 @@ const ContentContainer: React.FC = () => {
     clearSelectedContent();
   };
 
-  const showHiddenNotes = async () => {
+  const handleUnlockRequest = async (targetTab: ContentTab = 'hidden') => {
     setActionError(null);
-    // Flipping the flag enables the hidden query, which fetches on the next
-    // render; refetching here would be a no-op while it is still disabled.
+    pendingTab.current = targetTab;
+
     const auth = await authQuery.refetch();
     if (auth.data?.loggedIn) {
       setHiddenUnlocked(true);
+      setActiveTab(targetTab);
     } else {
       setIsPinModalOpen(true);
     }
@@ -94,7 +103,10 @@ const ContentContainer: React.FC = () => {
     <>
       <ErrorMessage message={displayError} />
       <div className={styles.controlsContainer}>
-        <SearchBar />
+        <div className={styles.topNavigationRow}>
+          <ContentTabs onUnlockRequest={handleUnlockRequest} />
+          <SearchBar />
+        </div>
         <div className={styles.mainActionButtons}>
           {isSelectingMode ? (
             <>
@@ -124,13 +136,27 @@ const ContentContainer: React.FC = () => {
               Select Items
             </button>
           )}
-          {hiddenUnlocked ? (
-            <button className={`${styles.button}`} onClick={hideHiddenNotes}>
-              Hide Hidden Notes
-            </button>
-          ) : (
-            <button className={`${styles.button}`} onClick={showHiddenNotes}>
-              Show Hidden Notes
+
+          {hiddenUnlocked && (
+            <button
+              className={`${styles.button} ${styles.pinButton}`}
+              onClick={hideHiddenNotes}
+              title="Lock hidden notes section"
+            >
+              <svg
+                className={styles.icon}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Lock Hidden
             </button>
           )}
 
@@ -151,6 +177,7 @@ const ContentContainer: React.FC = () => {
           try {
             await submitPinMutation.mutateAsync(pin);
             setHiddenUnlocked(true);
+            setActiveTab(pendingTab.current || 'hidden');
             setIsPinModalOpen(false);
           } catch {
             // PinForm surfaces the failure itself.

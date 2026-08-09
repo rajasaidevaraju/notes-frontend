@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { ContentType } from '@/types/Types';
 
+export type ContentTab = 'all' | 'hidden';
+
 interface ContentUiState {
   selectedContentKeys: Set<string>;
   searchQuery: string;
@@ -9,9 +11,11 @@ interface ContentUiState {
    * in component state so the global 401 handler can lock it back down.
    */
   hiddenUnlocked: boolean;
+  activeTab: ContentTab;
 
   setSearchQuery: (query: string) => void;
   setHiddenUnlocked: (unlocked: boolean) => void;
+  setActiveTab: (tab: ContentTab) => void;
   toggleSelectContent: (id: number, type: ContentType) => void;
   clearSelectedContent: () => void;
 }
@@ -20,9 +24,15 @@ export const useContentStore = create<ContentUiState>((set) => ({
   selectedContentKeys: new Set(),
   searchQuery: '',
   hiddenUnlocked: false,
+  activeTab: 'all',
 
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setHiddenUnlocked: (unlocked) => set({ hiddenUnlocked: unlocked }),
+  setHiddenUnlocked: (unlocked) =>
+    set((state) => ({
+      hiddenUnlocked: unlocked,
+      activeTab: unlocked ? state.activeTab : (state.activeTab === 'hidden' ? 'all' : state.activeTab),
+    })),
+  setActiveTab: (tab) => set({ activeTab: tab }),
 
   toggleSelectContent: (id, type) =>
     set((state) => {
