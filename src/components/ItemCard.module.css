@@ -127,17 +127,17 @@
 
 :global(.dark) .selectedNote {
   --note-bg: #24304a;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
 }
 
 :global(.dark) .hiddenNote {
-  --note-bg: #1f2937;
-  --note-border: #374151;
-  --note-border-hover: #4b5563;
+  --note-bg: #151515;
+  --note-border: var(--color-neutral-300);
+  --note-border-hover: var(--color-neutral-400);
 }
 
 :global(.dark) .hiddenNote .noteTitle {
-  color: #e5e7eb;
+  color: var(--color-neutral-700);
 }
 
 .permission {

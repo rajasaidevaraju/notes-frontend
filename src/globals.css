@@ -2,15 +2,15 @@
   --background: #f8fafc;
   --foreground: #0f172a;
 
-  --color-brand-primary: #3b82f6;
-  --color-brand-primary-dark: #2563eb;
-  --color-brand-primary-light: #60a5fa;
+  --color-brand-primary: #2563eb;
+  --color-brand-primary-dark: #1d4ed8;
+  --color-brand-primary-light: #3b82f6;
   --color-brand-primary-subtle: #eff6ff;
 
-  --color-brand-success: #16a34a;
-  --color-brand-success-dark: #15803d;
-  --color-brand-danger: #ef4444;
-  --color-brand-danger-dark: #dc2626;
+  --color-brand-success: #15803d;
+  --color-brand-success-dark: #166534;
+  --color-brand-danger: #dc2626;
+  --color-brand-danger-dark: #b91c1c;
   --color-brand-danger-light: #fee2e2;
 
   --color-neutral-50: #f8fafc;
@@ -24,7 +24,7 @@
   --color-neutral-800: #1e293b;
   --color-neutral-900: #0f172a;
 
-  --color-accent-pinned-border: #facc15;
+  --color-accent-pinned-border: #ca8a04;
 
   --color-white: #ffffff;
 
@@ -32,7 +32,7 @@
 
   --color-error-background: #fef2f2;
   --color-error-border: #fca5a5;
-  --color-error-text: #dc2626;
+  --color-error-text: #b91c1c;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -45,7 +45,7 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  --primary-rgb: 59, 130, 246;
+  --primary-rgb: 37, 99, 235;
 }
 
 :root.dark {
@@ -64,27 +64,30 @@
   --color-neutral-700: #e5e5e5;
   --color-neutral-800: #f5f5f5;
   --color-neutral-900: #fafafa;
+  --color-accent-pinned-border: #facc15;
   --color-white: #1f1f1f;
 
-  --color-brand-primary: #3881c5;
-  --color-brand-primary-dark: #295aa8;
-  --color-brand-primary-light: #93c5fd;
+  --color-brand-primary: #4d82c2;
+  --color-brand-primary-dark: #396398;
+  --color-brand-primary-light: #88b4f5;
   --color-brand-primary-subtle: #1e3a5f;
 
-  --color-brand-success: #14813c;
-  --color-brand-success-dark: #0e5427;
-  --color-brand-danger: #b64d4d;
-  --color-brand-danger-dark: #792727;
-  --color-brand-danger-light: #2c1414;
+  --color-brand-success: #249b4f;
+  --color-brand-success-dark: #157a3a;
+  --color-brand-danger: #b85555;
+  --color-brand-danger-dark: #ab3939;
+  --color-brand-danger-light: #3f1515;
 
   --color-error-background: #2d1f1f;
-  --color-error-border: #7f1d1d;
+  --color-error-border: #ef4444;
   --color-error-text: #fca5a5;
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+
+  --primary-rgb: 96, 165, 250;
 }
 
 html {
@@ -126,6 +129,7 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
