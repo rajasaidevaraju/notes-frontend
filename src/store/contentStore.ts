@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ContentKey, ContentType, contentKey } from '@/types/Types';
 
-export type ContentTab = 'all' | 'hidden';
+export type ContentTab = 'all' | 'hidden' | 'archived';
 
 export interface SelectedItem {
   id: number;

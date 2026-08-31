@@ -6,8 +6,8 @@ import { toMessage } from '@/utils/errors';
 
 interface UseItemCardOptions {
   item: UnifiedContent;
-  /** Applies a pin/hide flag change. Rejects on failure. */
-  updateItem: (changes: { pinned?: boolean; hidden?: boolean }) => Promise<unknown>;
+  /** Applies a pin/hide/archive flag change. Rejects on failure. */
+  updateItem: (changes: { pinned?: boolean; hidden?: boolean; archived?: boolean }) => Promise<unknown>;
   deleteItem: () => Promise<unknown>;
   /** Plain-text rendering of the item, for the copy button. */
   copyText: () => string;
@@ -68,6 +68,16 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
     }
   };
 
+  const toggleArchive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setItemError(null);
+    try {
+      await updateItem({ archived: !item.archived });
+    } catch (err: unknown) {
+      setItemError(toMessage(err, 'Failed to update item'));
+    }
+  };
+
   const confirmHide = async () => {
     setItemError(null);
     try {
@@ -115,6 +125,7 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
     confirmHide,
     toolbar: {
       onTogglePin: togglePin,
+      onToggleArchive: toggleArchive,
       onEdit: openEdit,
       onCopy: copy,
       onDelete: (e: React.MouseEvent) => {

@@ -13,14 +13,15 @@ import { SPECIAL_NOTE_TITLES } from '@/constants';
 
 export const CONTENT_QUERY_KEY = ['content'];
 export const HIDDEN_CONTENT_QUERY_KEY = ['content', 'hidden'];
+export const ARCHIVED_CONTENT_QUERY_KEY = ['content', 'archived'];
 export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
 export const AUTH_STATUS_QUERY_KEY = ['auth-status'];
 
-/** Visible list only — a freshly created item is never hidden. */
+/** Visible list only — a freshly created item is never hidden or archived. */
 const AFTER_CREATE = [CONTENT_QUERY_KEY];
-/** Anything that can move an item between the two lists must refresh both. */
-const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY];
+/** Anything that can move an item between lists must refresh all of them. */
+const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, ARCHIVED_CONTENT_QUERY_KEY];
 const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY];
 
 /**
@@ -69,6 +70,16 @@ export function useHiddenContentQuery(enabled = false) {
     queryFn: async () => {
       const hiddenContent = await apiFetch<UnifiedContent[]>('/api/content/hidden');
       return hiddenContent.map((item) => ({ ...item, hidden: true }));
+    },
+  });
+}
+
+export function useArchivedContentQuery() {
+  return useQuery<UnifiedContent[]>({
+    queryKey: ARCHIVED_CONTENT_QUERY_KEY,
+    queryFn: async () => {
+      const archivedContent = await apiFetch<UnifiedContent[]>('/api/content/archived');
+      return archivedContent.map((item) => ({ ...item, archived: true }));
     },
   });
 }
@@ -130,8 +141,8 @@ export function useAddNoteMutation() {
 
 export function useUpdateNoteMutation() {
   return useApiMutation(
-    ({ id, title, content, pinned, hidden }: Note) =>
-      apiSend<Note>(`/api/notes/${id}`, 'PUT', { title, content, pinned, hidden }),
+    ({ id, title, content, pinned, hidden, archived }: Note) =>
+      apiSend<Note>(`/api/notes/${id}`, 'PUT', { title, content, pinned, hidden, archived }),
     AFTER_WRITE
   );
 }
@@ -149,8 +160,8 @@ export function useAddChecklistMutation() {
 
 export function useUpdateChecklistMutation() {
   return useApiMutation(
-    ({ id, title, items, pinned, hidden }: Checklist) =>
-      apiSend<Checklist>(`/api/checklists/${id}`, 'PUT', { title, items, pinned, hidden }),
+    ({ id, title, items, pinned, hidden, archived }: Checklist) =>
+      apiSend<Checklist>(`/api/checklists/${id}`, 'PUT', { title, items, pinned, hidden, archived }),
     AFTER_WRITE
   );
 }
@@ -185,12 +196,13 @@ export function useAddTrackerMutation() {
 export function useUpdateTrackerMutation() {
   return useApiMutation(
     ({ tracker, deletedEntryIds }: { tracker: Tracker; deletedEntryIds?: number[] }) => {
-      const { id, title, unit, pinned, hidden } = tracker;
+      const { id, title, unit, pinned, hidden, archived } = tracker;
       return apiSend<Tracker>(`/api/trackers/${id}`, 'PUT', {
         title,
         unit,
         pinned,
         hidden,
+        archived,
         deletedEntryIds,
       });
     },

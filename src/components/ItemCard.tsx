@@ -63,6 +63,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
     styles.noteItem,
     item.pinned && styles.pinnedNote,
     item.hidden && styles.hiddenNote,
+    item.archived && styles.archivedNote,
     isSelected && styles.selectedNote,
   ]
     .filter(Boolean)
@@ -97,6 +98,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
           <ItemToolbar
             pinned={item.pinned}
             hidden={item.hidden}
+            archived={item.archived}
             minimized={card.minimized}
             copyFeedback={card.copyFeedback}
             onAdd={onAdd}

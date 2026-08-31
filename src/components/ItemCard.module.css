@@ -140,6 +140,12 @@
   --note-border-hover: var(--color-accent-pinned-border);
 }
 
+.archivedNote {
+  --note-bg: #f3f0ea;
+  --note-border: var(--color-neutral-300);
+  --note-border-hover: var(--color-neutral-400);
+}
+
 :global(.dark) .selectedNote {
   --note-bg: #24304a;
   box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
@@ -153,6 +159,12 @@
 
 :global(.dark) .hiddenNote .noteTitle {
   color: var(--color-neutral-700);
+}
+
+:global(.dark) .archivedNote {
+  --note-bg: #1a1815;
+  --note-border: var(--color-neutral-300);
+  --note-border-hover: var(--color-neutral-400);
 }
 
 .permission {

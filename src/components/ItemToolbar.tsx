@@ -5,6 +5,7 @@ import noteItemStyles from './ItemCard.module.css';
 interface ItemToolbarProps {
     pinned: boolean;
     hidden: boolean;
+    archived: boolean;
     minimized: boolean;
     copyFeedback: string | null;
     onTogglePin: (e: React.MouseEvent) => void;
@@ -13,6 +14,7 @@ interface ItemToolbarProps {
     onDelete: (e: React.MouseEvent) => void;
     onCopy: (e: React.MouseEvent) => void;
     onToggleHide: (e: React.MouseEvent) => void;
+    onToggleArchive: (e: React.MouseEvent) => void;
     onToggleMinimize: (e: React.MouseEvent) => void;
 }
 
@@ -25,6 +27,7 @@ interface ItemToolbarProps {
 const ItemToolbar: React.FC<ItemToolbarProps> = ({
     pinned,
     hidden,
+    archived,
     minimized,
     copyFeedback,
     onTogglePin,
@@ -33,6 +36,7 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
     onDelete,
     onCopy,
     onToggleHide,
+    onToggleArchive,
     onToggleMinimize,
 }) => (
     <div className={noteItemStyles.toolbarGroup}>
@@ -43,6 +47,18 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
                     d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
                     fill={pinned ? 'currentColor' : 'none'}
                 />
+            </svg>
+        </button>
+        <button
+            onClick={onToggleArchive}
+            className={`${styles.button}`}
+            title={archived ? 'Unarchive' : 'Archive'}
+            aria-label={archived ? 'Unarchive' : 'Archive'}
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="20" height="5" x="2" y="3" rx="1" fill={archived ? 'currentColor' : 'none'} />
+                <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+                <path d="M10 12h4" />
             </svg>
         </button>
         {onAdd && (

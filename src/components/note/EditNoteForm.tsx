@@ -33,7 +33,8 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     formData.title !== note.title ||
     formData.content !== note.content ||
     formData.pinned !== note.pinned ||
-    formData.hidden !== note.hidden;
+    formData.hidden !== note.hidden ||
+    formData.archived !== note.archived;
 
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
@@ -125,6 +126,19 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
               />
               <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
                 Hide Note
+              </label>
+            </div>
+            <div className={noteItemStyles.checkboxField}>
+              <input
+                type="checkbox"
+                id="archiveNote"
+                name="archived"
+                checked={formData.archived}
+                onChange={handleChange}
+                className={noteItemStyles.checkboxInput}
+              />
+              <label htmlFor="archiveNote" className={noteItemStyles.checkboxLabel}>
+                Archive Note
               </label>
             </div>
           </div>

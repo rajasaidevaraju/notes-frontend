@@ -4,6 +4,7 @@ export interface Note {
   content: string;
   pinned: boolean;
   hidden: boolean;
+  archived: boolean;
   updatedAt: string;
   createdAt: string;
   type: 'note';
@@ -28,6 +29,7 @@ export interface Checklist {
   title: string;
   pinned: boolean;
   hidden: boolean;
+  archived: boolean;
   updatedAt: string;
   createdAt: string;
   items: ChecklistItem[];
@@ -47,6 +49,7 @@ export interface Tracker {
   unit: string | null;
   pinned: boolean;
   hidden: boolean;
+  archived: boolean;
   updatedAt: string;
   createdAt: string;
   entries: TrackerEntry[];

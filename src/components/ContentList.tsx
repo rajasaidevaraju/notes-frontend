@@ -7,7 +7,7 @@ import { UnifiedContent, contentKey } from '@/types/Types';
 import Loading from '@/components/LoadingSpinner';
 import { useContentStore } from '@/store/contentStore';
 import ClipboardNoteItem from './clipboard/ClipboardNoteItem';
-import { useContentQuery, useHiddenContentQuery } from '@/hooks/useContentQuery';
+import { useContentQuery, useHiddenContentQuery, useArchivedContentQuery } from '@/hooks/useContentQuery';
 
 interface ContentListProps {
   isSelectingMode: boolean;
@@ -48,17 +48,20 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
   const { data: contentData, isLoading: isContentLoading } = useContentQuery();
   const { data: hiddenContentData, isLoading: isHiddenLoading } =
     useHiddenContentQuery(hiddenUnlocked);
+  const { data: archivedContentData, isLoading: isArchivedLoading } = useArchivedContentQuery();
 
   // Stable fallbacks: a fresh `[]` here would change identity every render and
   // defeat the memos below.
   const regularContent = contentData?.regularContent ?? EMPTY;
   const hiddenContent = hiddenUnlocked ? hiddenContentData ?? EMPTY : EMPTY;
+  const archivedContent = archivedContentData ?? EMPTY;
   const clipboardNote = contentData?.clipboardNote ?? null;
 
-  const isLoading = isContentLoading || isHiddenLoading;
+  const isLoading = isContentLoading || isHiddenLoading || isArchivedLoading;
 
   const regular = useMemo(() => partition(regularContent, searchQuery), [regularContent, searchQuery]);
   const hidden = useMemo(() => partition(hiddenContent, searchQuery), [hiddenContent, searchQuery]);
+  const archived = useMemo(() => partition(archivedContent, searchQuery), [archivedContent, searchQuery]);
 
   const renderItem = (item: UnifiedContent) => {
     const key = contentKey(item);
@@ -80,21 +83,27 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
   };
 
   const isHiddenView = activeTab === 'hidden';
-  const { pinned, notPinned } = isHiddenView ? hidden : regular;
+  const isArchivedView = activeTab === 'archived';
+  const { pinned, notPinned } =
+    activeTab === 'hidden' ? hidden : activeTab === 'archived' ? archived : regular;
   const hasItems = pinned.length > 0 || notPinned.length > 0;
 
   const emptyMessage = isHiddenView
     ? searchQuery
       ? 'No matching hidden notes found.'
       : 'No hidden notes stored.'
-    : searchQuery
-      ? 'No matching notes found.'
-      : 'No notes or checklists yet. Add one above!';
+    : isArchivedView
+      ? searchQuery
+        ? 'No matching archived notes found.'
+        : 'No archived notes.'
+      : searchQuery
+        ? 'No matching notes found.'
+        : 'No notes or checklists yet. Add one above!';
 
   return (
     <div className={styles.notesList}>
-      {/* The clipboard card always leads the regular view, before or after the pinned heading */}
-      {!isHiddenView && clipboardNote && pinned.length === 0 && (
+      {/* The clipboard card always leads the all-notes view, before or after the pinned heading */}
+      {activeTab === 'all' && clipboardNote && pinned.length === 0 && (
         <ClipboardNoteItem clipboardNote={clipboardNote} />
       )}
 
@@ -103,15 +112,17 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
       ) : (
         <>
           {pinned.length > 0 && (
-            <h3 className={styles.sectionHeading}>{isHiddenView ? 'Pinned Hidden' : 'Pinned'}</h3>
+            <h3 className={styles.sectionHeading}>
+              {isHiddenView ? 'Pinned Hidden' : isArchivedView ? 'Pinned Archived' : 'Pinned'}
+            </h3>
           )}
-          {!isHiddenView && clipboardNote && pinned.length > 0 && (
+          {activeTab === 'all' && clipboardNote && pinned.length > 0 && (
             <ClipboardNoteItem clipboardNote={clipboardNote} />
           )}
           {pinned.map(renderItem)}
           {pinned.length > 0 && notPinned.length > 0 && (
             <h3 className={styles.sectionHeading}>
-              {isHiddenView ? 'Other Hidden Notes' : 'Others'}
+              {isHiddenView ? 'Other Hidden Notes' : isArchivedView ? 'Other Archived Notes' : 'Others'}
             </h3>
           )}
           {notPinned.map(renderItem)}
