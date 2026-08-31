@@ -30,7 +30,19 @@ export async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
 
   if (response.status === 204) return undefined as T;
 
-  return (await response.json()) as T;
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new ApiError(
+      `Expected JSON from ${url} but received "${contentType || 'no content-type'}"`,
+      response.status
+    );
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(`Malformed JSON in response from ${url}`, response.status);
+  }
 }
 
 /** apiFetch for the JSON-body verbs, so no call site hand-writes the header. */
