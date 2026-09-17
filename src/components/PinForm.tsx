@@ -47,13 +47,13 @@ const PinForm: React.FC<PinFormProps> = ({ isOpen, onClose, onSubmitPin }) => {
         setFormError(null);
 
         if (value && index < 3) {
-            inputRefs.current[index + 1]?.focus();
+            inputRefs.current[index + 1]?.focus({ preventScroll: true });
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === 'Backspace' && !pin[index] && index > 0) {
-            inputRefs.current[index - 1]?.focus();
+            inputRefs.current[index - 1]?.focus({ preventScroll: true });
         }
     };
 
