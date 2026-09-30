@@ -1,13 +1,10 @@
 .searchContainer {
     position: relative;
     flex: 1 1 300px;
-    /* Grow, shrink, base width 300px */
     min-width: 250px;
 }
 
-/* Matches the breakpoint where .topNavigationRow in Home.module.css switches to
-   flex-direction: column — keep in sync. In a column the 300px basis above would
-   size the HEIGHT, leaving a tall empty box with the icon stranded at its middle. */
+/* Keep in sync with the .topNavigationRow column breakpoint in Home.module.css */
 @media (max-width: 768px) {
     .searchContainer {
         flex: 0 0 auto;
@@ -22,7 +19,7 @@
     border: 1px solid var(--color-neutral-200);
     border-radius: var(--radius-lg);
     color: var(--color-neutral-900);
-    /* 16px minimum prevents iOS Safari from auto-zooming on focus */
+    /* 16px inputs prevent iOS Safari from auto-zooming on focus */
     font-size: 1rem;
     margin: 0.5rem 0rem;
     transition: all 0.2s ease;

@@ -20,11 +20,6 @@ interface EditTrackerFormProps {
   tracker: Tracker;
 }
 
-/**
- * Full tracker editor: title, unit, adding entries and marking existing ones for
- * deletion. Entry deletions are staged locally and only applied on save; added
- * entries post immediately, since the server timestamps them on arrival.
- */
 const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, tracker }) => {
   const [title, setTitle] = useState(tracker.title);
   const [unit, setUnit] = useState(tracker.unit || '');

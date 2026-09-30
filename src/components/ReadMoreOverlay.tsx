@@ -6,10 +6,6 @@ interface ReadMoreOverlayProps {
   onClick: () => void;
 }
 
-/**
- * Fade over the bottom of a truncated card body with a "read more" pill.
- * Place it inside a .bodyAnchor, which it positions against.
- */
 const ReadMoreOverlay: React.FC<ReadMoreOverlayProps> = ({ label, onClick }) => (
   <button
     type="button"

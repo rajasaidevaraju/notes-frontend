@@ -33,7 +33,6 @@ const Icon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     </svg>
 );
 
-
 const buildActions = (props: ItemToolbarProps): ItemAction[] => {
     const { pinned, hidden, archived, minimized } = props;
 
@@ -155,10 +154,6 @@ const buildActions = (props: ItemToolbarProps): ItemAction[] => {
     ];
 };
 
-/**
- * Inline header action bar for notes, checklists and trackers. Shown only on
- * devices with a hover-capable pointer; touch devices get ItemActionsMenu.
- */
 const ItemToolbar: React.FC<ItemToolbarProps> = (props) => (
     <div className={`${noteItemStyles.toolbarGroup} ${noteItemStyles.inlineToolbar}`}>
         {buildActions(props).map((action) => (
@@ -178,11 +173,9 @@ const ItemToolbar: React.FC<ItemToolbarProps> = (props) => (
     </div>
 );
 
-
 export const ItemActionsMenu: React.FC<ItemToolbarProps & { title: string }> = ({ title, ...props }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Destructive action last, apart from the rest, as menus conventionally do.
     const actions = buildActions(props);
     const ordered = [...actions.filter((a) => !a.danger), ...actions.filter((a) => a.danger)];
 

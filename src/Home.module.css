@@ -33,7 +33,6 @@
   gap: 0.5rem;
 }
 
-/* Forms */
 .form {
   display: flex;
   flex-direction: column;
@@ -139,7 +138,6 @@
   background-color: var(--color-surface);
 }
 
-/* Buttons — flat colors from theme variables; dark mode needs no overrides */
 .button {
   width: fit-content;
   padding: 0.4rem 0.75rem;
@@ -241,7 +239,6 @@
   fill: none;
 }
 
-/* Layout */
 .infoMessage {
   grid-column: 1 / -1;
   text-align: center;
@@ -300,11 +297,8 @@
   margin-top: 0.5rem;
 }
 
-/* Save/Cancel style action row at the bottom of a modal form */
 .formActions {
   display: flex;
-  /* Right-aligned: the app is used mostly on phones, where the trailing edge is
-     the easiest reach for a thumb. */
   justify-content: flex-end;
   gap: 0.5rem;
   margin: 0.5rem 0;
@@ -312,7 +306,6 @@
   flex-wrap: wrap;
 }
 
-/* Modal system — fade only, no transforms, so nothing shifts on open */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -337,7 +330,6 @@
   }
 }
 
-/* Modal keeps the overlay mounted until this finishes; see Modal.tsx */
 .modalOverlay[data-state='closing'] {
   pointer-events: none;
   animation: overlayFadeOut var(--transition-normal) both;
@@ -363,7 +355,6 @@
   max-height: 85vh;
   overflow-y: auto;
   border: 1px solid var(--color-neutral-200);
-  /* Flex column so the body can shrink and scroll while header/buttons stay visible */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -378,8 +369,6 @@
   box-sizing: border-box;
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* Scroll containers clip on both axes, which would cut off the focus rings
-     (outline + 2px offset) of controls sitting flush against the edges. */
   padding: 4px;
 }
 
@@ -505,7 +494,6 @@
   line-height: 1.6;
 }
 
-/* Server info */
 .serverInfoContainer {
   margin-top: 1rem;
   padding: 0.875rem 1.25rem;
@@ -564,7 +552,6 @@
   }
 }
 
-/* Loading overlay */
 .loadingOverlay {
   position: fixed;
   inset: 0;
@@ -662,7 +649,6 @@
     font-size: 1rem;
   }
 }
-/* Segmented control for choosing what kind of item to add */
 .typePicker {
   display: flex;
   gap: 0.5rem;

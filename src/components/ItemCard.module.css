@@ -1,4 +1,3 @@
-
 .noteItem {
   --note-bg: var(--color-surface);
   --note-border: var(--color-neutral-200);
@@ -71,8 +70,6 @@
   min-width: 0;
 }
 
-/* The inline toolbar is for wide, mouse-driven screens; touch devices and the
-   mobile layout width (a narrow window, devtools device mode) get the ⋮ menu. */
 .inlineToolbar {
   display: none;
 }
@@ -110,7 +107,6 @@
   }
 }
 
-/* Positioning context for .fadeOverlay, which anchors to the body's bottom edge */
 .bodyAnchor {
   position: relative;
 }
@@ -169,7 +165,6 @@
   border-color: var(--color-brand-primary-light);
 }
 
-/* Card variants */
 .selectedNote {
   --note-bg: var(--color-card-selected);
   --note-border: var(--color-brand-primary);
@@ -244,7 +239,6 @@
   font-style: italic;
 }
 
-/* Read-only note view inside a modal; scrolls internally when content is long */
 .viewContentContainer {
   min-height: 0;
   overflow-y: auto;
@@ -289,7 +283,6 @@
   }
 }
 
-/* Overflow menu (ItemActionsMenu) */
 .actionList {
   list-style: none;
   display: flex;
@@ -343,12 +336,9 @@
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-/* The menu opens as a native-style sheet on phones: slides up instead of only
-   fading. Kept off the other modals, whose inputs must not move while opening. */
 @media (max-width: 600px) {
-  /* Doubled class: must beat .modalOverlay's overflow-y regardless of stylesheet order */
+  /* Doubled class to out-rank .modalOverlay regardless of stylesheet order */
   .actionSheet.actionSheet {
-    /* A translated sheet would briefly make the overlay scrollable */
     overflow: hidden;
   }
 

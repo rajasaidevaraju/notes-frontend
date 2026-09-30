@@ -10,7 +10,6 @@ interface EditableTitleProps {
     maxLength?: number;
 }
 
-/** The click-to-edit heading used as a modal title. */
 const EditableTitle: React.FC<EditableTitleProps> = ({
     value,
     onChange,

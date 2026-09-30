@@ -9,16 +9,8 @@ export interface SelectedItem {
 }
 
 interface ContentUiState {
-  /**
-   * Keyed by ContentKey for lookup, but the value keeps the id/type pair so the
-   * bulk-delete caller never has to parse a key back apart.
-   */
   selectedContent: Map<ContentKey, SelectedItem>;
   searchQuery: string;
-  /**
-   * Whether the hidden section is unlocked and on screen. Lives here rather than
-   * in component state so the global 401 handler can lock it back down.
-   */
   hiddenUnlocked: boolean;
   activeTab: ContentTab;
 

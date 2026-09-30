@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 interface InlineEditProps {
   value: string;
   onChange: (value: string) => void;
-  /** Rendered in place of the input while not editing. */
   children: React.ReactNode;
   displayAs?: 'heading' | 'inline';
   displayClassName: string;
@@ -14,11 +13,6 @@ interface InlineEditProps {
   ariaLabel?: string;
 }
 
-/**
- * Click-to-edit text: shows `children`, swaps to a focused input on click, and
- * commits on blur, Enter or Escape. Used for both the modal titles and the
- * tracker's unit chip, which differ only in markup.
- */
 const InlineEdit: React.FC<InlineEditProps> = ({
   value,
   onChange,

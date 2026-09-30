@@ -8,26 +8,20 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title: React.ReactNode;
-  /** Extra class on the overlay, e.g. to give one kind of modal its own animation. */
   className?: string;
 }
 
-/** Open modals, oldest first. Escape closes only the last (topmost) one. */
 const openModals: object[] = [];
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, className }) => {
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // onClose is a fresh closure each render; the key listener reads the latest.
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
   });
 
-  // Escape goes through the same onClose as the X button, so a form's unsaved-
-  // changes guard still asks first. A key already handled inside the modal
-  // (InlineEdit uses Escape to finish editing) is left alone.
   useEffect(() => {
     if (!isOpen) return;
     const token = {};
@@ -47,14 +41,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
     };
   }, [isOpen]);
 
-  // Stays true after isOpen turns false, until the exit animation has played.
   const [rendered, setRendered] = useState(isOpen);
   if (isOpen && !rendered) setRendered(true);
   const closing = rendered && !isOpen;
 
-  // Unmount once every animation the closing styles started (the overlay fade,
-  // plus any variant's own, e.g. the sheet slide) has finished, so durations
-  // live only in CSS. Reopening mid-exit cancels the unmount.
   useEffect(() => {
     if (!closing) return;
     const overlay = overlayRef.current;
@@ -64,7 +54,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
     }
 
     let cancelled = false;
-    // Infinite ones (a spinner in the body) would never finish, so skip them.
+    // Infinite animations (spinners) never finish.
     const finite = overlay
       .getAnimations({ subtree: true })
       .filter((a) => Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
@@ -84,10 +74,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
     if (isOpen) return lockBodyScroll();
   }, [isOpen]);
 
-  // A `position: fixed` overlay is sized to the LAYOUT viewport, which does not
-  // shrink when the on-screen keyboard opens — so a bottom-anchored sheet ends up
-  // behind the keyboard. Mirror the VISUAL viewport into custom properties the
-  // mobile styles consume, keeping the sheet fully above the keyboard.
+  // Fixed overlays ignore the on-screen keyboard; track the visual viewport so the sheet stays above it.
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!isOpen || !mounted || !viewport) return;

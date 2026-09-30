@@ -13,10 +13,6 @@ import { LIMITS } from '@/constants';
 import { toMessage } from '@/utils/errors';
 import { useUpdateChecklistMutation } from '@/hooks/useContentQuery';
 
-/**
- * Rows being edited need a key before the server has assigned an id, so unsaved
- * rows carry a local `rowId` and keep `id: NEW_ITEM_ID` for the API.
- */
 type EditableChecklistItem = ChecklistItem & { rowId: string };
 
 let localRowSeq = 0;
@@ -97,7 +93,6 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
       return;
     }
 
-    // A half-typed row in the "add new" field counts as intended content.
     const finalItems = [...items];
     if (newItemContent.trim()) {
       finalItems.push(newRow(checklist.id, newItemContent.trim(), finalItems.length));

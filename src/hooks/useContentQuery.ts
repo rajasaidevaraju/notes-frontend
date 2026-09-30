@@ -14,7 +14,6 @@ import { SPECIAL_NOTE_TITLES } from '@/constants';
 export const CONTENT_QUERY_KEY = ['content'];
 export const HIDDEN_CONTENT_QUERY_KEY = ['content', 'hidden'];
 export const ARCHIVED_CONTENT_QUERY_KEY = ['content', 'archived'];
-/** Under ['content'], so every write that invalidates CONTENT_QUERY_KEY refreshes it too. */
 export const CONTENT_COUNTS_QUERY_KEY = ['content', 'counts'];
 export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
@@ -26,10 +25,6 @@ const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, ARCHIVED_CONTE
 
 const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, CONTENT_COUNTS_QUERY_KEY];
 
-/**
- * Every mutation here does the same thing on success: invalidate the query keys
- * its write could have affected. This wrapper is that shared behaviour.
- */
 function useApiMutation<TData, TVars = void>(
   mutationFn: (vars: TVars) => Promise<TData>,
   invalidate: QueryKey[]
@@ -131,7 +126,6 @@ export function useDisableLanMutation() {
 export function useAuthStatusQuery() {
   return useQuery<{ loggedIn: boolean }>({
     queryKey: AUTH_STATUS_QUERY_KEY,
-    // Only ever read on demand, when the user asks to open the hidden section.
     enabled: false,
     queryFn: () => apiFetch<{ loggedIn: boolean }>('/api/auth/status'),
   });
@@ -144,8 +138,6 @@ export function useSubmitPinMutation() {
 export function useLogoutMutation() {
   return useApiMutation(() => apiSend('/api/logout', 'POST'), AFTER_AUTH);
 }
-
-// --- CRUD Mutations ---
 
 export function useAddNoteMutation() {
   return useApiMutation(

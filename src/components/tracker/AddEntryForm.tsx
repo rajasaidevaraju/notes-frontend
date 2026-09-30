@@ -11,11 +11,6 @@ interface AddEntryFormProps {
   onClose: () => void;
 }
 
-/**
- * Single-input quick add, mounted only while its modal is open so the input
- * focuses on mount. Unlike the edit form this posts immediately and closes —
- * no title/unit/entry-deletion state to save.
- */
 const AddEntryForm: React.FC<AddEntryFormProps> = ({ tracker, onClose }) => {
   const [value, setValue] = useState('');
   const [formError, setFormError] = useState<string | null>(null);

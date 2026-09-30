@@ -6,19 +6,11 @@ import { toMessage } from '@/utils/errors';
 
 interface UseItemCardOptions {
   item: UnifiedContent;
-  /** Applies a pin/hide/archive flag change. Rejects on failure. */
   updateItem: (changes: { pinned?: boolean; hidden?: boolean; archived?: boolean }) => Promise<unknown>;
   deleteItem: () => Promise<unknown>;
-  /** Plain-text rendering of the item, for the copy button. */
   copyText: () => string;
 }
 
-/**
- * Every card behaves identically around its content: pin, edit, delete, copy,
- * hide and minimize, each with the same error and confirmation handling. That
- * behaviour lives here; ItemCard renders it and the per-type components supply
- * only what actually differs.
- */
 export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemCardOptions) {
   const clearSelectedContent = useContentStore((state) => state.clearSelectedContent);
   const key = contentKey(item);
@@ -32,7 +24,6 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  // Transient banners clear themselves; the timers must not outlive the card.
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const clearLater = useCallback((fn: () => void, ms: number) => {

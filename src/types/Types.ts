@@ -10,10 +10,6 @@ export interface Note {
   type: 'note';
 }
 
-/**
- * Id the API expects for a checklist item that does not exist yet; the server
- * treats it as "insert" rather than "update".
- */
 export const NEW_ITEM_ID = 0;
 
 export interface ChecklistItem {
@@ -59,7 +55,6 @@ export interface Tracker {
 export type UnifiedContent = Note | Checklist | Tracker;
 export type ContentType = UnifiedContent['type'];
 
-/** Stable identity for an item across the two id-spaces (`note-3` ≠ `tracker-3`). */
 export type ContentKey = `${ContentType}-${number}`;
 export const contentKey = (item: { id: number; type: ContentType }): ContentKey =>
   `${item.type}-${item.id}`;

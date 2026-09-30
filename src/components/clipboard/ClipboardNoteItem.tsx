@@ -106,7 +106,6 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
     }
   };
 
-  /** Selects the note text as a fallback for browsers without clipboard-write. */
   const selectContent = () => {
     const contentEl = contentRef.current;
     const selection = window.getSelection();
@@ -129,7 +128,6 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
         await navigator.clipboard.writeText(clipboardNote.content);
         setCopyFeedback('Copied!');
       } else {
-        // Older browsers: leave the text selected so the user can copy manually.
         selectContent();
         setCopyFeedback('Selected!');
       }

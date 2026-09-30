@@ -30,7 +30,6 @@ const matchesQuery = (item: UnifiedContent, query: string): boolean => {
 const byNewestFirst = (a: UnifiedContent, b: UnifiedContent) =>
   new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
-/** Splits a list into pinned/unpinned, filtered by the search query and sorted. */
 const partition = (items: UnifiedContent[], query: string) => {
   const trimmed = query.trim().toLowerCase();
   const filtered = trimmed ? items.filter((item) => matchesQuery(item, trimmed)) : items;
@@ -101,7 +100,6 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
 
   return (
     <div className={styles.notesList}>
-      {/* The clipboard card always leads the all-notes view, before or after the pinned heading */}
       {activeTab === 'all' && clipboardNote && pinned.length === 0 && (
         <ClipboardNoteItem clipboardNote={clipboardNote} />
       )}

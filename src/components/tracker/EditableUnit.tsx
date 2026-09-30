@@ -8,7 +8,6 @@ interface EditableUnitProps {
   onChange: (value: string) => void;
 }
 
-/** Click-to-edit unit chip shown under the title in the tracker edit modal. */
 const EditableUnit: React.FC<EditableUnitProps> = ({ value, onChange }) => (
   <InlineEdit
     value={value}

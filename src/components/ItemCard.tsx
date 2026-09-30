@@ -6,7 +6,6 @@ import ConfirmActionModal from './ConfirmActionModal';
 import { ContentType, UnifiedContent } from '@/types/Types';
 import { ItemCardController } from './useItemCard';
 
-/** Per-type wording for the two confirmations every card shares. */
 const LABELS: Record<ContentType, { noun: string; deleteTitle: string; deleteMessage: string }> = {
   note: {
     noun: 'note',
@@ -31,21 +30,12 @@ interface ItemCardProps {
   isSelected: boolean;
   onToggleSelect: () => void;
   isSelectingMode: boolean;
-  /** Rendered after the truncated title, e.g. a tracker's unit. */
   titleSuffix?: string;
-  /** Extra toolbar button, for types that support adding to the item in place. */
   onAdd?: (e: React.MouseEvent) => void;
-  /** The item's body — the only part that genuinely differs per type. */
   children: React.ReactNode;
-  /** Edit/view modals owned by the per-type component. */
   modals?: React.ReactNode;
 }
 
-/**
- * The shared shell for notes, checklists and trackers: selection, header,
- * toolbar, error banner and the delete/hide confirmations. Pair it with
- * useItemCard, which owns the matching behaviour.
- */
 const ItemCard: React.FC<ItemCardProps> = ({
   item,
   card,
@@ -81,7 +71,6 @@ const ItemCard: React.FC<ItemCardProps> = ({
 
       <div className={styles.noteHeader}>
         <div className={styles.titleRow}>
-          {/* Truncation is CSS (.noteTitle clamps), so the full title stays in the DOM. */}
           <h3 className={styles.noteTitle}>
             {item.title}
             {titleSuffix}

@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from '@/Home.module.css';
 
-/**
- * Keeps the browser UI colour in step with the theme, reading the value from
- * the `--background` token so the palette is only defined in globals.css.
- */
 const syncThemeColorMeta = () => {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) return;
@@ -15,9 +11,6 @@ const syncThemeColorMeta = () => {
 };
 
 const ThemeToggle: React.FC = () => {
-    // index.html already resolved stored-preference-else-system before paint, so
-    // the class on <html> is the source of truth; re-deriving it here would be a
-    // second copy of that rule, free to drift.
     const [isDarkMode, setIsDarkMode] = useState(
         () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
     );

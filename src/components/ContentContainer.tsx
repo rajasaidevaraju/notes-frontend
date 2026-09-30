@@ -36,7 +36,6 @@ const ContentContainer: React.FC = () => {
 
   const pendingTab = useRef<ContentTab>('hidden');
 
-  // TanStack Query automatically manages caching & fetching
   const contentQuery = useContentQuery();
   const hiddenQuery = useHiddenContentQuery(hiddenUnlocked);
   const authQuery = useAuthStatusQuery();
@@ -45,8 +44,6 @@ const ContentContainer: React.FC = () => {
   const submitPinMutation = useSubmitPinMutation();
   const logoutMutation = useLogoutMutation();
 
-  // A failed load must not look like an empty list, so surface fetch errors
-  // alongside errors from the actions this component owns.
   const loadError = contentQuery.error ?? (hiddenUnlocked ? hiddenQuery.error : null);
   const displayError =
     actionError ?? (loadError instanceof Error ? `Failed to load content: ${loadError.message}` : null);

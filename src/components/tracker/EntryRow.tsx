@@ -2,7 +2,6 @@ import React from 'react';
 import trackerStyles from './Tracker.module.css';
 import { TrackerEntry } from '@/types/Types';
 
-/** Recent entries read as "today 14:30" / "yesterday 09:00"; older ones get a date. */
 export const formatEntryTime = (recordedAt: string): string => {
   const date = new Date(recordedAt);
   if (isNaN(date.getTime())) return recordedAt;
@@ -32,7 +31,6 @@ interface EntryRowProps {
   onDelete?: (entryId: number) => void;
 }
 
-/** A single tracker reading. The delete button only appears where editing is allowed. */
 const EntryRow: React.FC<EntryRowProps> = ({ entry, unit, onDelete }) => (
   <div className={trackerStyles.entryRow}>
     <span className={trackerStyles.entryValue}>
