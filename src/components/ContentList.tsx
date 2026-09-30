@@ -48,10 +48,9 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
   const { data: contentData, isLoading: isContentLoading } = useContentQuery();
   const { data: hiddenContentData, isLoading: isHiddenLoading } =
     useHiddenContentQuery(hiddenUnlocked);
-  const { data: archivedContentData, isLoading: isArchivedLoading } = useArchivedContentQuery();
+  const { data: archivedContentData, isLoading: isArchivedLoading } =
+    useArchivedContentQuery(activeTab === 'archived');
 
-  // Stable fallbacks: a fresh `[]` here would change identity every render and
-  // defeat the memos below.
   const regularContent = contentData?.regularContent ?? EMPTY;
   const hiddenContent = hiddenUnlocked ? hiddenContentData ?? EMPTY : EMPTY;
   const archivedContent = archivedContentData ?? EMPTY;

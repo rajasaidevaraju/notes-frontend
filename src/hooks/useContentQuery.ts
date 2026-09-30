@@ -14,15 +14,17 @@ import { SPECIAL_NOTE_TITLES } from '@/constants';
 export const CONTENT_QUERY_KEY = ['content'];
 export const HIDDEN_CONTENT_QUERY_KEY = ['content', 'hidden'];
 export const ARCHIVED_CONTENT_QUERY_KEY = ['content', 'archived'];
+/** Under ['content'], so every write that invalidates CONTENT_QUERY_KEY refreshes it too. */
+export const CONTENT_COUNTS_QUERY_KEY = ['content', 'counts'];
 export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
 export const AUTH_STATUS_QUERY_KEY = ['auth-status'];
 
-/** Visible list only — a freshly created item is never hidden or archived. */
 const AFTER_CREATE = [CONTENT_QUERY_KEY];
-/** Anything that can move an item between lists must refresh all of them. */
+
 const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, ARCHIVED_CONTENT_QUERY_KEY];
-const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY];
+
+const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, CONTENT_COUNTS_QUERY_KEY];
 
 /**
  * Every mutation here does the same thing on success: invalidate the query keys
@@ -74,13 +76,26 @@ export function useHiddenContentQuery(enabled = false) {
   });
 }
 
-export function useArchivedContentQuery() {
+export function useArchivedContentQuery(enabled = false) {
   return useQuery<UnifiedContent[]>({
     queryKey: ARCHIVED_CONTENT_QUERY_KEY,
+    enabled,
     queryFn: async () => {
       const archivedContent = await apiFetch<UnifiedContent[]>('/api/content/archived');
       return archivedContent.map((item) => ({ ...item, archived: true }));
     },
+  });
+}
+
+export interface ContentCounts {
+  archived: number;
+  hidden?: number;
+}
+
+export function useContentCountsQuery() {
+  return useQuery<ContentCounts>({
+    queryKey: CONTENT_COUNTS_QUERY_KEY,
+    queryFn: () => apiFetch<ContentCounts>('/api/content/counts'),
   });
 }
 

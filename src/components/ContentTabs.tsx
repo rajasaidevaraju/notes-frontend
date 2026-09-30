@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './ContentTabs.module.css';
 import { useContentStore, ContentTab } from '@/store/contentStore';
-import { useHiddenContentQuery, useArchivedContentQuery } from '@/hooks/useContentQuery';
+import { useContentCountsQuery } from '@/hooks/useContentQuery';
 
 interface ContentTabsProps {
   onUnlockRequest: (targetTab: ContentTab) => void;
@@ -9,11 +9,10 @@ interface ContentTabsProps {
 
 const ContentTabs: React.FC<ContentTabsProps> = ({ onUnlockRequest }) => {
   const { activeTab, setActiveTab, hiddenUnlocked } = useContentStore();
-  const { data: hiddenData = [] } = useHiddenContentQuery(hiddenUnlocked);
-  const { data: archivedData = [] } = useArchivedContentQuery();
+  const { data: counts } = useContentCountsQuery();
 
-  const hiddenCount = hiddenUnlocked ? hiddenData.length : 0;
-  const archivedCount = archivedData.length;
+  const hiddenCount = hiddenUnlocked ? counts?.hidden ?? 0 : 0;
+  const archivedCount = counts?.archived ?? 0;
 
   const handleTabClick = (tab: ContentTab) => {
     if (tab === 'all' || tab === 'archived') {
