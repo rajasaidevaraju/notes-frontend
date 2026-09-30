@@ -12,9 +12,40 @@ interface ModalProps {
   className?: string;
 }
 
+/** Open modals, oldest first. Escape closes only the last (topmost) one. */
+const openModals: object[] = [];
+
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, className }) => {
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  // onClose is a fresh closure each render; the key listener reads the latest.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Escape goes through the same onClose as the X button, so a form's unsaved-
+  // changes guard still asks first. A key already handled inside the modal
+  // (InlineEdit uses Escape to finish editing) is left alone.
+  useEffect(() => {
+    if (!isOpen) return;
+    const token = {};
+    openModals.push(token);
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) return;
+      if (openModals[openModals.length - 1] !== token) return;
+      e.preventDefault();
+      onCloseRef.current();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      openModals.splice(openModals.indexOf(token), 1);
+    };
+  }, [isOpen]);
 
   // Stays true after isOpen turns false, until the exit animation has played.
   const [rendered, setRendered] = useState(isOpen);

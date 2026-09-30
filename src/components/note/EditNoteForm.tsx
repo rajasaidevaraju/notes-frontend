@@ -29,12 +29,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const updateNoteMutation = useUpdateNoteMutation();
 
-  const isDirty =
-    formData.title !== note.title ||
-    formData.content !== note.content ||
-    formData.pinned !== note.pinned ||
-    formData.hidden !== note.hidden ||
-    formData.archived !== note.archived;
+  const isDirty = formData.title !== note.title || formData.content !== note.content;
 
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
@@ -50,13 +45,9 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }
   }, [isOpen, formData.content]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    const { name, value, type } = e.target;
-    const isCheckbox = type === 'checkbox';
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: isCheckbox ? (e.target as HTMLInputElement).checked : value,
-    }));
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    const { value } = e.target;
+    setFormData((prevData) => ({ ...prevData, content: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +60,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     }
 
     try {
-      await updateNoteMutation.mutateAsync(formData);
+      await updateNoteMutation.mutateAsync({ ...note, title: formData.title, content: formData.content });
       onClose();
     } catch (err: unknown) {
       setFormError(toMessage(err, 'Failed to update note'));
@@ -101,48 +92,6 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
             className={styles.formTextarea}
             maxLength={LIMITS.NOTE_CONTENT}
           ></textarea>
-          <div className={noteItemStyles.checkboxRow}>
-            <div className={noteItemStyles.checkboxField}>
-              <input
-                type="checkbox"
-                id="pinNote"
-                name="pinned"
-                checked={formData.pinned}
-                onChange={handleChange}
-                className={noteItemStyles.checkboxInput}
-              />
-              <label htmlFor="pinNote" className={noteItemStyles.checkboxLabel}>
-                Pin Note
-              </label>
-            </div>
-            <div className={noteItemStyles.checkboxField}>
-              <input
-                type="checkbox"
-                id="hideNote"
-                name="hidden"
-                checked={formData.hidden}
-                onChange={handleChange}
-                className={noteItemStyles.checkboxInput}
-              />
-              <label htmlFor="hideNote" className={noteItemStyles.checkboxLabel}>
-                Hide Note
-              </label>
-            </div>
-            <div className={noteItemStyles.checkboxField}>
-              <input
-                type="checkbox"
-                id="archiveNote"
-                name="archived"
-                checked={formData.archived}
-                onChange={handleChange}
-                className={noteItemStyles.checkboxInput}
-              />
-              <label htmlFor="archiveNote" className={noteItemStyles.checkboxLabel}>
-                Archive Note
-              </label>
-            </div>
-          </div>
-
           <div className={styles.formActions}>
             <button
               type="submit"

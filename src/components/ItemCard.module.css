@@ -221,35 +221,6 @@
   align-self: center;
 }
 
-.checkboxInput {
-  width: 1.125rem;
-  height: 1.125rem;
-  accent-color: var(--color-brand-primary);
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-right: 0.5rem;
-}
-
-.checkboxRow {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: center;
-  gap: 1.5rem;
-  flex-shrink: 0;
-}
-
-.checkboxField {
-  display: flex;
-  align-items: center;
-}
-
-.checkboxLabel {
-  font-size: 0.9rem;
-  color: var(--color-neutral-700);
-  font-weight: 500;
-  cursor: pointer;
-}
-
 .multiSelectCheckbox {
   position: absolute;
   top: 0.75rem;
