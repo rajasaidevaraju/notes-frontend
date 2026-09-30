@@ -33,7 +33,7 @@
 
 .unitInput:focus {
   outline: none;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-color: var(--color-brand-primary);
 }
 
@@ -61,7 +61,7 @@
 
 .quickAddInput:focus {
   outline: none;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-color: var(--color-brand-primary);
 }
 
@@ -106,7 +106,7 @@
   padding: 0.25rem;
   background: transparent;
   border: none;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
   cursor: pointer;
   border-radius: var(--radius-sm);
   display: flex;

@@ -11,7 +11,7 @@ const ContentTabs: React.FC<ContentTabsProps> = ({ onUnlockRequest }) => {
   const { activeTab, setActiveTab, hiddenUnlocked } = useContentStore();
   const { data: counts } = useContentCountsQuery();
 
-  const hiddenCount = hiddenUnlocked ? counts?.hidden ?? 0 : 0;
+  const hiddenCount = counts?.hidden;
   const archivedCount = counts?.archived ?? 0;
 
   const handleTabClick = (tab: ContentTab) => {
@@ -97,13 +97,7 @@ const ContentTabs: React.FC<ContentTabsProps> = ({ onUnlockRequest }) => {
           </svg>
         )}
         <span>Hidden</span>
-        {hiddenUnlocked ? (
-          <span className={styles.badge}>{hiddenCount}</span>
-        ) : (
-          <>
-
-          </>
-        )}
+        {hiddenCount !== undefined && <span className={styles.badge}>{hiddenCount}</span>}
       </button>
 
       <button

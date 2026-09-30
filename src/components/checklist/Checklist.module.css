@@ -28,7 +28,7 @@
 
 .itemChecked {
   text-decoration: line-through;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
 }
 
 .itemInput {
@@ -57,7 +57,7 @@
   padding: 0.25rem;
   background: transparent;
   border: none;
-  color: var(--color-neutral-400);
+  color: var(--color-neutral-500);
   cursor: pointer;
   border-radius: var(--radius-sm);
   display: flex;

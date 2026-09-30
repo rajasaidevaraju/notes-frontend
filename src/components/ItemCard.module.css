@@ -1,6 +1,6 @@
 
 .noteItem {
-  --note-bg: var(--color-white);
+  --note-bg: var(--color-surface);
   --note-border: var(--color-neutral-200);
   --note-border-hover: var(--color-neutral-300);
   display: flex;
@@ -107,7 +107,7 @@
   text-transform: uppercase;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-neutral-200);
 }
 
@@ -118,14 +118,14 @@
 
 /* Card variants */
 .selectedNote {
-  --note-bg: #f8faff;
+  --note-bg: var(--color-card-selected);
   --note-border: var(--color-brand-primary);
   --note-border-hover: var(--color-brand-primary);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
 }
 
 .hiddenNote {
-  --note-bg: #eceef1;
+  --note-bg: var(--color-card-hidden);
   --note-border: var(--color-neutral-300);
   --note-border-hover: var(--color-neutral-400);
 }
@@ -141,30 +141,17 @@
 }
 
 .archivedNote {
-  --note-bg: #f3f0ea;
+  --note-bg: var(--color-card-archived);
   --note-border: var(--color-neutral-300);
   --note-border-hover: var(--color-neutral-400);
 }
 
 :global(.dark) .selectedNote {
-  --note-bg: #24304a;
   box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.3);
-}
-
-:global(.dark) .hiddenNote {
-  --note-bg: #151515;
-  --note-border: var(--color-neutral-300);
-  --note-border-hover: var(--color-neutral-400);
 }
 
 :global(.dark) .hiddenNote .noteTitle {
   color: var(--color-neutral-700);
-}
-
-:global(.dark) .archivedNote {
-  --note-bg: #1a1815;
-  --note-border: var(--color-neutral-300);
-  --note-border-hover: var(--color-neutral-400);
 }
 
 .permission {
