@@ -10,7 +10,6 @@ interface SavedStyles {
   overflow: string;
   position: string;
   width: string;
-  height: string;
   top: string;
   scrollY: number;
 }
@@ -36,7 +35,6 @@ export function lockBodyScroll(): () => void {
       overflow: document.body.style.overflow,
       position: document.body.style.position,
       width: document.body.style.width,
-      height: document.body.style.height,
       top: document.body.style.top,
       scrollY: window.scrollY,
     };
@@ -45,7 +43,8 @@ export function lockBodyScroll(): () => void {
     if (isSheetLayout()) {
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
-      document.body.style.height = '100%';
+      // No height: 100% here. With overflow hidden, a viewport-tall body shifted up
+      // by `top` clips away everything once scrolled past one screen.
       document.body.style.top = `-${saved.scrollY}px`;
     }
   }
@@ -62,7 +61,6 @@ export function lockBodyScroll(): () => void {
     document.body.style.overflow = styles.overflow;
     document.body.style.position = styles.position;
     document.body.style.width = styles.width;
-    document.body.style.height = styles.height;
     document.body.style.top = styles.top;
     window.scrollTo(0, scrollY);
     saved = null;

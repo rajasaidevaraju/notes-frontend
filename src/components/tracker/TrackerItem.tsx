@@ -6,6 +6,7 @@ import EditTrackerForm from './EditTrackerForm';
 import AddEntryForm from './AddEntryForm';
 import Modal from '@/components/Modal';
 import ItemCard from '@/components/ItemCard';
+import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useItemCard } from '@/components/useItemCard';
 import { Tracker } from '@/types/Types';
 import { useContentStore } from '@/store/contentStore';
@@ -91,7 +92,7 @@ const TrackerItem: React.FC<TrackerItemProps> = ({
       {card.minimized ? (
         <p className={itemCardStyles.noteContent}>...</p>
       ) : (
-        <div>
+        <div className={itemCardStyles.bodyAnchor}>
           {tracker.entries.length === 0 ? (
             <p className={trackerStyles.emptyHint}>No entries yet. Press + to add the first value.</p>
           ) : (
@@ -103,15 +104,7 @@ const TrackerItem: React.FC<TrackerItemProps> = ({
           )}
 
           {hiddenCount > 0 && (
-            <button
-              className={trackerStyles.viewAllButton}
-              onClick={(e) => {
-                e.stopPropagation();
-                card.openView();
-              }}
-            >
-              View all {tracker.entries.length} entries
-            </button>
+            <ReadMoreOverlay label={`View all ${tracker.entries.length} entries`} onClick={card.openView} />
           )}
         </div>
       )}

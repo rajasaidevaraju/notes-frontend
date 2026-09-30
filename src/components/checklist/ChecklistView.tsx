@@ -3,6 +3,7 @@ import { Checklist, ChecklistItem } from '@/types/Types';
 import checklistStyles from './Checklist.module.css';
 import noteItemStyles from '@/components/ItemCard.module.css';
 import ErrorMessage from '@/components/ErrorMessage';
+import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useUpdateChecklistItemMutation } from '@/hooks/useContentQuery';
 import { toMessage } from '@/utils/errors';
 
@@ -81,16 +82,8 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
           )}
         </div>
       </div>
-      {isOverflowing && !isMinimized && (
-        <div
-          className={noteItemStyles.fadeOverlay}
-          onClick={(e) => {
-            e.stopPropagation();
-            onReadMore?.();
-          }}
-        >
-          <span className={noteItemStyles.moreIndicator}>View More</span>
-        </div>
+      {isOverflowing && !isMinimized && onReadMore && (
+        <ReadMoreOverlay label="View More" onClick={onReadMore} />
       )}
     </div>
   );

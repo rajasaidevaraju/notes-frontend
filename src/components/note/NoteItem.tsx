@@ -4,6 +4,7 @@ import { Note } from '@/types/Types';
 import EditNoteFormModal from './EditNoteForm';
 import ViewNoteModal from './ViewNoteModal';
 import ItemCard from '@/components/ItemCard';
+import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useItemCard } from '@/components/useItemCard';
 import { useUpdateNoteMutation, useDeleteNoteMutation } from '@/hooks/useContentQuery';
 
@@ -53,15 +54,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, isSelected, onToggleSelect, i
           {card.minimized ? '...' : note.content || 'No content'}
         </p>
         {isOverflowing && !card.minimized && (
-          <div
-            className={styles.fadeOverlay}
-            onClick={(e) => {
-              e.stopPropagation();
-              card.openView();
-            }}
-          >
-            <span className={styles.moreIndicator}>Read More</span>
-          </div>
+          <ReadMoreOverlay label="Read More" onClick={card.openView} />
         )}
       </div>
     </ItemCard>

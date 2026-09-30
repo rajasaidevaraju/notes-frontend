@@ -337,6 +337,22 @@
   }
 }
 
+/* Modal keeps the overlay mounted until this finishes; see Modal.tsx */
+.modalOverlay[data-state='closing'] {
+  pointer-events: none;
+  animation: overlayFadeOut var(--transition-normal) both;
+}
+
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 .modalContent {
   background: var(--color-surface);
   padding: 1.25rem;

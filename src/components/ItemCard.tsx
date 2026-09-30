@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './ItemCard.module.css';
 import ErrorMessage from './ErrorMessage';
-import ItemToolbar from './ItemToolbar';
+import ItemToolbar, { ItemActionsMenu } from './ItemToolbar';
 import ConfirmActionModal from './ConfirmActionModal';
 import { ContentType, UnifiedContent } from '@/types/Types';
 import { ItemCardController } from './useItemCard';
@@ -80,11 +80,25 @@ const ItemCard: React.FC<ItemCardProps> = ({
       <ErrorMessage message={card.itemError} />
 
       <div className={styles.noteHeader}>
-        {/* Truncation is CSS (.noteTitle clamps), so the full title stays in the DOM. */}
-        <h3 className={styles.noteTitle}>
-          {item.title}
-          {titleSuffix}
-        </h3>
+        <div className={styles.titleRow}>
+          {/* Truncation is CSS (.noteTitle clamps), so the full title stays in the DOM. */}
+          <h3 className={styles.noteTitle}>
+            {item.title}
+            {titleSuffix}
+          </h3>
+          {!isSelectingMode && (
+            <ItemActionsMenu
+              title={`${item.title}${titleSuffix ?? ''}`}
+              pinned={item.pinned}
+              hidden={item.hidden}
+              archived={item.archived}
+              minimized={card.minimized}
+              copyFeedback={card.copyFeedback}
+              onAdd={onAdd}
+              {...card.toolbar}
+            />
+          )}
+        </div>
         {isSelectingMode ? (
           <input
             type="checkbox"

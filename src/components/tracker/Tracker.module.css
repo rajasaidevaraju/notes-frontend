@@ -133,24 +133,6 @@
   }
 }
 
-.viewAllButton {
-  margin-top: 0.375rem;
-  background: none;
-  border: none;
-  padding: 0.2rem 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-neutral-600);
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.viewAllButton:hover {
-  color: var(--color-brand-primary);
-}
-
 .emptyHint {
   color: var(--color-neutral-500);
   font-size: 0.85rem;
