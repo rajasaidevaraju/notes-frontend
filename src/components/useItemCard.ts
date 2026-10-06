@@ -3,6 +3,7 @@ import { UnifiedContent, contentKey } from '@/types/Types';
 import { useContentStore } from '@/store/contentStore';
 import { useItemUiStore } from '@/store/itemUiStore';
 import { toMessage } from '@/utils/errors';
+import { copyToClipboard } from '@/utils/clipboard';
 
 interface UseItemCardOptions {
   item: UnifiedContent;
@@ -86,10 +87,9 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
     setCopyFeedback(null);
 
     try {
-      if (!navigator.clipboard) throw new Error('Clipboard API not supported.');
       const text = copyText();
       if (!text) throw new Error('No content to copy.');
-      await navigator.clipboard.writeText(text);
+      await copyToClipboard(text);
       setCopyFeedback('Copied!');
       clearLater(() => setCopyFeedback(null), 2000);
     } catch (err: unknown) {
