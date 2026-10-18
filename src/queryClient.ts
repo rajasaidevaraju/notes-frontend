@@ -1,7 +1,7 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/utils/api';
 import { useContentStore } from '@/store/contentStore';
-import { useNotificationStore } from '@/store/notificationStore';
+import { toast } from 'sonner';
 import { AUTH_STATUS_QUERY_KEY, CONTENT_COUNTS_QUERY_KEY } from '@/hooks/useContentQuery';
 
 
@@ -15,9 +15,7 @@ function handleSessionExpiry(error: unknown) {
   queryClient.invalidateQueries({ queryKey: CONTENT_COUNTS_QUERY_KEY });
 
   if (hiddenUnlocked) {
-    useNotificationStore
-      .getState()
-      .addNotification('Session expired. Re-enter your PIN to view hidden items.', 'warning');
+    toast.warning('Session expired. Re-enter your PIN to view hidden items.');
   }
 }
 

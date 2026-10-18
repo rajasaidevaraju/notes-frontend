@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import styles from '@/Home.module.css';
-import { lockBodyScroll } from '@/utils/bodyScrollLock';
+import { useEffect, useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,79 +10,16 @@ interface ModalProps {
   className?: string;
 }
 
-const openModals: object[] = [];
-
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, className }) => {
-  const [mounted, setMounted] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  const onCloseRef = useRef(onClose);
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  });
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const token = {};
-    openModals.push(token);
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) return;
-      if (openModals[openModals.length - 1] !== token) return;
-      e.preventDefault();
-      onCloseRef.current();
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      openModals.splice(openModals.indexOf(token), 1);
-    };
-  }, [isOpen]);
-
-  const [rendered, setRendered] = useState(isOpen);
-  if (isOpen && !rendered) setRendered(true);
-  const closing = rendered && !isOpen;
-
-  useEffect(() => {
-    if (!closing) return;
-    const overlay = overlayRef.current;
-    if (!overlay?.getAnimations) {
-      setRendered(false);
-      return;
-    }
-
-    let cancelled = false;
-    // Infinite animations (spinners) never finish.
-    const finite = overlay
-      .getAnimations({ subtree: true })
-      .filter((a) => Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
-
-    Promise.all(finite.map((a) => a.finished))
-      .catch(() => undefined)
-      .then(() => {
-        if (!cancelled) setRendered(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [closing]);
-
-  useEffect(() => {
-    setMounted(true);
-    if (isOpen) return lockBodyScroll();
-  }, [isOpen]);
-
-  // Fixed overlays ignore the on-screen keyboard; track the visual viewport so the sheet stays above it.
+// Fixed overlays ignore the on-screen keyboard; lift the bottom sheet by the space it covers.
+function useKeyboardInset(active: boolean) {
   useEffect(() => {
     const viewport = window.visualViewport;
-    if (!isOpen || !mounted || !viewport) return;
+    if (!active || !viewport) return;
 
+    const root = document.documentElement;
     const sync = () => {
-      const overlay = overlayRef.current;
-      if (!overlay) return;
-      overlay.style.setProperty('--visual-viewport-height', `${viewport.height}px`);
-      overlay.style.setProperty('--visual-viewport-top', `${viewport.offsetTop}px`);
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      root.style.setProperty('--keyboard-inset', `${inset}px`);
     };
 
     sync();
@@ -92,35 +28,43 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, classNa
     return () => {
       viewport.removeEventListener('resize', sync);
       viewport.removeEventListener('scroll', sync);
+      root.style.removeProperty('--keyboard-inset');
     };
-  }, [isOpen, mounted]);
+  }, [active]);
+}
 
-  if (!rendered || !mounted) return null;
+const isTouch = () => window.matchMedia('(pointer: coarse)').matches;
 
-  return createPortal(
-    <div
-      ref={overlayRef}
-      className={className ? `${styles.modalOverlay} ${className}` : styles.modalOverlay}
-      data-state={closing ? 'closing' : 'open'}
-      onClick={closing ? undefined : onClose}
-    >
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, className }) => {
+  const popupRef = useRef<HTMLDivElement>(null);
+  useKeyboardInset(isOpen);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        ref={popupRef}
+        // Focusing an input on open would pop the on-screen keyboard.
+        initialFocus={() => (isTouch() ? popupRef.current : true)}
+        className={cn(
+          'flex max-h-[85dvh] flex-col gap-0 p-0 sm:max-w-[550px]',
+          'max-sm:top-auto max-sm:bottom-(--keyboard-inset,0px) max-sm:left-0 max-sm:max-h-[calc(100dvh-var(--keyboard-inset,0px))] max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-b-none max-sm:pb-[env(safe-area-inset-bottom)] max-sm:duration-200 max-sm:data-open:zoom-in-100 max-sm:data-open:slide-in-from-bottom-full max-sm:data-closed:zoom-out-100 max-sm:data-closed:slide-out-to-bottom-full',
+          className
+        )}
+      >
+        <DialogHeader className="min-w-0 border-b px-4 py-3 pr-12">
           {typeof title === 'string' ? (
-            <h2 className={styles.modalTitle}>{title}</h2>
+            <DialogTitle className="truncate text-lg leading-snug">{title}</DialogTitle>
           ) : (
-            title
+            <DialogTitle render={<div />} className="min-w-0">
+              {title}
+            </DialogTitle>
           )}
-          <button className={styles.modalCloseButton} onClick={onClose}>
-            &times;
-          </button>
-        </div>
-        <div className={styles.modalBody}>
+        </DialogHeader>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
           {children}
         </div>
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </Dialog>
   );
 };
 

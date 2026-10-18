@@ -1,10 +1,12 @@
 import React from 'react';
-import styles from './ItemCard.module.css';
 import ErrorMessage from './ErrorMessage';
 import ItemToolbar, { ItemActionsMenu } from './ItemToolbar';
 import ConfirmActionModal from './ConfirmActionModal';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 import { ContentType, UnifiedContent } from '@/types/Types';
 import { ItemCardController } from './useItemCard';
+import { itemCardClass, itemTitleClass } from './itemCardStyles';
 
 const LABELS: Record<ContentType, { noun: string; deleteTitle: string; deleteMessage: string }> = {
   note: {
@@ -49,19 +51,18 @@ const ItemCard: React.FC<ItemCardProps> = ({
 }) => {
   const labels = LABELS[item.type];
 
-  const className = [
-    styles.noteItem,
-    item.pinned && styles.pinnedNote,
-    item.hidden && styles.hiddenNote,
-    item.archived && styles.archivedNote,
-    isSelected && styles.selectedNote,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   return (
     <div
-      className={className}
+      className={cn(
+        itemCardClass,
+        item.pinned && 'border-primary/60 hover:border-primary',
+        item.hidden && '[--card-bg:var(--color-muted)]',
+        item.archived &&
+          'border-dashed [--card-bg:color-mix(in_oklch,var(--color-muted)_60%,var(--color-card))]',
+        isSelected &&
+          'border-primary ring-3 ring-primary/25 [--card-bg:color-mix(in_oklch,var(--color-primary)_6%,var(--color-card))] hover:border-primary',
+        isSelectingMode && 'cursor-pointer'
+      )}
       onClick={(e) => {
         e.stopPropagation();
         if (isSelectingMode) onToggleSelect();
@@ -69,9 +70,18 @@ const ItemCard: React.FC<ItemCardProps> = ({
     >
       <ErrorMessage message={card.itemError} />
 
-      <div className={styles.noteHeader}>
-        <div className={styles.titleRow}>
-          <h3 className={styles.noteTitle}>
+      <div className="flex flex-col items-start gap-2.5">
+        <div className="flex w-full items-center gap-2">
+          {isSelectingMode && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={onToggleSelect}
+              onClick={(e) => e.stopPropagation()}
+              className="size-5 md:size-4.5"
+              aria-label={`Select ${labels.noun}`}
+            />
+          )}
+          <h3 className={itemTitleClass}>
             {item.title}
             {titleSuffix}
           </h3>
@@ -88,16 +98,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
             />
           )}
         </div>
-        {isSelectingMode ? (
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onToggleSelect}
-            className={styles.multiSelectCheckbox}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={`Select ${labels.noun}`}
-          />
-        ) : (
+        {!isSelectingMode && (
           <ItemToolbar
             pinned={item.pinned}
             hidden={item.hidden}

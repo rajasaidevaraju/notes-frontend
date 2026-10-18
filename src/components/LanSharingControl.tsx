@@ -1,6 +1,7 @@
 import React from 'react';
-import styles from '@/Home.module.css';
-import { useNotificationStore } from '@/store/notificationStore';
+import { toast } from 'sonner';
+import { Share2Icon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   useLanStatusQuery,
   useEnableLanMutation,
@@ -11,7 +12,6 @@ const LanSharingControl: React.FC = () => {
   const { data: status } = useLanStatusQuery();
   const enableMutation = useEnableLanMutation();
   const disableMutation = useDisableLanMutation();
-  const addNotification = useNotificationStore((state) => state.addNotification);
 
   const loading = enableMutation.isPending || disableMutation.isPending;
 
@@ -19,8 +19,7 @@ const LanSharingControl: React.FC = () => {
     try {
       await enableMutation.mutateAsync();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'A network error occurred.';
-      addNotification(msg, 'error');
+      toast.error(error instanceof Error ? error.message : 'A network error occurred.');
     }
   };
 
@@ -28,64 +27,45 @@ const LanSharingControl: React.FC = () => {
     try {
       await disableMutation.mutateAsync();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'A network error occurred.';
-      addNotification(msg, 'error');
+      toast.error(error instanceof Error ? error.message : 'A network error occurred.');
     }
   };
 
   if (!status) return null;
 
   return (
-    <div className={styles.lanControlContainer}>
+    <div className="flex items-center gap-2.5 whitespace-nowrap">
       {status.enabled ? (
         <>
-          <span className={styles.serverIpText}>
-            LAN Active: <strong> ({Math.ceil(status.remainingMs / 60000)}m) </strong>
+          <span className="text-muted-foreground">
+            LAN Active:{' '}
+            <strong className="font-mono font-semibold text-primary">
+              ({Math.ceil(status.remainingMs / 60000)}m)
+            </strong>
           </span>
           {status.canManage && (
-            <div className={styles.lanButtonRow}>
-              <button
-                onClick={handleEnable}
-                className={`${styles.button} ${styles.successButton}`}
-                disabled={loading}
-              >
+            <div className="flex gap-1.5">
+              <Button size="sm" variant="secondary" onClick={handleEnable} disabled={loading}>
                 Reset
-              </button>
-              <button
-                onClick={handleDisable}
-                className={`${styles.button} ${styles.dangerButton}`}
-                disabled={loading}
-              >
+              </Button>
+              <Button size="sm" variant="destructive" onClick={handleDisable} disabled={loading}>
                 Disable
-              </button>
+              </Button>
             </div>
           )}
         </>
       ) : (
         status.canManage && (
-          <button
+          <Button
+            size="sm"
             onClick={handleEnable}
-            className={`${styles.button} ${styles.primaryButton}`}
             disabled={loading}
             title="Share on LAN (15m)"
             aria-label="Share on LAN (15 minutes)"
           >
-            <svg
-              className={`${styles.icon} ${styles.mobileOnlyIcon}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6" />
-              <path d="m21 3-9 9" />
-              <path d="M15 3h6v6" />
-            </svg>
-            <span className={styles.desktopOnlyLabel}>Share on LAN (15m)</span>
-          </button>
+            <Share2Icon className="md:hidden" />
+            <span className="max-md:hidden">Share on LAN (15m)</span>
+          </Button>
         )
       )}
     </div>

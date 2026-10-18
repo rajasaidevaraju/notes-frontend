@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import styles from '@/Home.module.css';
-import trackerStyles from './Tracker.module.css';
 import ErrorMessage from '@/components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tracker } from '@/types/Types';
 import { LIMITS } from '@/constants';
 import { useAddTrackerEntryMutation } from '@/hooks/useContentQuery';
@@ -14,12 +14,7 @@ interface AddEntryFormProps {
 const AddEntryForm: React.FC<AddEntryFormProps> = ({ tracker, onClose }) => {
   const [value, setValue] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
   const addTrackerEntryMutation = useAddTrackerEntryMutation();
-
-  React.useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,32 +33,25 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ tracker, onClose }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {formError && <ErrorMessage message={formError} />}
-      <div className={trackerStyles.quickAddRow}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={tracker.unit ? `New value (${tracker.unit})...` : 'New value...'}
-          className={trackerStyles.quickAddInput}
-          maxLength={LIMITS.TRACKER_VALUE}
-          aria-label="New entry value"
-        />
-      </div>
+      <Input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={tracker.unit ? `New value (${tracker.unit})...` : 'New value...'}
+        maxLength={LIMITS.TRACKER_VALUE}
+        aria-label="New entry value"
+        autoFocus
+      />
 
-      <div className={styles.formActions}>
-        <button
-          type="submit"
-          className={`${styles.button} ${styles.successButton}`}
-          disabled={!value.trim() || addTrackerEntryMutation.isPending}
-        >
-          {addTrackerEntryMutation.isPending ? 'Adding...' : 'Add Entry'}
-        </button>
-        <button type="button" onClick={onClose} className={`${styles.button}`}>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onClose}>
           Cancel
-        </button>
+        </Button>
+        <Button type="submit" disabled={!value.trim() || addTrackerEntryMutation.isPending}>
+          {addTrackerEntryMutation.isPending ? 'Adding...' : 'Add Entry'}
+        </Button>
       </div>
     </form>
   );

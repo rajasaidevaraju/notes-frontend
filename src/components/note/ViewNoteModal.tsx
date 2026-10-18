@@ -1,7 +1,6 @@
 import React from 'react';
 import { Note } from '@/types/Types';
 import Modal from '@/components/Modal';
-import noteItemStyles from '@/components/ItemCard.module.css';
 
 interface ViewNoteModalProps {
     isOpen: boolean;
@@ -12,10 +11,8 @@ interface ViewNoteModalProps {
 const ViewNoteModal: React.FC<ViewNoteModalProps> = ({ isOpen, onClose, note }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={note.title}>
-            <div className={noteItemStyles.viewContentContainer}>
-                <div className={noteItemStyles.viewContent}>
-                    {note.content || <i className={noteItemStyles.emptyContent}>No content</i>}
-                </div>
+            <div className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                {note.content || <i className="text-muted-foreground">No content</i>}
             </div>
         </Modal>
     );

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Input } from '@/components/ui/input';
 
 interface InlineEditProps {
   value: string;
@@ -34,7 +35,7 @@ const InlineEdit: React.FC<InlineEditProps> = ({
 
   if (editing) {
     return (
-      <input
+      <Input
         ref={inputRef}
         type="text"
         value={value}
@@ -44,6 +45,8 @@ const InlineEdit: React.FC<InlineEditProps> = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === 'Escape') {
             e.preventDefault();
+            // Escape should end the edit, not also close the surrounding dialog.
+            e.stopPropagation();
             setEditing(false);
           }
         }}

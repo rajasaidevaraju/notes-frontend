@@ -1,8 +1,12 @@
-import styles from '@/Home.module.css';
 import React, { useState } from 'react';
 import ErrorMessage from './ErrorMessage';
 import Modal from './Modal';
 import ConfirmActionModal from './ConfirmActionModal';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 import { LIMITS } from '@/constants';
@@ -72,82 +76,78 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={requestClose} title="Add New">
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <ErrorMessage message={formError} />
+    <Modal isOpen={isOpen} onClose={requestClose} title="Add New">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <ErrorMessage message={formError} />
 
-          <div className={styles.typePicker} role="group" aria-label="Item type">
-            {TYPE_OPTIONS.map(({ type, label }) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setItemType(type)}
-                className={`${styles.button} ${itemType === type ? styles.primaryButton : ''}`}
-                aria-pressed={itemType === type}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+        <ToggleGroup
+          variant="outline"
+          value={[itemType]}
+          onValueChange={(value) => value[0] && setItemType(value[0] as ContentType)}
+          aria-label="Item type"
+          className="w-full"
+        >
+          {TYPE_OPTIONS.map(({ type, label }) => (
+            <ToggleGroupItem
+              key={type}
+              value={type}
+              className="flex-1 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:hover:bg-primary/90"
+            >
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
 
-          <div>
-            <label htmlFor="itemTitle" className={styles.formLabel}>
-              Title
-            </label>
-            <input
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="itemTitle">Title</Label>
+          <Input
+            type="text"
+            id="itemTitle"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={`Enter ${itemType} title`}
+            required
+            maxLength={LIMITS.TITLE}
+            autoComplete="off"
+          />
+        </div>
+
+        {itemType === 'tracker' && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="itemUnit">Unit (Optional)</Label>
+            <Input
               type="text"
-              id="itemTitle"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={`Enter ${itemType} title`}
-              className={styles.formTitle}
-              required
-              maxLength={LIMITS.TITLE}
+              id="itemUnit"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="kg, steps, hours…"
+              maxLength={LIMITS.TRACKER_UNIT}
               autoComplete="off"
             />
           </div>
+        )}
 
-          {itemType === 'tracker' && (
-            <div>
-              <label htmlFor="itemUnit" className={styles.formLabel}>
-                Unit (Optional)
-              </label>
-              <input
-                type="text"
-                id="itemUnit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="kg, steps, hours…"
-                className={styles.formTitle}
-                maxLength={LIMITS.TRACKER_UNIT}
-                autoComplete="off"
-              />
-            </div>
-          )}
+        {itemType === 'note' && (
+          <div className="flex min-h-0 flex-col gap-2">
+            <Label htmlFor="itemContent">Content (Optional)</Label>
+            <Textarea
+              id="itemContent"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Enter note content"
+              ref={(el) => {
+                if (el) autoGrow(el);
+              }}
+              className="min-h-32"
+              maxLength={LIMITS.NOTE_CONTENT}
+            />
+          </div>
+        )}
 
-          {itemType === 'note' && (
-            <div className={styles.formFieldGrow}>
-              <label htmlFor="itemContent" className={styles.formLabel}>
-                Content (Optional)
-              </label>
-              <textarea
-                id="itemContent"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter note content"
-                onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
-                className={styles.formTextarea}
-                maxLength={LIMITS.NOTE_CONTENT}
-              ></textarea>
-            </div>
-          )}
-
-          <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>
-            Add {TYPE_OPTIONS.find((option) => option.type === itemType)?.label}
-          </button>
-        </form>
-      </Modal>
+        <Button type="submit">
+          Add {TYPE_OPTIONS.find((option) => option.type === itemType)?.label}
+        </Button>
+      </form>
 
       <ConfirmActionModal
         isOpen={isConfirmOpen}
@@ -159,7 +159,7 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
         cancelText="Keep Editing"
         danger
       />
-    </>
+    </Modal>
   );
 };
 

@@ -1,4 +1,3 @@
-import styles from '@/Home.module.css';
 import LanSharingControl from './LanSharingControl';
 import { useServerIpQuery } from '@/hooks/useContentQuery';
 
@@ -9,17 +8,18 @@ const ServerIpDisplay = () => {
   const port = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
 
   return (
-    <div className={styles.serverInfoContainer}>
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/50 p-2 text-sm md:px-4 md:py-3">
       {serverIp && serverIp !== 'Not Found' ? (
-        <p className={styles.serverIpText}>
-          Server IP: <strong>{`${serverIp}${port}`}</strong>
+        <p className="whitespace-nowrap text-muted-foreground">
+          Server IP:{' '}
+          <strong className="font-mono font-semibold text-primary">{`${serverIp}${port}`}</strong>
         </p>
       ) : error ? (
-        <p className={styles.errorText}>Failed to get server IP</p>
+        <p className="font-medium text-destructive">Failed to get server IP</p>
       ) : isLoading ? (
-        <p className={styles.loadingText}>Loading server IP...</p>
+        <p className="text-muted-foreground">Loading server IP...</p>
       ) : (
-        <p className={styles.loadingText}>Server IP: Not available</p>
+        <p className="text-muted-foreground">Server IP: Not available</p>
       )}
       <LanSharingControl />
     </div>

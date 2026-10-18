@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import styles from '@/Home.module.css';
+import { LockIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ErrorMessage from './ErrorMessage';
 import ContentList from './ContentList';
 import AddContentForm from './AddContentForm';
@@ -93,72 +94,63 @@ const ContentContainer: React.FC = () => {
   return (
     <>
       <ErrorMessage message={displayError} />
-      <div className={styles.controlsContainer}>
-        <div className={styles.topNavigationRow}>
+      <div className="my-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 md:my-4">
+        <div className="flex w-full min-w-0 flex-auto flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:items-center md:gap-3">
           <ContentTabs onUnlockRequest={handleUnlockRequest} />
           <SearchBar />
         </div>
-        <div className={styles.mainActionButtons}>
+        <div className="flex w-full flex-wrap items-center gap-1.5 md:w-auto md:justify-end md:gap-2">
           {isSelectingMode ? (
             <>
               {selectedContent.size > 0 && (
-                <button
+                <Button
+                  variant="destructive"
                   onClick={() => setIsMultiDeleteModalOpen(true)}
-                  className={`${styles.button} ${styles.dangerButton}`}
+                  className="max-md:flex-1"
                   title={`Delete ${selectedContent.size} selected items`}
                 >
+                  <Trash2Icon />
                   Delete Selected ({selectedContent.size})
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                variant="outline"
                 onClick={toggleSelectingMode}
-                className={`${styles.button}`}
+                className="max-md:flex-1"
                 title="Cancel Selection"
               >
                 Cancel Selection
-              </button>
+              </Button>
             </>
           ) : (
-            <button
+            <Button
+              variant="outline"
               onClick={toggleSelectingMode}
-              className={`${styles.button}`}
+              className="max-md:flex-1"
               title="Select Items for Deletion"
             >
               Select Items
-            </button>
+            </Button>
           )}
 
           {hiddenUnlocked && (
-            <button
-              className={`${styles.button} ${styles.pinButton}`}
+            <Button
+              variant="outline"
               onClick={hideHiddenNotes}
+              className="max-md:flex-1"
               title="Lock hidden notes section"
             >
-              <svg
-                className={styles.icon}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <LockIcon />
               Lock Hidden
-            </button>
+            </Button>
           )}
 
           <ThemeToggle />
 
-          <button
-            onClick={() => setIsAddNoteModalOpen(true)}
-            className={`${styles.button} ${styles.primaryButton}`}
-          >
+          <Button onClick={() => setIsAddNoteModalOpen(true)} className="max-md:flex-1">
+            <PlusIcon />
             Create New
-          </button>
+          </Button>
         </div>
       </div>
 

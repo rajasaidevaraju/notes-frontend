@@ -50,7 +50,7 @@ This is the frontend application for the Notes project, built with Next.js and R
 
 * **Error Messages**: Displays user-friendly error messages for API failures or client-side issues.
 
-* **Styling**: Uses CSS Modules for component-scoped styles and global CSS variables for theme consistency.
+* **Styling**: Tailwind CSS v4 with [shadcn/ui](https://ui.shadcn.com) components (Base UI primitives, `base-nova` style) in `src/components/ui`; theme tokens live in `src/globals.css`.
 
 ## Setup
 

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import styles from '@/Home.module.css';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function Loading() {
-
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -11,10 +10,10 @@ export default function Loading() {
   }, []);
 
   if (!show) return null;
-  
+
   return (
-    <div className={styles.loadingOverlay}>
-      <div className={styles.spinner}></div>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/80">
+      <Spinner className="size-8 text-primary" />
     </div>
   );
 }

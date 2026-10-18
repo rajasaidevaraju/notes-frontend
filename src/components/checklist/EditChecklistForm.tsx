@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import styles from '@/Home.module.css';
-import checklistStyles from './Checklist.module.css';
-import noteItemStyles from '@/components/ItemCard.module.css';
+import { XIcon } from 'lucide-react';
 import Modal from '@/components/Modal';
 import EditableTitle from '@/components/EditableTitle';
 import ErrorMessage from '@/components/ErrorMessage';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 import { Checklist, ChecklistItem, NEW_ITEM_ID } from '@/types/Types';
@@ -112,88 +114,74 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
   };
 
   return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={requestClose}
-        title={<EditableTitle value={title} onChange={setTitle} placeholder="Checklist title" />}
-      >
-        <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
-          <ErrorMessage message={formError} />
+    <Modal
+      isOpen={isOpen}
+      onClose={requestClose}
+      title={<EditableTitle value={title} onChange={setTitle} placeholder="Checklist title" />}
+    >
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-3">
+        <ErrorMessage message={formError} />
 
-          <div className={checklistStyles.checklistItems}>
-            {items.map((item) => (
-              <div key={item.rowId} className={checklistStyles.checklistItem}>
-                <input
-                  type="checkbox"
-                  checked={item.checked}
-                  onChange={() => handleToggleItemStatus(item.rowId)}
-                  className={checklistStyles.checkboxInput}
-                />
-                <input
-                  type="text"
-                  value={item.content}
-                  onChange={(e) => handleUpdateItemContent(item.rowId, e.target.value)}
-                  className={`${checklistStyles.itemInput} ${
-                    item.checked ? checklistStyles.itemChecked : ''
-                  }`}
-                  maxLength={LIMITS.CHECKLIST_ITEM}
-                />
-                <button
-                  type="button"
-                  className={checklistStyles.deleteItemButton}
-                  onClick={() => handleDeleteItem(item.rowId)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-
-            <div className={`${checklistStyles.checklistItem} ${checklistStyles.newItemRow}`}>
-              <input type="checkbox" disabled className={checklistStyles.checkboxInput} />
-              <input
-                type="text"
-                value={newItemContent}
-                onChange={(e) => setNewItemContent(e.target.value)}
-                placeholder="Add new item..."
-                className={checklistStyles.itemInput}
-                maxLength={LIMITS.CHECKLIST_ITEM}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddItem();
-                  }
-                }}
+        <div className="flex flex-col gap-1.5">
+          {items.map((item) => (
+            <div key={item.rowId} className="flex items-center gap-2">
+              <Checkbox
+                checked={item.checked}
+                onCheckedChange={() => handleToggleItemStatus(item.rowId)}
+                className="max-sm:size-5"
+                aria-label="Done"
               />
+              <Input
+                type="text"
+                value={item.content}
+                onChange={(e) => handleUpdateItemContent(item.rowId, e.target.value)}
+                className={cn(item.checked && 'text-muted-foreground line-through')}
+                maxLength={LIMITS.CHECKLIST_ITEM}
+                aria-label="Item"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => handleDeleteItem(item.rowId)}
+                title="Remove item"
+                aria-label="Remove item"
+              >
+                <XIcon />
+              </Button>
             </div>
-          </div>
+          ))}
 
-          <div className={styles.formActions}>
-            <button
-              type="submit"
-              className={`${styles.button} ${styles.successButton}`}
-              disabled={updateChecklistMutation.isPending}
-            >
-              {updateChecklistMutation.isPending ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button type="button" onClick={requestClose} className={`${styles.button}`}>
-              Cancel
-            </button>
+          <div className="flex items-center gap-2 pr-9">
+            <Checkbox disabled className="max-sm:size-5" aria-label="Done" />
+            <Input
+              type="text"
+              value={newItemContent}
+              onChange={(e) => setNewItemContent(e.target.value)}
+              placeholder="Add new item..."
+              className="border-dashed"
+              maxLength={LIMITS.CHECKLIST_ITEM}
+              aria-label="New item"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddItem();
+                }
+              }}
+            />
           </div>
-        </form>
-      </Modal>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={requestClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateChecklistMutation.isPending}>
+            {updateChecklistMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </form>
 
       <ConfirmActionModal
         isOpen={isConfirmOpen}
@@ -205,7 +193,7 @@ const EditChecklistForm: React.FC<EditChecklistFormProps> = ({
         cancelText="Keep Editing"
         danger
       />
-    </>
+    </Modal>
   );
 };
 

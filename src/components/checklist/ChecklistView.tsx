@@ -1,8 +1,9 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { Checklist, ChecklistItem } from '@/types/Types';
-import checklistStyles from './Checklist.module.css';
-import noteItemStyles from '@/components/ItemCard.module.css';
 import ErrorMessage from '@/components/ErrorMessage';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { itemBodyClass } from '@/components/itemCardStyles';
 import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useUpdateChecklistItemMutation } from '@/hooks/useContentQuery';
 import { toMessage } from '@/utils/errors';
@@ -47,32 +48,37 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
     const total = checklist.items.length;
     const done = checklist.items.filter((i) => i.checked).length;
     return (
-      <p className={noteItemStyles.noteContent}>
+      <p className={itemBodyClass}>
         {done}/{total} items completed
       </p>
     );
   }
 
   return (
-    <div className={noteItemStyles.bodyAnchor}>
-      <div ref={contentRef} className={noteItemStyles.noteContent}>
+    <div className="relative">
+      <div ref={contentRef} className={cn(itemBodyClass, hideReadMore && 'max-h-none')}>
         <ErrorMessage message={error} />
-        <div className={checklistStyles.checklistItems}>
+        <div className="flex flex-col gap-0.5">
           {checklist.items.length === 0 ? (
-            <p className={noteItemStyles.emptyBody}>No items</p>
+            <p className="text-xs opacity-60">No items</p>
           ) : (
             checklist.items.map((item) => (
-              <div key={item.id} className={checklistStyles.checklistItem}>
-                <input
-                  type="checkbox"
+              <div
+                key={item.id}
+                className="flex items-start gap-2.5 rounded-md px-1 py-1 transition-colors hover:bg-muted/60"
+              >
+                <Checkbox
                   checked={item.checked}
-                  onChange={() => handleToggleItem(item)}
-                  className={checklistStyles.checkboxInput}
+                  onCheckedChange={() => handleToggleItem(item)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-0.5 max-sm:size-5"
+                  aria-label={item.content}
                 />
                 <span
-                  className={`${checklistStyles.itemContent} ${
-                    item.checked ? checklistStyles.itemChecked : ''
-                  }`}
+                  className={cn(
+                    'min-w-0 flex-1 cursor-pointer break-words text-foreground/75',
+                    item.checked && 'text-muted-foreground/70 line-through'
+                  )}
                   onClick={() => handleToggleItem(item)}
                 >
                   {item.content}

@@ -1,49 +1,50 @@
 import React from 'react';
-import Modal from './Modal';
-import styles from '@/Home.module.css';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ConfirmActionModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
-    title: string;
-    message: string;
-    confirmText: string;
-    cancelText?: string;
-    danger?: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText?: string;
+  danger?: boolean;
 }
 
 const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
-    isOpen,
-    onClose,
-    onConfirm,
-    title,
-    message,
-    confirmText,
-    cancelText = 'Cancel',
-    danger = false
-}) => {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={title}>
-            <div className={styles.form}>
-                <p className={styles.modalBodyText}>{message}</p>
-                <div className={styles.formActions}>
-                    <button
-                        onClick={onConfirm}
-                        className={`${styles.button} ${danger ? styles.deleteButton : ''}`}
-                    >
-                        {confirmText}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className={styles.button}
-                    >
-                        {cancelText}
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText,
+  cancelText = 'Cancel',
+  danger = false,
+}) => (
+  <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogDescription>{message}</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+        <AlertDialogAction variant={danger ? 'destructive' : 'default'} onClick={onConfirm}>
+          {confirmText}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
 
 export default ConfirmActionModal;

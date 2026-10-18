@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './ItemCard.module.css';
 
 interface ReadMoreOverlayProps {
   label: string;
@@ -9,13 +8,15 @@ interface ReadMoreOverlayProps {
 const ReadMoreOverlay: React.FC<ReadMoreOverlayProps> = ({ label, onClick }) => (
   <button
     type="button"
-    className={styles.fadeOverlay}
+    className="group/more absolute inset-x-0 bottom-0 flex h-20 w-full items-end justify-center bg-linear-to-b from-transparent to-(--card-bg,var(--color-card)) pb-4 outline-none"
     onClick={(e) => {
       e.stopPropagation();
       onClick();
     }}
   >
-    <span className={styles.moreIndicator}>{label}</span>
+    <span className="rounded-full border bg-card px-2.5 py-0.5 text-[0.7rem] font-semibold tracking-wider text-muted-foreground uppercase transition-colors group-hover/more:border-primary/50 group-hover/more:text-primary group-focus-visible/more:ring-3 group-focus-visible/more:ring-ring/50">
+      {label}
+    </span>
   </button>
 );
 

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import styles from '@/Home.module.css';
-import trackerStyles from './Tracker.module.css';
 import EntryRow from './EntryRow';
 import EditableUnit from './EditableUnit';
 import ErrorMessage from '@/components/ErrorMessage';
 import Modal from '@/components/Modal';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
 import EditableTitle from '@/components/EditableTitle';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tracker } from '@/types/Types';
 import { LIMITS } from '@/constants';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
@@ -96,66 +97,59 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
   };
 
   return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={requestClose}
-        title={
-          <div className={trackerStyles.titleBlock}>
-            <EditableTitle value={title} onChange={setTitle} placeholder="Tracker title" />
-            <EditableUnit value={unit} onChange={setUnit} />
-          </div>
-        }
-      >
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <ErrorMessage message={formError} />
-          <div className={trackerStyles.entriesField}>
-            <label htmlFor="trackerNewEntry" className={styles.formLabel}>Entries</label>
-            <div className={trackerStyles.quickAddRow}>
-              <input
-                type="text"
-                id="trackerNewEntry"
-                value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddEntry();
-                  }
-                }}
-                placeholder={unit.trim() ? `Add new value (${unit.trim()})...` : 'Add new value...'}
-                className={trackerStyles.quickAddInput}
-                maxLength={LIMITS.TRACKER_VALUE}
-                aria-label="New entry value"
-              />
+    <Modal
+      isOpen={isOpen}
+      onClose={requestClose}
+      title={
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+          <EditableTitle value={title} onChange={setTitle} placeholder="Tracker title" />
+          <EditableUnit value={unit} onChange={setUnit} />
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-4">
+        <ErrorMessage message={formError} />
+        <div className="flex min-h-0 flex-col gap-2">
+          <Label htmlFor="trackerNewEntry">Entries</Label>
+          <Input
+            type="text"
+            id="trackerNewEntry"
+            value={newValue}
+            onChange={(e) => setNewValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddEntry();
+              }
+            }}
+            placeholder={unit.trim() ? `Add new value (${unit.trim()})...` : 'Add new value...'}
+            maxLength={LIMITS.TRACKER_VALUE}
+            aria-label="New entry value"
+          />
+
+          {remainingEntries.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No entries yet. Add the first value above.</p>
+          ) : (
+            <div className="flex min-h-0 flex-col overflow-y-auto pr-2">
+              {remainingEntries.map((entry) => (
+                <EntryRow
+                  key={entry.id}
+                  entry={entry}
+                  unit={tracker.unit}
+                  onDelete={handleDeleteEntry}
+                />
+              ))}
             </div>
+          )}
+        </div>
 
-            {remainingEntries.length === 0 ? (
-              <p className={trackerStyles.emptyHint}>No entries yet. Add the first value above.</p>
-            ) : (
-              <div className={trackerStyles.entryList}>
-                {remainingEntries.map((entry) => (
-                  <EntryRow
-                    key={entry.id}
-                    entry={entry}
-                    unit={tracker.unit}
-                    onDelete={handleDeleteEntry}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.formActions}>
-            <button type="submit" className={`${styles.button} ${styles.successButton}`}>
-              Save Changes
-            </button>
-            <button type="button" onClick={requestClose} className={`${styles.button}`}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </Modal>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={requestClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Save Changes</Button>
+        </div>
+      </form>
 
       <ConfirmActionModal
         isOpen={isConfirmOpen}
@@ -167,7 +161,7 @@ const EditTrackerForm: React.FC<EditTrackerFormProps> = ({ isOpen, onClose, trac
         cancelText="Keep Editing"
         danger
       />
-    </>
+    </Modal>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import styles from '@/Home.module.css';
 import NoteItem from './note/NoteItem';
 import CheckListItem from './checklist/CheckListItem';
 import TrackerItem from './tracker/TrackerItem';
@@ -14,6 +13,9 @@ interface ContentListProps {
 }
 
 const EMPTY: UnifiedContent[] = [];
+
+const sectionHeading =
+  'col-span-full mt-2 border-b pb-1.5 text-[0.8125rem] font-bold tracking-wider text-muted-foreground uppercase';
 
 const matchesQuery = (item: UnifiedContent, query: string): boolean => {
   if (item.title.toLowerCase().includes(query)) return true;
@@ -99,17 +101,17 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
         : 'No notes or checklists yet. Add one above!';
 
   return (
-    <div className={styles.notesList}>
+    <div className="grid w-full grid-cols-1 gap-2 sm:gap-3 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:gap-5">
       {activeTab === 'all' && clipboardNote && pinned.length === 0 && (
         <ClipboardNoteItem clipboardNote={clipboardNote} />
       )}
 
       {!hasItems ? (
-        <p className={styles.infoMessage}>{emptyMessage}</p>
+        <p className="col-span-full mt-4 rounded-lg border-2 border-dashed bg-muted/40 px-6 py-12 text-center text-sm text-muted-foreground">{emptyMessage}</p>
       ) : (
         <>
           {pinned.length > 0 && (
-            <h3 className={styles.sectionHeading}>
+            <h3 className={sectionHeading}>
               {isHiddenView ? 'Pinned Hidden' : isArchivedView ? 'Pinned Archived' : 'Pinned'}
             </h3>
           )}
@@ -118,7 +120,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
           )}
           {pinned.map(renderItem)}
           {pinned.length > 0 && notPinned.length > 0 && (
-            <h3 className={styles.sectionHeading}>
+            <h3 className={sectionHeading}>
               {isHiddenView ? 'Other Hidden Notes' : isArchivedView ? 'Other Archived Notes' : 'Others'}
             </h3>
           )}

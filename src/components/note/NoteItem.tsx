@@ -1,11 +1,11 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import styles from '@/components/ItemCard.module.css';
 import { Note } from '@/types/Types';
 import EditNoteFormModal from './EditNoteForm';
 import ViewNoteModal from './ViewNoteModal';
 import ItemCard from '@/components/ItemCard';
 import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useItemCard } from '@/components/useItemCard';
+import { itemBodyClass } from '@/components/itemCardStyles';
 import { useUpdateNoteMutation, useDeleteNoteMutation } from '@/hooks/useContentQuery';
 
 interface NoteItemProps {
@@ -49,8 +49,8 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, isSelected, onToggleSelect, i
         </>
       }
     >
-      <div className={styles.bodyAnchor}>
-        <p ref={contentRef} className={styles.noteContent}>
+      <div className="relative">
+        <p ref={contentRef} className={itemBodyClass}>
           {card.minimized ? '...' : note.content || 'No content'}
         </p>
         {isOverflowing && !card.minimized && (

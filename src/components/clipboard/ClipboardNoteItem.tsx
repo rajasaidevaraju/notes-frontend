@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import styles from '@/Home.module.css';
-import noteItemStyles from '@/components/ItemCard.module.css';
+import { ClipboardPasteIcon, CopyIcon } from 'lucide-react';
 import ErrorMessage from '@/components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { hoverRevealClass, itemBodyClass, itemCardClass, itemTitleClass } from '@/components/itemCardStyles';
 import { Note } from '@/types/Types';
 import { toMessage } from '@/utils/errors';
 import { canReadClipboard, copyToClipboard } from '@/utils/clipboard';
@@ -85,42 +88,36 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
   };
 
   return (
-    <div className={`${noteItemStyles.noteItem} ${noteItemStyles.clipboardNoteItem}`}>
+    <div className={cn(itemCardClass, 'border-dashed border-primary/60 hover:border-primary')}>
       <ErrorMessage message={internalError} />
-      <div className={noteItemStyles.noteHeader}>
-        <h3 className={noteItemStyles.noteTitle}>{clipboardNote.title}</h3>
-        <div className={noteItemStyles.toolbarGroup}>
-          <button
+      <div className="flex flex-col items-start gap-2.5">
+        <h3 className={itemTitleClass}>{clipboardNote.title}</h3>
+        <div className={cn('flex w-full flex-wrap gap-1', hoverRevealClass)}>
+          <Button
+            size="sm"
             onClick={handlePasteClick}
-            className={`${styles.button} ${styles.primaryButton}`}
             title="Paste from Clipboard"
             disabled={pasteBoxOpen}
           >
-            <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-            </svg>
+            <ClipboardPasteIcon />
             Paste
-          </button>
-
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size={copyFeedback ? 'sm' : 'icon-sm'}
             onClick={handleCopyClick}
-            className={`${styles.button} ${styles.pinButton}`}
             title="Copy Note Content"
+            aria-label="Copy Note Content"
           >
-            <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            {copyFeedback && <span className={noteItemStyles.copyFeedback}>{copyFeedback}</span>}
-          </button>
+            <CopyIcon />
+            {copyFeedback && <span>{copyFeedback}</span>}
+          </Button>
         </div>
       </div>
       {pasteBoxOpen ? (
-        <div className={noteItemStyles.pasteBox}>
-          <textarea
+        <div className="flex flex-col gap-2">
+          <Textarea
             ref={pasteBoxRef}
-            className={styles.formTextarea}
             value={pasteDraft}
             onChange={(e) => setPasteDraft(e.target.value)}
             onPaste={handlePasteEvent}
@@ -128,21 +125,21 @@ const ClipboardNoteItem: React.FC<ClipboardNoteItemProps> = ({ clipboardNote }) 
             placeholder="Paste here: Ctrl+V, or long-press and choose Paste"
             aria-label="Paste clipboard content"
           />
-          <div className={noteItemStyles.pasteBoxActions}>
-            <button onClick={closePasteBox} className={styles.button}>
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={closePasteBox}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              size="sm"
               onClick={() => savePastedText(pasteDraft)}
-              className={`${styles.button} ${styles.primaryButton}`}
               disabled={!pasteDraft || updateNoteMutation.isPending}
             >
               Save
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <p className={noteItemStyles.noteContent}>
+        <p className={itemBodyClass}>
           {clipboardNote.content || 'Click "Paste" to get content from your clipboard.'}
         </p>
       )}

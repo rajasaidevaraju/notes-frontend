@@ -1,5 +1,6 @@
 import React from 'react';
-import trackerStyles from './Tracker.module.css';
+import { XIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { TrackerEntry } from '@/types/Types';
 
 export const formatEntryTime = (recordedAt: string): string => {
@@ -32,15 +33,20 @@ interface EntryRowProps {
 }
 
 const EntryRow: React.FC<EntryRowProps> = ({ entry, unit, onDelete }) => (
-  <div className={trackerStyles.entryRow}>
-    <span className={trackerStyles.entryValue}>
-      {entry.value}{unit ? ` ${unit}` : ''}
+  <div className="flex items-center gap-2 border-b py-1.5 text-sm last:border-b-0">
+    <span className="[overflow-wrap:anywhere] text-foreground/75">
+      {entry.value}
+      {unit ? ` ${unit}` : ''}
     </span>
-    <span className={trackerStyles.entryTime}>{formatEntryTime(entry.recordedAt)}</span>
+    <span className="ml-auto shrink-0 text-xs whitespace-nowrap text-muted-foreground">
+      {formatEntryTime(entry.recordedAt)}
+    </span>
     {onDelete && (
-      <button
+      <Button
         type="button"
-        className={trackerStyles.entryDelete}
+        variant="ghost"
+        size="icon-sm"
+        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive max-sm:size-9"
         onClick={(e) => {
           e.stopPropagation();
           onDelete(entry.id);
@@ -48,10 +54,8 @@ const EntryRow: React.FC<EntryRowProps> = ({ entry, unit, onDelete }) => (
         title="Delete entry"
         aria-label="Delete entry"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-      </button>
+        <XIcon />
+      </Button>
     )}
   </div>
 );

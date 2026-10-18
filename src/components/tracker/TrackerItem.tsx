@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import itemCardStyles from '@/components/ItemCard.module.css';
-import trackerStyles from './Tracker.module.css';
 import EntryRow from './EntryRow';
 import EditTrackerForm from './EditTrackerForm';
 import AddEntryForm from './AddEntryForm';
@@ -8,6 +6,7 @@ import Modal from '@/components/Modal';
 import ItemCard from '@/components/ItemCard';
 import ReadMoreOverlay from '@/components/ReadMoreOverlay';
 import { useItemCard } from '@/components/useItemCard';
+import { itemBodyClass } from '@/components/itemCardStyles';
 import { Tracker } from '@/types/Types';
 import { useContentStore } from '@/store/contentStore';
 import { useUpdateTrackerMutation, useDeleteTrackerMutation } from '@/hooks/useContentQuery';
@@ -64,12 +63,10 @@ const TrackerItem: React.FC<TrackerItemProps> = ({
       modals={
         <>
           <Modal isOpen={card.isViewModalOpen} onClose={card.closeView} title={titleWithUnit}>
-            <div className={itemCardStyles.viewContentContainer}>
-              <div className={trackerStyles.entryList}>
-                {tracker.entries.map((entry) => (
-                  <EntryRow key={entry.id} entry={entry} unit={tracker.unit} />
-                ))}
-              </div>
+            <div className="flex flex-col">
+              {tracker.entries.map((entry) => (
+                <EntryRow key={entry.id} entry={entry} unit={tracker.unit} />
+              ))}
             </div>
           </Modal>
 
@@ -90,13 +87,13 @@ const TrackerItem: React.FC<TrackerItemProps> = ({
       }
     >
       {card.minimized ? (
-        <p className={itemCardStyles.noteContent}>...</p>
+        <p className={itemBodyClass}>...</p>
       ) : (
-        <div className={itemCardStyles.bodyAnchor}>
+        <div className="relative">
           {tracker.entries.length === 0 ? (
-            <p className={trackerStyles.emptyHint}>No entries yet. Press + to add the first value.</p>
+            <p className="text-sm text-muted-foreground">No entries yet. Press + to add the first value.</p>
           ) : (
-            <div className={trackerStyles.entryList}>
+            <div className="flex flex-col">
               {visibleEntries.map((entry) => (
                 <EntryRow key={entry.id} entry={entry} unit={tracker.unit} />
               ))}

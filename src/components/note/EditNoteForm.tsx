@@ -1,9 +1,9 @@
-import React, { useState, useLayoutEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
-import styles from '@/Home.module.css';
-import noteItemStyles from '@/components/ItemCard.module.css';
 import Modal from '@/components/Modal';
 import EditableTitle from '@/components/EditableTitle';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
@@ -26,7 +26,6 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState(note);
   const [formError, setFormError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const updateNoteMutation = useUpdateNoteMutation();
 
   const isDirty = formData.title !== note.title || formData.content !== note.content;
@@ -38,12 +37,6 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
     setFormData(note);
     setFormError(null);
   });
-
-  useLayoutEffect(() => {
-    if (isOpen && textareaRef.current) {
-      autoGrow(textareaRef.current);
-    }
-  }, [isOpen, formData.content]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     const { value } = e.target;
@@ -68,44 +61,40 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
   };
 
   return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={requestClose}
-        title={
-          <EditableTitle
-            value={formData.title}
-            onChange={(title) => setFormData((prev) => ({ ...prev, title }))}
-            placeholder="Note title"
-          />
-        }
-      >
-        <form onSubmit={handleSubmit} className={noteItemStyles.editForm}>
-          {formError && <ErrorMessage message={formError} />}
-          <textarea
-            id="editContent"
-            name="content"
-            ref={textareaRef}
-            value={formData.content}
-            onChange={handleChange}
-            onInput={(e) => autoGrow(e.target as HTMLTextAreaElement)}
-            className={styles.formTextarea}
-            maxLength={LIMITS.NOTE_CONTENT}
-          ></textarea>
-          <div className={styles.formActions}>
-            <button
-              type="submit"
-              className={`${styles.button} ${styles.successButton}`}
-              disabled={updateNoteMutation.isPending}
-            >
-              Save Changes
-            </button>
-            <button type="button" onClick={requestClose} className={`${styles.button}`}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </Modal>
+    <Modal
+      isOpen={isOpen}
+      onClose={requestClose}
+      title={
+        <EditableTitle
+          value={formData.title}
+          onChange={(title) => setFormData((prev) => ({ ...prev, title }))}
+          placeholder="Note title"
+        />
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-3">
+        {formError && <ErrorMessage message={formError} />}
+        <Textarea
+          id="editContent"
+          name="content"
+          ref={(el) => {
+            if (el) autoGrow(el);
+          }}
+          value={formData.content}
+          onChange={handleChange}
+          className="min-h-40"
+          maxLength={LIMITS.NOTE_CONTENT}
+          aria-label="Note content"
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={requestClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateNoteMutation.isPending}>
+            Save Changes
+          </Button>
+        </div>
+      </form>
 
       <ConfirmActionModal
         isOpen={isConfirmOpen}
@@ -117,7 +106,7 @@ const EditNoteFormModal: React.FC<EditNoteFormModalProps> = ({
         cancelText="Keep Editing"
         danger
       />
-    </>
+    </Modal>
   );
 };
 
