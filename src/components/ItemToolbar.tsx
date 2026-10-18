@@ -37,8 +37,8 @@ interface ItemToolbarProps {
   onAdd?: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
   onCopy: (e: React.MouseEvent) => void;
-  onToggleHide: (e: React.MouseEvent) => void;
-  onToggleArchive: (e: React.MouseEvent) => void;
+  onToggleHide?: (e: React.MouseEvent) => void;
+  onToggleArchive?: (e: React.MouseEvent) => void;
   onToggleMinimize: (e: React.MouseEvent) => void;
 }
 
@@ -60,24 +60,28 @@ const buildActions = (props: ItemToolbarProps): ItemAction[] => {
       onClick: props.onTogglePin,
       icon: <PinIcon className={cn(pinned && 'fill-current')} />,
     },
-    {
-      key: 'archive',
-      label: archived ? 'Unarchive' : 'Archive',
-      onClick: props.onToggleArchive,
-      icon: archived ? <ArchiveRestoreIcon /> : <ArchiveIcon />,
-    },
+    ...(props.onToggleArchive
+      ? [{
+          key: 'archive',
+          label: archived ? 'Unarchive' : 'Archive',
+          onClick: props.onToggleArchive,
+          icon: archived ? <ArchiveRestoreIcon /> : <ArchiveIcon />,
+        }]
+      : []),
     ...(props.onAdd
       ? [{ key: 'add', label: 'Add Entry', onClick: props.onAdd, icon: <SquarePlusIcon /> }]
       : []),
     { key: 'edit', label: 'Edit', onClick: props.onEdit, icon: <PencilIcon /> },
     { key: 'delete', label: 'Delete', onClick: props.onDelete, danger: true, icon: <Trash2Icon /> },
     { key: 'copy', label: 'Copy Content', onClick: props.onCopy, icon: <CopyIcon /> },
-    {
-      key: 'hide',
-      label: hidden ? 'Un-Hide' : 'Hide',
-      onClick: props.onToggleHide,
-      icon: hidden ? <EyeIcon /> : <EyeOffIcon />,
-    },
+    ...(props.onToggleHide
+      ? [{
+          key: 'hide',
+          label: hidden ? 'Un-Hide' : 'Hide',
+          onClick: props.onToggleHide,
+          icon: hidden ? <EyeIcon /> : <EyeOffIcon />,
+        }]
+      : []),
     {
       key: 'minimize',
       label: minimized ? 'Expand' : 'Minimize',

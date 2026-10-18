@@ -52,8 +52,30 @@ export interface Tracker {
   type: 'tracker';
 }
 
+export interface AccountGroup {
+  id: number;
+  name: string;
+}
+
+export interface Account {
+  id: number;
+  groupId: number | null;
+  identifier: string;
+  password: string | null;
+  notes: string | null;
+  locked: boolean;
+  pinned: boolean;
+  updatedAt: string;
+  createdAt: string;
+  type: 'account';
+}
+
 export type UnifiedContent = Note | Checklist | Tracker;
-export type ContentType = UnifiedContent['type'];
+export type CardItem = UnifiedContent | Account;
+export type ContentType = CardItem['type'];
+
+export const itemTitle = (item: CardItem): string =>
+  item.type === 'account' ? item.identifier : item.title;
 
 export type ContentKey = `${ContentType}-${number}`;
 export const contentKey = (item: { id: number; type: ContentType }): ContentKey =>

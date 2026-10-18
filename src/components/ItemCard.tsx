@@ -4,7 +4,7 @@ import ItemToolbar, { ItemActionsMenu } from './ItemToolbar';
 import ConfirmActionModal from './ConfirmActionModal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { ContentType, UnifiedContent } from '@/types/Types';
+import { CardItem, ContentType, itemTitle } from '@/types/Types';
 import { ItemCardController } from './useItemCard';
 import { itemCardClass, itemTitleClass } from './itemCardStyles';
 
@@ -24,10 +24,15 @@ const LABELS: Record<ContentType, { noun: string; deleteTitle: string; deleteMes
     deleteTitle: 'Confirm Tracker Deletion',
     deleteMessage: 'Are you sure you want to delete this tracker and all its entries?',
   },
+  account: {
+    noun: 'account',
+    deleteTitle: 'Confirm Account Deletion',
+    deleteMessage: 'Are you sure you want to delete this account and its saved password?',
+  },
 };
 
 interface ItemCardProps {
-  item: UnifiedContent;
+  item: CardItem;
   card: ItemCardController;
   isSelected: boolean;
   onToggleSelect: () => void;
@@ -50,14 +55,16 @@ const ItemCard: React.FC<ItemCardProps> = ({
   modals,
 }) => {
   const labels = LABELS[item.type];
+  const hidden = 'hidden' in item && item.hidden;
+  const archived = 'archived' in item && item.archived;
 
   return (
     <div
       className={cn(
         itemCardClass,
         item.pinned && 'border-primary/60 hover:border-primary',
-        item.hidden && '[--card-bg:var(--color-muted)]',
-        item.archived &&
+        hidden && '[--card-bg:var(--color-muted)]',
+        archived &&
           'border-dashed [--card-bg:color-mix(in_oklch,var(--color-muted)_60%,var(--color-card))]',
         isSelected &&
           'border-primary ring-3 ring-primary/25 [--card-bg:color-mix(in_oklch,var(--color-primary)_6%,var(--color-card))] hover:border-primary',
@@ -82,15 +89,15 @@ const ItemCard: React.FC<ItemCardProps> = ({
             />
           )}
           <h3 className={itemTitleClass}>
-            {item.title}
+            {itemTitle(item)}
             {titleSuffix}
           </h3>
           {!isSelectingMode && (
             <ItemActionsMenu
-              title={`${item.title}${titleSuffix ?? ''}`}
+              title={`${itemTitle(item)}${titleSuffix ?? ''}`}
               pinned={item.pinned}
-              hidden={item.hidden}
-              archived={item.archived}
+              hidden={hidden}
+              archived={archived}
               minimized={card.minimized}
               copyFeedback={card.copyFeedback}
               onAdd={onAdd}
@@ -101,8 +108,8 @@ const ItemCard: React.FC<ItemCardProps> = ({
         {!isSelectingMode && (
           <ItemToolbar
             pinned={item.pinned}
-            hidden={item.hidden}
-            archived={item.archived}
+            hidden={hidden}
+            archived={archived}
             minimized={card.minimized}
             copyFeedback={card.copyFeedback}
             onAdd={onAdd}
@@ -129,13 +136,13 @@ const ItemCard: React.FC<ItemCardProps> = ({
         isOpen={card.isHideModalOpen}
         onClose={card.closeHide}
         onConfirm={card.confirmHide}
-        title={item.hidden ? 'Confirm Un-Hide' : 'Confirm Hide'}
-        message={`Are you sure you want to ${item.hidden ? 'un-hide' : 'hide'} this ${labels.noun}?${
-          item.hidden
+        title={hidden ? 'Confirm Un-Hide' : 'Confirm Hide'}
+        message={`Are you sure you want to ${hidden ? 'un-hide' : 'hide'} this ${labels.noun}?${
+          hidden
             ? ''
             : ' It will be moved to the hidden section and require authentication to view.'
         }`}
-        confirmText={`Yes, ${item.hidden ? 'Un-Hide' : 'Hide'}`}
+        confirmText={`Yes, ${hidden ? 'Un-Hide' : 'Hide'}`}
       />
     </div>
   );

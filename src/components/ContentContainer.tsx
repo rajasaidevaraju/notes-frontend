@@ -1,9 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { LockIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { ListChecksIcon, LockIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ErrorMessage from './ErrorMessage';
 import ContentList from './ContentList';
 import AddContentForm from './AddContentForm';
+import AccountForm from './account/AccountForm';
 import PinForm from './PinForm';
 import ConfirmActionModal from './ConfirmActionModal';
 import SearchBar from './SearchBar';
@@ -18,6 +21,7 @@ import {
   useAuthStatusQuery,
   useSubmitPinMutation,
   useLogoutMutation,
+  CONTENT_QUERY_KEY,
 } from '@/hooks/useContentQuery';
 
 const ContentContainer: React.FC = () => {
@@ -26,11 +30,16 @@ const ContentContainer: React.FC = () => {
     clearSelectedContent,
     hiddenUnlocked,
     setHiddenUnlocked,
+    activeTab,
     setActiveTab,
+    onPinUnlocked,
+    clearPinRequest,
   } = useContentStore();
+  const queryClient = useQueryClient();
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isMultiDeleteModalOpen, setIsMultiDeleteModalOpen] = useState(false);
   const [isSelectingMode, setIsSelectingMode] = useState(false);
@@ -119,6 +128,7 @@ const ContentContainer: React.FC = () => {
                 className="max-md:flex-1"
                 title="Cancel Selection"
               >
+                <XIcon />
                 Cancel Selection
               </Button>
             </>
@@ -129,50 +139,69 @@ const ContentContainer: React.FC = () => {
               className="max-md:flex-1"
               title="Select Items for Deletion"
             >
-              Select Items
+              <ListChecksIcon />
+              Select
             </Button>
           )}
 
-          {hiddenUnlocked && (
+          {authQuery.data?.loggedIn && (
             <Button
               variant="outline"
               onClick={hideHiddenNotes}
               className="max-md:flex-1"
-              title="Lock hidden notes section"
+              title="Lock hidden notes and account passwords"
             >
               <LockIcon />
-              Lock Hidden
+              Lock
             </Button>
           )}
 
           <ThemeToggle />
 
-          <Button onClick={() => setIsAddNoteModalOpen(true)} className="max-md:flex-1">
+          <Button
+            onClick={() =>
+              activeTab === 'accounts' ? setIsAddAccountModalOpen(true) : setIsAddNoteModalOpen(true)
+            }
+            className="max-md:flex-1"
+            disabled={activeTab === 'archived'}
+            title={activeTab === 'archived' ? 'Archived items cannot be created directly' : undefined}
+          >
             <PlusIcon />
-            Create New
+            Create
           </Button>
         </div>
       </div>
 
       <PinForm
-        onClose={() => setIsPinModalOpen(false)}
+        onClose={() => {
+          setIsPinModalOpen(false);
+          clearPinRequest();
+        }}
         onSubmitPin={async (pin) => {
+          const afterUnlock = onPinUnlocked;
           try {
             await submitPinMutation.mutateAsync(pin);
             setHiddenUnlocked(true);
-            setActiveTab(pendingTab.current || 'hidden');
-            setIsPinModalOpen(false);
-          } catch {
-            // PinForm surfaces the failure itself.
+            if (afterUnlock) {
+              await queryClient.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
+              afterUnlock();
+            } else {
+              setActiveTab(pendingTab.current || 'hidden');
+            }
+          } catch (err: unknown) {
+            toast.error(toMessage(err, 'Failed to unlock'));
           }
         }}
-        isOpen={isPinModalOpen}
+        isOpen={isPinModalOpen || onPinUnlocked !== null}
       />
 
       <AddContentForm
         isOpen={isAddNoteModalOpen}
         onClose={() => setIsAddNoteModalOpen(false)}
+        hidden={activeTab === 'hidden'}
       />
+
+      <AccountForm isOpen={isAddAccountModalOpen} onClose={() => setIsAddAccountModalOpen(false)} />
 
       <ConfirmActionModal
         isOpen={isMultiDeleteModalOpen}

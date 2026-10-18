@@ -9,3 +9,9 @@ export const itemBodyClass =
 
 export const hoverRevealClass =
   'transition-opacity pointer-fine:opacity-0 pointer-fine:group-focus-within/card:opacity-100 pointer-fine:group-hover/card:opacity-100';
+
+export const sectionHeadingClass =
+  'col-span-full mt-2 border-b pb-1.5 text-[0.8125rem] font-bold tracking-wider text-muted-foreground uppercase';
+
+export const itemGridClass =
+  'grid w-full grid-cols-1 gap-2 sm:gap-3 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:gap-5';

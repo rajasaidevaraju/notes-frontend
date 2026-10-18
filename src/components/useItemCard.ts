@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { UnifiedContent, contentKey } from '@/types/Types';
+import { CardItem, contentKey } from '@/types/Types';
 import { useContentStore } from '@/store/contentStore';
 import { useItemUiStore } from '@/store/itemUiStore';
 import { toMessage } from '@/utils/errors';
 import { copyToClipboard } from '@/utils/clipboard';
 
 interface UseItemCardOptions {
-  item: UnifiedContent;
+  item: CardItem;
   updateItem: (changes: { pinned?: boolean; hidden?: boolean; archived?: boolean }) => Promise<unknown>;
   deleteItem: () => Promise<unknown>;
   copyText: () => string;
@@ -60,11 +60,13 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
     }
   };
 
+  const supportsVisibility = 'hidden' in item;
+
   const toggleArchive = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setItemError(null);
     try {
-      await updateItem({ archived: !item.archived });
+      await updateItem({ archived: !('archived' in item && item.archived) });
     } catch (err: unknown) {
       setItemError(toMessage(err, 'Failed to update item'));
     }
@@ -73,7 +75,7 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
   const confirmHide = async () => {
     setItemError(null);
     try {
-      await updateItem({ hidden: !item.hidden });
+      await updateItem({ hidden: !('hidden' in item && item.hidden) });
     } catch (err: unknown) {
       setItemError(toMessage(err, 'Failed to update item'));
     } finally {
@@ -116,17 +118,19 @@ export function useItemCard({ item, updateItem, deleteItem, copyText }: UseItemC
     confirmHide,
     toolbar: {
       onTogglePin: togglePin,
-      onToggleArchive: toggleArchive,
+      onToggleArchive: supportsVisibility ? toggleArchive : undefined,
       onEdit: openEdit,
       onCopy: copy,
       onDelete: (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsDeleteModalOpen(true);
       },
-      onToggleHide: (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsHideModalOpen(true);
-      },
+      onToggleHide: supportsVisibility
+        ? (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setIsHideModalOpen(true);
+          }
+        : undefined,
       onToggleMinimize: (e: React.MouseEvent) => {
         e.stopPropagation();
         toggleItemMinimize(key);

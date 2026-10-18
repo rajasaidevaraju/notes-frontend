@@ -16,7 +16,7 @@ const ThemeToggle: React.FC = () => {
       title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
-      {isDark ? 'Light Mode' : 'Dark Mode'}
+      {isDark ? 'Light' : 'Dark'}
     </Button>
   );
 };

@@ -6,6 +6,8 @@ import { UnifiedContent, contentKey } from '@/types/Types';
 import Loading from '@/components/LoadingSpinner';
 import { useContentStore } from '@/store/contentStore';
 import ClipboardNoteItem from './clipboard/ClipboardNoteItem';
+import AccountList from './account/AccountList';
+import { itemGridClass, sectionHeadingClass } from './itemCardStyles';
 import { useContentQuery, useHiddenContentQuery, useArchivedContentQuery } from '@/hooks/useContentQuery';
 
 interface ContentListProps {
@@ -14,8 +16,6 @@ interface ContentListProps {
 
 const EMPTY: UnifiedContent[] = [];
 
-const sectionHeading =
-  'col-span-full mt-2 border-b pb-1.5 text-[0.8125rem] font-bold tracking-wider text-muted-foreground uppercase';
 
 const matchesQuery = (item: UnifiedContent, query: string): boolean => {
   if (item.title.toLowerCase().includes(query)) return true;
@@ -82,6 +82,8 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
     }
   };
 
+  if (activeTab === 'accounts') return <AccountList isSelectingMode={isSelectingMode} />;
+
   const isHiddenView = activeTab === 'hidden';
   const isArchivedView = activeTab === 'archived';
   const { pinned, notPinned } =
@@ -101,7 +103,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
         : 'No notes or checklists yet. Add one above!';
 
   return (
-    <div className="grid w-full grid-cols-1 gap-2 sm:gap-3 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:gap-5">
+    <div className={itemGridClass}>
       {activeTab === 'all' && clipboardNote && pinned.length === 0 && (
         <ClipboardNoteItem clipboardNote={clipboardNote} />
       )}
@@ -111,7 +113,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
       ) : (
         <>
           {pinned.length > 0 && (
-            <h3 className={sectionHeading}>
+            <h3 className={sectionHeadingClass}>
               {isHiddenView ? 'Pinned Hidden' : isArchivedView ? 'Pinned Archived' : 'Pinned'}
             </h3>
           )}
@@ -120,7 +122,7 @@ const ContentList: React.FC<ContentListProps> = ({ isSelectingMode }) => {
           )}
           {pinned.map(renderItem)}
           {pinned.length > 0 && notPinned.length > 0 && (
-            <h3 className={sectionHeading}>
+            <h3 className={sectionHeadingClass}>
               {isHiddenView ? 'Other Hidden Notes' : isArchivedView ? 'Other Archived Notes' : 'Others'}
             </h3>
           )}

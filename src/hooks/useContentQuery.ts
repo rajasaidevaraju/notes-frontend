@@ -6,6 +6,8 @@ import {
   ChecklistItem,
   Tracker,
   TrackerEntry,
+  Account,
+  AccountGroup,
   ContentType,
 } from '@/types/Types';
 import { apiFetch, apiSend } from '@/utils/api';
@@ -15,6 +17,7 @@ export const CONTENT_QUERY_KEY = ['content'];
 export const HIDDEN_CONTENT_QUERY_KEY = ['content', 'hidden'];
 export const ARCHIVED_CONTENT_QUERY_KEY = ['content', 'archived'];
 export const CONTENT_COUNTS_QUERY_KEY = ['content', 'counts'];
+export const ACCOUNTS_QUERY_KEY = ['content', 'accounts'];
 export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
 export const AUTH_STATUS_QUERY_KEY = ['auth-status'];
@@ -23,7 +26,7 @@ const AFTER_CREATE = [CONTENT_QUERY_KEY];
 
 const AFTER_WRITE = [CONTENT_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, ARCHIVED_CONTENT_QUERY_KEY];
 
-const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, HIDDEN_CONTENT_QUERY_KEY, CONTENT_COUNTS_QUERY_KEY];
+const AFTER_AUTH = [AUTH_STATUS_QUERY_KEY, CONTENT_QUERY_KEY];
 
 function useApiMutation<TData, TVars = void>(
   mutationFn: (vars: TVars) => Promise<TData>,
@@ -84,6 +87,7 @@ export function useArchivedContentQuery(enabled = false) {
 
 export interface ContentCounts {
   archived: number;
+  accounts: number;
   hidden?: number;
 }
 
@@ -126,7 +130,6 @@ export function useDisableLanMutation() {
 export function useAuthStatusQuery() {
   return useQuery<{ loggedIn: boolean }>({
     queryKey: AUTH_STATUS_QUERY_KEY,
-    enabled: false,
     queryFn: () => apiFetch<{ loggedIn: boolean }>('/api/auth/status'),
   });
 }
@@ -141,7 +144,7 @@ export function useLogoutMutation() {
 
 export function useAddNoteMutation() {
   return useApiMutation(
-    (body: { title: string; content: string }) => apiSend<Note>('/api/notes', 'POST', body),
+    (body: { title: string; content: string; hidden: boolean }) => apiSend<Note>('/api/notes', 'POST', body),
     AFTER_CREATE
   );
 }
@@ -160,7 +163,7 @@ export function useDeleteNoteMutation() {
 
 export function useAddChecklistMutation() {
   return useApiMutation(
-    (title: string) => apiSend<Checklist>('/api/checklists', 'POST', { title }),
+    (body: { title: string; hidden: boolean }) => apiSend<Checklist>('/api/checklists', 'POST', body),
     AFTER_CREATE
   );
 }
@@ -195,7 +198,8 @@ export function useUpdateChecklistItemMutation() {
 
 export function useAddTrackerMutation() {
   return useApiMutation(
-    (body: { title: string; unit: string | null }) => apiSend<Tracker>('/api/trackers', 'POST', body),
+    (body: { title: string; unit: string | null; hidden: boolean }) =>
+      apiSend<Tracker>('/api/trackers', 'POST', body),
     AFTER_CREATE
   );
 }
@@ -226,6 +230,72 @@ export function useAddTrackerEntryMutation() {
     ({ trackerId, value }: { trackerId: number; value: string }) =>
       apiSend<TrackerEntry>(`/api/trackers/${trackerId}/entries`, 'POST', { value }),
     AFTER_WRITE
+  );
+}
+
+export function useAccountsQuery(enabled = false) {
+  return useQuery<{ groups: AccountGroup[]; accounts: Account[] }>({
+    queryKey: ACCOUNTS_QUERY_KEY,
+    enabled,
+    queryFn: async () => {
+      const data = await apiFetch<{ groups: AccountGroup[]; accounts: Account[] }>('/api/accounts');
+      return { ...data, accounts: data.accounts.map((account) => ({ ...account, type: 'account' as const })) };
+    },
+  });
+}
+
+export interface AccountFields {
+  groupId: number | null;
+  identifier: string;
+  password: string | null;
+  notes: string | null;
+}
+
+export type AccountChanges = Partial<AccountFields & Pick<Account, 'pinned'>>;
+
+const AFTER_ACCOUNT_WRITE = [ACCOUNTS_QUERY_KEY, CONTENT_COUNTS_QUERY_KEY];
+
+export function useAddAccountMutation() {
+  return useApiMutation(
+    (body: AccountFields) => apiSend<Account>('/api/accounts', 'POST', body),
+    AFTER_ACCOUNT_WRITE
+  );
+}
+
+export function useUpdateAccountMutation() {
+  return useApiMutation(
+    ({ id, changes }: { id: number; changes: AccountChanges }) =>
+      apiSend<Account>(`/api/accounts/${id}`, 'PUT', changes),
+    AFTER_ACCOUNT_WRITE
+  );
+}
+
+export function useDeleteAccountMutation() {
+  return useApiMutation(
+    (id: number) => apiSend<void>(`/api/accounts/${id}`, 'DELETE'),
+    AFTER_ACCOUNT_WRITE
+  );
+}
+
+export function useCreateGroupMutation() {
+  return useApiMutation(
+    (name: string) => apiSend<AccountGroup>('/api/accounts/groups', 'POST', { name }),
+    AFTER_ACCOUNT_WRITE
+  );
+}
+
+export function useRenameGroupMutation() {
+  return useApiMutation(
+    ({ id, name }: { id: number; name: string }) =>
+      apiSend<AccountGroup>(`/api/accounts/groups/${id}`, 'PUT', { name }),
+    AFTER_ACCOUNT_WRITE
+  );
+}
+
+export function useDeleteGroupMutation() {
+  return useApiMutation(
+    (id: number) => apiSend<void>(`/api/accounts/groups/${id}`, 'DELETE'),
+    AFTER_ACCOUNT_WRITE
   );
 }
 

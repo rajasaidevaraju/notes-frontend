@@ -10,12 +10,14 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
 import { LIMITS } from '@/constants';
-import { ContentType } from '@/types/Types';
+import { UnifiedContent } from '@/types/Types';
 import { autoGrow } from '@/utils/dom';
 import { toMessage } from '@/utils/errors';
 import { useAddNoteMutation, useAddChecklistMutation, useAddTrackerMutation } from '@/hooks/useContentQuery';
 
-const TYPE_OPTIONS: Array<{ type: ContentType; label: string }> = [
+type NoteType = UnifiedContent['type'];
+
+const TYPE_OPTIONS: Array<{ type: NoteType; label: string }> = [
   { type: 'note', label: 'Note' },
   { type: 'checklist', label: 'Checklist' },
   { type: 'tracker', label: 'Tracker' },
@@ -24,13 +26,14 @@ const TYPE_OPTIONS: Array<{ type: ContentType; label: string }> = [
 interface AddContentFormProps {
   isOpen: boolean;
   onClose: () => void;
+  hidden: boolean;
 }
 
-const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
+const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose, hidden }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [unit, setUnit] = useState('');
-  const [itemType, setItemType] = useState<ContentType>('note');
+  const [itemType, setItemType] = useState<NoteType>('note');
   const [formError, setFormError] = useState<string | null>(null);
 
   const addNoteMutation = useAddNoteMutation();
@@ -60,11 +63,11 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
 
     try {
       if (itemType === 'note') {
-        await addNoteMutation.mutateAsync({ title, content });
+        await addNoteMutation.mutateAsync({ title, content, hidden });
       } else if (itemType === 'checklist') {
-        await addChecklistMutation.mutateAsync(title);
+        await addChecklistMutation.mutateAsync({ title, hidden });
       } else {
-        await addTrackerMutation.mutateAsync({ title, unit: unit.trim() || null });
+        await addTrackerMutation.mutateAsync({ title, unit: unit.trim() || null, hidden });
       }
       setTitle('');
       setContent('');
@@ -76,14 +79,14 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={requestClose} title="Add New">
+    <Modal isOpen={isOpen} onClose={requestClose} title={hidden ? 'Add Hidden' : 'Add New'}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <ErrorMessage message={formError} />
 
         <ToggleGroup
           variant="outline"
           value={[itemType]}
-          onValueChange={(value) => value[0] && setItemType(value[0] as ContentType)}
+          onValueChange={(value) => value[0] && setItemType(value[0] as NoteType)}
           aria-label="Item type"
           className="w-full"
         >
@@ -98,51 +101,53 @@ const AddContentForm: React.FC<AddContentFormProps> = ({ isOpen, onClose }) => {
           ))}
         </ToggleGroup>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="itemTitle">Title</Label>
-          <Input
-            type="text"
-            id="itemTitle"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={`Enter ${itemType} title`}
-            required
-            maxLength={LIMITS.TITLE}
-            autoComplete="off"
-          />
-        </div>
-
-        {itemType === 'tracker' && (
+        <div className="flex min-h-55 flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="itemUnit">Unit (Optional)</Label>
+            <Label htmlFor="itemTitle">Title</Label>
             <Input
               type="text"
-              id="itemUnit"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              placeholder="kg, steps, hours…"
-              maxLength={LIMITS.TRACKER_UNIT}
+              id="itemTitle"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={`Enter ${itemType} title`}
+              required
+              maxLength={LIMITS.TITLE}
               autoComplete="off"
             />
           </div>
-        )}
 
-        {itemType === 'note' && (
-          <div className="flex min-h-0 flex-col gap-2">
-            <Label htmlFor="itemContent">Content (Optional)</Label>
-            <Textarea
-              id="itemContent"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter note content"
-              ref={(el) => {
-                if (el) autoGrow(el);
-              }}
-              className="min-h-32"
-              maxLength={LIMITS.NOTE_CONTENT}
-            />
-          </div>
-        )}
+          {itemType === 'tracker' && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="itemUnit">Unit (Optional)</Label>
+              <Input
+                type="text"
+                id="itemUnit"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                placeholder="kg, steps, hours…"
+                maxLength={LIMITS.TRACKER_UNIT}
+                autoComplete="off"
+              />
+            </div>
+          )}
+
+          {itemType === 'note' && (
+            <div className="flex min-h-0 flex-col gap-2">
+              <Label htmlFor="itemContent">Content (Optional)</Label>
+              <Textarea
+                id="itemContent"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter note content"
+                ref={(el) => {
+                  if (el) autoGrow(el);
+                }}
+                className="min-h-32"
+                maxLength={LIMITS.NOTE_CONTENT}
+              />
+            </div>
+          )}
+        </div>
 
         <Button type="submit">
           Add {TYPE_OPTIONS.find((option) => option.type === itemType)?.label}

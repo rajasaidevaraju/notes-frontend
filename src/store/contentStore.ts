@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ContentKey, ContentType, contentKey } from '@/types/Types';
 
-export type ContentTab = 'all' | 'hidden' | 'archived';
+export type ContentTab = 'all' | 'hidden' | 'archived' | 'accounts';
 
 export interface SelectedItem {
   id: number;
@@ -13,12 +13,15 @@ interface ContentUiState {
   searchQuery: string;
   hiddenUnlocked: boolean;
   activeTab: ContentTab;
+  onPinUnlocked: (() => void) | null;
 
   setSearchQuery: (query: string) => void;
   setHiddenUnlocked: (unlocked: boolean) => void;
   setActiveTab: (tab: ContentTab) => void;
   toggleSelectContent: (item: SelectedItem) => void;
   clearSelectedContent: () => void;
+  requestPin: (onUnlocked: () => void) => void;
+  clearPinRequest: () => void;
 }
 
 export const useContentStore = create<ContentUiState>((set) => ({
@@ -26,6 +29,7 @@ export const useContentStore = create<ContentUiState>((set) => ({
   searchQuery: '',
   hiddenUnlocked: false,
   activeTab: 'all',
+  onPinUnlocked: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   setHiddenUnlocked: (unlocked) =>
@@ -44,4 +48,6 @@ export const useContentStore = create<ContentUiState>((set) => ({
     }),
 
   clearSelectedContent: () => set({ selectedContent: new Map() }),
+  requestPin: (onUnlocked) => set({ onPinUnlocked: onUnlocked }),
+  clearPinRequest: () => set({ onPinUnlocked: null }),
 }));
