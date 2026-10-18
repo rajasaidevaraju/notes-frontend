@@ -129,6 +129,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Hold the exit animation's last frame until Base UI unmounts the element, or it flashes back. */
+  [data-closed] {
+    --tw-animation-fill-mode: forwards;
+  }
   html {
     @apply font-sans;
     scrollbar-gutter: stable;
