@@ -52,14 +52,14 @@ export interface Tracker {
   type: 'tracker';
 }
 
-export interface AccountGroup {
+export interface Tag {
   id: number;
   name: string;
 }
 
 export interface Account {
   id: number;
-  groupId: number | null;
+  tagIds: number[];
   identifier: string;
   password: string | null;
   notes: string | null;

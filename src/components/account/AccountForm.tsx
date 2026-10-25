@@ -3,25 +3,23 @@ import ErrorMessage from '@/components/ErrorMessage';
 import Modal from '@/components/Modal';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
 import PasswordInput from './PasswordInput';
+import TagInput, { withTag } from '@/components/tag/TagInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
-import { Account } from '@/types/Types';
+import { Account, Tag } from '@/types/Types';
 import { LIMITS } from '@/constants';
 import { autoGrow } from '@/utils/dom';
 import { toMessage } from '@/utils/errors';
 import {
-  useAccountsQuery,
   useAddAccountMutation,
-  useCreateGroupMutation,
+  useCreateTagMutation,
+  useTagsQuery,
   useUpdateAccountMutation,
 } from '@/hooks/useContentQuery';
-
-const NEW_GROUP = 'new';
 
 interface AccountFormProps {
   isOpen: boolean;
@@ -29,9 +27,9 @@ interface AccountFormProps {
   account?: Account;
 }
 
-const fieldsOf = (account?: Account) => ({
-  group: account?.groupId ? String(account.groupId) : '',
-  newGroup: '',
+const fieldsOf = (account?: Account, tags: Tag[] = []) => ({
+  tags: tags.filter((tag) => account?.tagIds.includes(tag.id)).map((tag) => tag.name),
+  tagDraft: '',
   identifier: account?.identifier ?? '',
   password: account?.password ?? '',
   notes: account?.notes ?? '',
@@ -40,33 +38,38 @@ const fieldsOf = (account?: Account) => ({
 type Fields = ReturnType<typeof fieldsOf>;
 
 const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) => {
-  const [form, setForm] = useState(() => fieldsOf(account));
+  const allTags = useTagsQuery(isOpen).data ?? [];
+  const [form, setForm] = useState(() => fieldsOf(account, allTags));
   const [formError, setFormError] = useState<string | null>(null);
-  const groups = useAccountsQuery(isOpen).data?.groups ?? [];
   const addAccountMutation = useAddAccountMutation();
   const updateAccountMutation = useUpdateAccountMutation();
-  const createGroupMutation = useCreateGroupMutation();
+  const createTagMutation = useCreateTagMutation();
 
-  const initial = fieldsOf(account);
-  const isDirty = (Object.keys(form) as Array<keyof Fields>).some((key) => form[key] !== initial[key]);
+  const initial = fieldsOf(account, allTags);
+  const tagNames = allTags.map((tag) => tag.name);
+  const isDirty = (Object.keys(form) as Array<keyof Fields>).some(
+    (key) => String(form[key]) !== String(initial[key])
+  );
   const { requestClose, isConfirmOpen, confirmDiscard, cancelDiscard } =
     useUnsavedChangesGuard(isDirty, onClose);
 
   useResetOnOpen(isOpen, () => {
-    setForm(fieldsOf(account));
+    setForm(fieldsOf(account, allTags));
     setFormError(null);
   });
 
-  const setField = (field: keyof Fields) => (
+  const setField = (field: Exclude<keyof Fields, 'tags'>) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const resolveGroupId = async (): Promise<number | null> => {
-    if (form.group !== NEW_GROUP) return form.group ? Number(form.group) : null;
-
-    const name = form.newGroup.trim();
-    const existing = groups.find((group) => group.name.toLowerCase() === name.toLowerCase());
-    return existing ? existing.id : (await createGroupMutation.mutateAsync(name)).id;
+  // New tag names are created first so the account itself is saved with IDs only.
+  const resolveTagIds = async (names: string[]): Promise<number[]> => {
+    const ids: number[] = [];
+    for (const name of names) {
+      const existing = allTags.find((tag) => tag.name.toLowerCase() === name.toLowerCase());
+      ids.push(existing ? existing.id : (await createTagMutation.mutateAsync(name)).id);
+    }
+    return ids;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,14 +80,13 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
       setFormError('Primary identifier cannot be empty.');
       return;
     }
-    if (form.group === NEW_GROUP && !form.newGroup.trim()) {
-      setFormError('Enter a name for the new group.');
-      return;
-    }
 
     try {
       const fields = {
-        groupId: await resolveGroupId(),
+        // A typed-but-not-entered tag still counts.
+        tagIds: await resolveTagIds(
+          withTag(form.tags, form.tagDraft, tagNames).slice(0, LIMITS.TAGS_PER_ITEM)
+        ),
         identifier: form.identifier.trim(),
       };
 
@@ -112,35 +114,12 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
   };
 
   const isPending =
-    addAccountMutation.isPending || updateAccountMutation.isPending || createGroupMutation.isPending;
+    addAccountMutation.isPending || updateAccountMutation.isPending || createTagMutation.isPending;
 
   return (
     <Modal isOpen={isOpen} onClose={requestClose} title={account ? 'Edit Account' : 'New Account'}>
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-4">
         <ErrorMessage message={formError} />
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="accountGroup">Group</Label>
-          <NativeSelect id="accountGroup" value={form.group} onChange={setField('group')} className="w-full">
-            <NativeSelectOption value="">No group</NativeSelectOption>
-            {groups.map((group) => (
-              <NativeSelectOption key={group.id} value={String(group.id)}>
-                {group.name}
-              </NativeSelectOption>
-            ))}
-            <NativeSelectOption value={NEW_GROUP}>+ New group…</NativeSelectOption>
-          </NativeSelect>
-          {form.group === NEW_GROUP && (
-            <Input
-              value={form.newGroup}
-              onChange={setField('newGroup')}
-              placeholder="Group name, e.g. Credit Cards"
-              maxLength={LIMITS.ACCOUNT_GROUP}
-              aria-label="New group name"
-              autoComplete="off"
-            />
-          )}
-        </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="accountIdentifier">Primary Identifier</Label>
@@ -152,6 +131,18 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
             placeholder='abc@xyz.com'
             autoComplete="off"
             required
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="accountTags">Tags</Label>
+          <TagInput
+            id="accountTags"
+            value={form.tags}
+            onChange={(tags) => setForm((prev) => ({ ...prev, tags }))}
+            draft={form.tagDraft}
+            onDraftChange={(tagDraft) => setForm((prev) => ({ ...prev, tagDraft }))}
+            suggestions={tagNames}
           />
         </div>
 

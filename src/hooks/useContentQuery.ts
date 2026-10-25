@@ -7,7 +7,7 @@ import {
   Tracker,
   TrackerEntry,
   Account,
-  AccountGroup,
+  Tag,
   ContentType,
 } from '@/types/Types';
 import { apiFetch, apiSend } from '@/utils/api';
@@ -18,6 +18,7 @@ export const HIDDEN_CONTENT_QUERY_KEY = ['content', 'hidden'];
 export const ARCHIVED_CONTENT_QUERY_KEY = ['content', 'archived'];
 export const CONTENT_COUNTS_QUERY_KEY = ['content', 'counts'];
 export const ACCOUNTS_QUERY_KEY = ['content', 'accounts'];
+export const TAGS_QUERY_KEY = ['tags'];
 export const SERVER_IP_QUERY_KEY = ['server-ip'];
 export const LAN_STATUS_QUERY_KEY = ['lan-status'];
 export const AUTH_STATUS_QUERY_KEY = ['auth-status'];
@@ -234,18 +235,18 @@ export function useAddTrackerEntryMutation() {
 }
 
 export function useAccountsQuery(enabled = false) {
-  return useQuery<{ groups: AccountGroup[]; accounts: Account[] }>({
+  return useQuery<Account[]>({
     queryKey: ACCOUNTS_QUERY_KEY,
     enabled,
     queryFn: async () => {
-      const data = await apiFetch<{ groups: AccountGroup[]; accounts: Account[] }>('/api/accounts');
-      return { ...data, accounts: data.accounts.map((account) => ({ ...account, type: 'account' as const })) };
+      const accounts = await apiFetch<Account[]>('/api/accounts');
+      return accounts.map((account) => ({ ...account, type: 'account' as const }));
     },
   });
 }
 
 export interface AccountFields {
-  groupId: number | null;
+  tagIds: number[];
   identifier: string;
   password: string | null;
   notes: string | null;
@@ -277,25 +278,30 @@ export function useDeleteAccountMutation() {
   );
 }
 
-export function useCreateGroupMutation() {
+export function useTagsQuery(enabled = false) {
+  return useQuery<Tag[]>({
+    queryKey: TAGS_QUERY_KEY,
+    enabled,
+    queryFn: () => apiFetch<Tag[]>('/api/tags'),
+  });
+}
+
+export function useCreateTagMutation() {
+  return useApiMutation((name: string) => apiSend<Tag>('/api/tags', 'POST', { name }), [TAGS_QUERY_KEY]);
+}
+
+export function useRenameTagMutation() {
   return useApiMutation(
-    (name: string) => apiSend<AccountGroup>('/api/accounts/groups', 'POST', { name }),
-    AFTER_ACCOUNT_WRITE
+    ({ id, name }: { id: number; name: string }) => apiSend<Tag>(`/api/tags/${id}`, 'PUT', { name }),
+    [TAGS_QUERY_KEY]
   );
 }
 
-export function useRenameGroupMutation() {
+// Deleting a tag also unlinks it from everything it was attached to.
+export function useDeleteTagMutation() {
   return useApiMutation(
-    ({ id, name }: { id: number; name: string }) =>
-      apiSend<AccountGroup>(`/api/accounts/groups/${id}`, 'PUT', { name }),
-    AFTER_ACCOUNT_WRITE
-  );
-}
-
-export function useDeleteGroupMutation() {
-  return useApiMutation(
-    (id: number) => apiSend<void>(`/api/accounts/groups/${id}`, 'DELETE'),
-    AFTER_ACCOUNT_WRITE
+    (id: number) => apiSend<void>(`/api/tags/${id}`, 'DELETE'),
+    [TAGS_QUERY_KEY, ACCOUNTS_QUERY_KEY]
   );
 }
 

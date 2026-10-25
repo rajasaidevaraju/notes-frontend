@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { ContentKey, ContentType, contentKey } from '@/types/Types';
 
 export type ContentTab = 'all' | 'hidden' | 'archived' | 'accounts';
+export type TagMatchMode = 'all' | 'any';
 
 export interface SelectedItem {
   id: number;
@@ -13,11 +14,17 @@ interface ContentUiState {
   searchQuery: string;
   hiddenUnlocked: boolean;
   activeTab: ContentTab;
+  tagFilter: number[];
+  tagMatchMode: TagMatchMode;
   onPinUnlocked: (() => void) | null;
 
   setSearchQuery: (query: string) => void;
   setHiddenUnlocked: (unlocked: boolean) => void;
   setActiveTab: (tab: ContentTab) => void;
+  setTagFilter: (tagIds: number[]) => void;
+  toggleTagFilter: (tagId: number) => void;
+  clearTagFilter: () => void;
+  setTagMatchMode: (mode: TagMatchMode) => void;
   toggleSelectContent: (item: SelectedItem) => void;
   clearSelectedContent: () => void;
   requestPin: (onUnlocked: () => void) => void;
@@ -29,6 +36,8 @@ export const useContentStore = create<ContentUiState>((set) => ({
   searchQuery: '',
   hiddenUnlocked: false,
   activeTab: 'all',
+  tagFilter: [],
+  tagMatchMode: 'all',
   onPinUnlocked: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
@@ -38,6 +47,15 @@ export const useContentStore = create<ContentUiState>((set) => ({
       activeTab: unlocked ? state.activeTab : (state.activeTab === 'hidden' ? 'all' : state.activeTab),
     })),
   setActiveTab: (tab) => set({ activeTab: tab }),
+  setTagFilter: (tagIds) => set({ tagFilter: tagIds }),
+  toggleTagFilter: (tagId) =>
+    set((state) => ({
+      tagFilter: state.tagFilter.includes(tagId)
+        ? state.tagFilter.filter((id) => id !== tagId)
+        : [...state.tagFilter, tagId],
+    })),
+  clearTagFilter: () => set({ tagFilter: [] }),
+  setTagMatchMode: (mode) => set({ tagMatchMode: mode }),
 
   toggleSelectContent: (item) =>
     set((state) => {
