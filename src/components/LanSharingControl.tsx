@@ -45,7 +45,7 @@ const LanSharingControl: React.FC = () => {
           </span>
           {status.canManage && (
             <div className="flex gap-1.5">
-              <Button size="sm" variant="secondary" onClick={handleEnable} disabled={loading}>
+              <Button size="sm" variant="outline" onClick={handleEnable} disabled={loading}>
                 Reset
               </Button>
               <Button size="sm" variant="destructive" onClick={handleDisable} disabled={loading}>
