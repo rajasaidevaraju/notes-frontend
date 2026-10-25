@@ -247,6 +247,7 @@ export function useAccountsQuery(enabled = false) {
 
 export interface AccountFields {
   tagIds: number[];
+  name: string | null;
   identifier: string;
   password: string | null;
   notes: string | null;

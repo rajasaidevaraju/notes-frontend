@@ -31,6 +31,7 @@ const fieldsOf = (account?: Account) => ({
   tagIds: account?.tagIds ?? [],
   newTags: [] as string[],
   tagDraft: '',
+  name: account?.name ?? '',
   identifier: account?.identifier ?? '',
   password: account?.password ?? '',
   notes: account?.notes ?? '',
@@ -69,7 +70,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
     setFormError(null);
   });
 
-  const setField = (field: 'identifier' | 'password' | 'notes') => (
+  const setField = (field: 'name' | 'identifier' | 'password' | 'notes') => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -96,6 +97,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
         tagIds: await resolveTagIds(
           withTag(tagValues, form.tagDraft, allTags).slice(0, LIMITS.TAGS_PER_ITEM)
         ),
+        name: form.name.trim() || null,
         identifier: form.identifier.trim(),
       };
 
@@ -129,6 +131,18 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
     <Modal isOpen={isOpen} onClose={requestClose} title={account ? 'Edit Account' : 'New Account'}>
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-col gap-4">
         <ErrorMessage message={formError} />
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="accountName">Name</Label>
+          <Input
+            id="accountName"
+            value={form.name}
+            onChange={setField('name')}
+            maxLength={LIMITS.ACCOUNT_NAME}
+            placeholder="e.g. Oracle"
+            autoComplete="off"
+          />
+        </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="accountIdentifier">Primary Identifier</Label>

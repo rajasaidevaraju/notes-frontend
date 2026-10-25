@@ -60,6 +60,7 @@ export interface Tag {
 export interface Account {
   id: number;
   tagIds: number[];
+  name: string | null;
   identifier: string;
   password: string | null;
   notes: string | null;
@@ -75,7 +76,7 @@ export type CardItem = UnifiedContent | Account;
 export type ContentType = CardItem['type'];
 
 export const itemTitle = (item: CardItem): string =>
-  item.type === 'account' ? item.identifier : item.title;
+  item.type === 'account' ? item.name || item.identifier : item.title;
 
 export type ContentKey = `${ContentType}-${number}`;
 export const contentKey = (item: { id: number; type: ContentType }): ContentKey =>

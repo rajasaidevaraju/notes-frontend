@@ -35,6 +35,7 @@ const AccountList: React.FC<{ isSelectingMode: boolean }> = ({ isSelectingMode }
     account.tagIds.flatMap((id) => tagById.get(id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
 
   const matchesQuery = (account: Account) =>
+    account.name?.toLowerCase().includes(query) ||
     account.identifier.toLowerCase().includes(query) ||
     tagsOf(account).some((tag) => tag.name.toLowerCase().includes(query));
 

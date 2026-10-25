@@ -110,6 +110,7 @@ const AccountItem: React.FC<AccountItemProps> = ({
         <p className={itemBodyClass}>...</p>
       ) : (
         <div className="flex flex-col gap-1 text-sm">
+          {account.name && <span className="truncate text-foreground/90">{account.identifier}</span>}
           {hasSecrets && (
             <div className="flex items-center gap-2">
               <span className="min-w-0 flex-1 truncate font-mono text-foreground/75">
