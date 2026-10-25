@@ -3,14 +3,14 @@ import ErrorMessage from '@/components/ErrorMessage';
 import Modal from '@/components/Modal';
 import ConfirmActionModal from '@/components/ConfirmActionModal';
 import PasswordInput from './PasswordInput';
-import TagInput, { withTag } from '@/components/tag/TagInput';
+import TagInput, { TagValue, withTag } from '@/components/tag/TagInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { useResetOnOpen } from '@/hooks/useResetOnOpen';
-import { Account, Tag } from '@/types/Types';
+import { Account } from '@/types/Types';
 import { LIMITS } from '@/constants';
 import { autoGrow } from '@/utils/dom';
 import { toMessage } from '@/utils/errors';
@@ -27,8 +27,9 @@ interface AccountFormProps {
   account?: Account;
 }
 
-const fieldsOf = (account?: Account, tags: Tag[] = []) => ({
-  tags: tags.filter((tag) => account?.tagIds.includes(tag.id)).map((tag) => tag.name),
+const fieldsOf = (account?: Account) => ({
+  tagIds: account?.tagIds ?? [],
+  newTags: [] as string[],
   tagDraft: '',
   identifier: account?.identifier ?? '',
   password: account?.password ?? '',
@@ -38,15 +39,25 @@ const fieldsOf = (account?: Account, tags: Tag[] = []) => ({
 type Fields = ReturnType<typeof fieldsOf>;
 
 const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) => {
-  const allTags = useTagsQuery(isOpen).data ?? [];
-  const [form, setForm] = useState(() => fieldsOf(account, allTags));
+  const tagsQuery = useTagsQuery(isOpen);
+  const allTags = tagsQuery.data ?? [];
+  const [form, setForm] = useState(() => fieldsOf(account));
   const [formError, setFormError] = useState<string | null>(null);
   const addAccountMutation = useAddAccountMutation();
   const updateAccountMutation = useUpdateAccountMutation();
   const createTagMutation = useCreateTagMutation();
 
-  const initial = fieldsOf(account, allTags);
-  const tagNames = allTags.map((tag) => tag.name);
+  const initial = fieldsOf(account);
+  const tagValues: TagValue[] = [
+    ...form.tagIds.map((id) => ({ id, name: allTags.find((tag) => tag.id === id)?.name ?? '…' })),
+    ...form.newTags.map((name) => ({ id: null, name })),
+  ];
+  const setTagValues = (values: TagValue[]) =>
+    setForm((prev) => ({
+      ...prev,
+      tagIds: values.flatMap((tag) => (tag.id === null ? [] : [tag.id])),
+      newTags: values.flatMap((tag) => (tag.id === null ? [tag.name] : [])),
+    }));
   const isDirty = (Object.keys(form) as Array<keyof Fields>).some(
     (key) => String(form[key]) !== String(initial[key])
   );
@@ -54,20 +65,19 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
     useUnsavedChangesGuard(isDirty, onClose);
 
   useResetOnOpen(isOpen, () => {
-    setForm(fieldsOf(account, allTags));
+    setForm(fieldsOf(account));
     setFormError(null);
   });
 
-  const setField = (field: Exclude<keyof Fields, 'tags'>) => (
+  const setField = (field: 'identifier' | 'password' | 'notes') => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  // New tag names are created first so the account itself is saved with IDs only.
-  const resolveTagIds = async (names: string[]): Promise<number[]> => {
+  const resolveTagIds = async (values: TagValue[]): Promise<number[]> => {
     const ids: number[] = [];
-    for (const name of names) {
-      const existing = allTags.find((tag) => tag.name.toLowerCase() === name.toLowerCase());
-      ids.push(existing ? existing.id : (await createTagMutation.mutateAsync(name)).id);
+    for (const tag of values) {
+      if (tag.id !== null && tagsQuery.data && !allTags.some((t) => t.id === tag.id)) continue;
+      ids.push(tag.id ?? (await createTagMutation.mutateAsync(tag.name)).id);
     }
     return ids;
   };
@@ -83,9 +93,8 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
 
     try {
       const fields = {
-        // A typed-but-not-entered tag still counts.
         tagIds: await resolveTagIds(
-          withTag(form.tags, form.tagDraft, tagNames).slice(0, LIMITS.TAGS_PER_ITEM)
+          withTag(tagValues, form.tagDraft, allTags).slice(0, LIMITS.TAGS_PER_ITEM)
         ),
         identifier: form.identifier.trim(),
       };
@@ -138,11 +147,11 @@ const AccountForm: React.FC<AccountFormProps> = ({ isOpen, onClose, account }) =
           <Label htmlFor="accountTags">Tags</Label>
           <TagInput
             id="accountTags"
-            value={form.tags}
-            onChange={(tags) => setForm((prev) => ({ ...prev, tags }))}
+            value={tagValues}
+            onChange={setTagValues}
             draft={form.tagDraft}
             onDraftChange={(tagDraft) => setForm((prev) => ({ ...prev, tagDraft }))}
-            suggestions={tagNames}
+            suggestions={allTags}
           />
         </div>
 

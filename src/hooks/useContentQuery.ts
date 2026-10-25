@@ -297,7 +297,6 @@ export function useRenameTagMutation() {
   );
 }
 
-// Deleting a tag also unlinks it from everything it was attached to.
 export function useDeleteTagMutation() {
   return useApiMutation(
     (id: number) => apiSend<void>(`/api/tags/${id}`, 'DELETE'),

@@ -20,11 +20,7 @@ interface AccountTagFilterProps {
 const AccountTagFilter: React.FC<AccountTagFilterProps> = ({ tags, counts, activeIds, shown, total }) => {
   const { setTagFilter, clearTagFilter, tagMatchMode, setTagMatchMode } = useContentStore();
   const [isManageOpen, setIsManageOpen] = useState(false);
-
-  if (tags.length === 0 && total === 0) return null;
-
-  // Most-used first, so the chips visible without scrolling on a phone are the useful ones.
-  // Unused tags would only ever filter down to nothing.
+  
   const ordered = tags
     .filter((tag) => counts.has(tag.id) || activeIds.includes(tag.id))
     .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
@@ -111,6 +107,7 @@ const AccountTagFilter: React.FC<AccountTagFilterProps> = ({ tags, counts, activ
         onClose={() => setIsManageOpen(false)}
         tags={tags}
         counts={counts}
+        itemNoun="account"
       />
     </div>
   );

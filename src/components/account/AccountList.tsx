@@ -28,7 +28,6 @@ const AccountList: React.FC<{ isSelectingMode: boolean }> = ({ isSelectingMode }
     return result;
   }, [accounts]);
 
-  // A filtered tag may have been deleted since it was selected.
   const activeIds = tagFilter.filter((id) => tagById.has(id));
   const query = searchQuery.trim().toLowerCase();
 

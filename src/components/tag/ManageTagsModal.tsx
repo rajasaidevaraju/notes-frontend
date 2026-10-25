@@ -15,11 +15,11 @@ interface ManageTagsModalProps {
   onClose: () => void;
   tags: Tag[];
   counts: Map<number, number>;
+  itemNoun: string;
 }
 
-const plural = (n: number) => `${n} account${n === 1 ? '' : 's'}`;
-
-const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ isOpen, onClose, tags, counts }) => {
+const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ isOpen, onClose, tags, counts, itemNoun }) => {
+  const plural = (n: number) => `${n} ${itemNoun}${n === 1 ? '' : 's'}`;
   const createTagMutation = useCreateTagMutation();
   const renameTagMutation = useRenameTagMutation();
   const deleteTagMutation = useDeleteTagMutation();
@@ -166,7 +166,7 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({ isOpen, onClose, tags
           setDeleting(null);
         }}
         title="Delete Tag?"
-        message={`Remove "${deleting?.name}" from ${plural(counts.get(deleting?.id ?? 0) ?? 0)}? The accounts themselves are kept.`}
+        message={`Remove "${deleting?.name}" from ${plural(counts.get(deleting?.id ?? 0) ?? 0)}? The ${itemNoun}s themselves are kept.`}
         confirmText="Delete Tag"
         danger
       />
