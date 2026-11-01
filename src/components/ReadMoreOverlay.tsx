@@ -8,7 +8,7 @@ interface ReadMoreOverlayProps {
 const ReadMoreOverlay: React.FC<ReadMoreOverlayProps> = ({ label, onClick }) => (
   <button
     type="button"
-    className="group/more absolute inset-x-0 bottom-0 flex h-20 w-full items-end justify-center bg-linear-to-b from-transparent to-(--card-bg,var(--color-card)) pb-4 outline-none"
+    className="group/more absolute inset-x-0 bottom-0 flex h-20 max-h-full w-full items-end justify-center bg-linear-to-b from-transparent to-(--card-bg,var(--color-card)) pb-4 outline-none"
     onClick={(e) => {
       e.stopPropagation();
       onClick();

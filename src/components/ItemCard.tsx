@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { CardItem, ContentType, itemTitle } from '@/types/Types';
 import { ItemCardController } from './useItemCard';
 import { itemCardClass, itemTitleClass } from './itemCardStyles';
+import { formatFullDate, formatRelativeDate } from '@/utils/date';
 
 const LABELS: Record<ContentType, { noun: string; deleteTitle: string; deleteMessage: string }> = {
   note: {
@@ -78,32 +79,41 @@ const ItemCard: React.FC<ItemCardProps> = ({
       <ErrorMessage message={card.itemError} />
 
       <div className="flex flex-col items-start gap-2.5">
-        <div className="flex w-full items-center gap-2">
-          {isSelectingMode && (
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onToggleSelect}
-              onClick={(e) => e.stopPropagation()}
-              className="size-5 md:size-4.5"
-              aria-label={`Select ${labels.noun}`}
-            />
-          )}
-          <h3 className={itemTitleClass}>
-            {itemTitle(item)}
-            {titleSuffix}
-          </h3>
-          {!isSelectingMode && (
-            <ItemActionsMenu
-              title={`${itemTitle(item)}${titleSuffix ?? ''}`}
-              pinned={item.pinned}
-              hidden={hidden}
-              archived={archived}
-              minimized={card.minimized}
-              copyFeedback={card.copyFeedback}
-              onAdd={onAdd}
-              {...card.toolbar}
-            />
-          )}
+        <div className="flex w-full flex-col gap-0.5">
+          <div className="flex w-full items-center gap-2">
+            {isSelectingMode && (
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={onToggleSelect}
+                onClick={(e) => e.stopPropagation()}
+                className="size-5 md:size-4.5"
+                aria-label={`Select ${labels.noun}`}
+              />
+            )}
+            <h3 className={itemTitleClass}>
+              {itemTitle(item)}
+              {titleSuffix}
+            </h3>
+            {!isSelectingMode && (
+              <ItemActionsMenu
+                title={`${itemTitle(item)}${titleSuffix ?? ''}`}
+                pinned={item.pinned}
+                hidden={hidden}
+                archived={archived}
+                minimized={card.minimized}
+                copyFeedback={card.copyFeedback}
+                onAdd={onAdd}
+                {...card.toolbar}
+              />
+            )}
+          </div>
+          <time
+            dateTime={item.createdAt}
+            title={`Created ${formatFullDate(item.createdAt)}`}
+            className="text-xs text-muted-foreground"
+          >
+            {formatRelativeDate(item.createdAt)}
+          </time>
         </div>
         {!isSelectingMode && (
           <ItemToolbar

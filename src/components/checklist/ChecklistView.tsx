@@ -24,11 +24,12 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
   const updateChecklistItemMutation = useUpdateChecklistItemMutation();
   const [error, setError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
   useLayoutEffect(() => {
-    if (contentRef.current && !hideReadMore) {
-      setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight);
+    if (contentRef.current && listRef.current && !hideReadMore) {
+      setIsOverflowing(listRef.current.offsetHeight > contentRef.current.clientHeight);
     }
   }, [checklist.items, isMinimized, hideReadMore]);
 
@@ -58,7 +59,7 @@ const ChecklistView: React.FC<ChecklistViewProps> = ({
     <div className="relative">
       <div ref={contentRef} className={cn(itemBodyClass, hideReadMore && 'max-h-none')}>
         <ErrorMessage message={error} />
-        <div className="flex flex-col gap-0.5">
+        <div ref={listRef} className="flex flex-col gap-0.5">
           {checklist.items.length === 0 ? (
             <p className="text-xs opacity-60">No items</p>
           ) : (
